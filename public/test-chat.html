@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulasi Pengunjung - Chatwoot Live Widget</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 60px 20px;
+      background: #f8fafc;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
+    }
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 600px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    h1 {
+      margin-top: 0;
+      color: #0f172a;
+    }
+    p {
+      color: #64748b;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .badge {
+      display: inline-block;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    .hint {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f1f5f9;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Mode Pengunjung (Customer)</div>
+    <h1>Tes Live Chat Widget Chatwoot</h1>
+    <p>Halaman ini menyimulasikan website toko / aplikasi kamu yang dikunjungi oleh pelanggan.</p>
+    <div class="hint">
+      👉 <strong>Cara mencoba:</strong> Lihat di <strong>pojok kanan bawah</strong> layar ini. Klik gelembung obrolan biru untuk mengirim pesan pertama ke agen customer service!
+    </div>
+  </div>
+
+  <!-- Chatwoot Widget Script -->
+  <script>
+    (function(d,t) {
+      var BASE_URL="http://localhost:3000";
+      var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+      g.src=BASE_URL+"/packs/js/sdk.js";
+      g.async = true;
+      s.parentNode.insertBefore(g,s);
+      g.onload=function(){
+        window.chatwootSDK.run({
+          websiteToken: 'tBjzD5mxwbZxTuZY3TVvx5vY',
+          baseUrl: BASE_URL
+        })
+      }
+    })(document,"script");
+  </script>
+</body>
+</html>
