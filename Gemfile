@@ -187,6 +187,8 @@ gem 'omniauth-google-oauth2', '>= 1.1.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0', '>= 1.0.2'
 
 gem 'iso-639'
+gem 'neighbor'
+gem 'pgvector'
 gem 'ruby-openai'
 
 # OpenTelemetry for LLM observability

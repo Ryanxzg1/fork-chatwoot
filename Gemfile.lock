@@ -1125,6 +1125,7 @@ DEPENDENCIES
   maxminddb
   meta_request (>= 0.8.3)
   mock_redis
+  neighbor
   net-smtp (~> 0.3.4)
   newrelic-sidekiq-metrics (>= 1.6.2)
   newrelic_rpm
@@ -1138,6 +1139,7 @@ DEPENDENCIES
   opentelemetry-sdk
   pg
   pg_search
+  pgvector
   procore-sift
   pry-rails
   puma (~> 7.2, >= 7.2.1)
