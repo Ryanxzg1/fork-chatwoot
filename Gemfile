@@ -168,9 +168,6 @@ gem 'working_hours'
 # full text search for articles
 gem 'pg_search'
 
-# Subscriptions, Billing
-gem 'stripe', '~> 18.0'
-
 ## - helper gems --##
 ## to populate db with sample data
 gem 'faker'
@@ -189,30 +186,14 @@ gem 'omniauth-saml'
 gem 'omniauth-google-oauth2', '>= 1.1.3'
 gem 'omniauth-rails_csrf_protection', '~> 1.0', '>= 1.0.2'
 
-## Gems for reponse bot
-# adds cosine similarity to postgres using vector extension
-gem 'neighbor'
-gem 'pgvector'
-# Convert Website HTML to Markdown
-gem 'reverse_markdown'
-
 gem 'iso-639'
 gem 'ruby-openai'
-gem 'ai-agents', '>= 0.12.0'
-
-# TODO: Move this gem as a dependency of ai-agents
-gem 'ruby_llm', '>= 1.14.1'
-gem 'ruby_llm-schema'
-
-gem 'cld3', '~> 3.7'
 
 # OpenTelemetry for LLM observability
 gem 'opentelemetry-sdk'
 gem 'opentelemetry-exporter-otlp'
 
 gem 'shopify_api'
-
-gem 'firecrawl-sdk', '~> 1.0', require: 'firecrawl'
 
 ### Gems required only in specific deployment environments ###
 ##############################################################

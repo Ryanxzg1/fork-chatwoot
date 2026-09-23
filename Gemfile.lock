@@ -1060,7 +1060,6 @@ DEPENDENCIES
   administrate (>= 0.20.1)
   administrate-field-active_storage (>= 1.0.3)
   administrate-field-belongs_to_search (>= 0.10.0)
-  ai-agents (>= 0.12.0)
   annotaterb
   attr_extras
   audited (~> 5.4, >= 5.4.1)
@@ -1074,7 +1073,6 @@ DEPENDENCIES
   bullet
   bundle-audit
   byebug
-  cld3 (~> 3.7)
   climate_control
   commonmarker
   csv-safe
@@ -1095,7 +1093,6 @@ DEPENDENCIES
   faker
   faraday_middleware-aws-sigv4
   fcm
-  firecrawl-sdk (~> 1.0)
   flag_shih_tzu
   foreman
   gemoji
@@ -1128,7 +1125,6 @@ DEPENDENCIES
   maxminddb
   meta_request (>= 0.8.3)
   mock_redis
-  neighbor
   net-smtp (~> 0.3.4)
   newrelic-sidekiq-metrics (>= 1.6.2)
   newrelic_rpm
@@ -1142,7 +1138,6 @@ DEPENDENCIES
   opentelemetry-sdk
   pg
   pg_search
-  pgvector
   procore-sift
   pry-rails
   puma (~> 7.2, >= 7.2.1)
@@ -1157,7 +1152,6 @@ DEPENDENCIES
   redis-namespace
   responders (>= 3.1.1)
   rest-client
-  reverse_markdown
   rspec-rails (>= 6.1.5)
   rspec_junit_formatter
   rubocop
@@ -1166,8 +1160,6 @@ DEPENDENCIES
   rubocop-rails
   rubocop-rspec
   ruby-openai
-  ruby_llm (>= 1.14.1)
-  ruby_llm-schema
   scout_apm
   scss_lint
   searchkick
@@ -1190,7 +1182,6 @@ DEPENDENCIES
   squasher
   ssrf_filter (~> 1.5)
   stackprof
-  stripe (~> 18.0)
   telephone_number
   test-prof
   tidewave

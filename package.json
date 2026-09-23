@@ -34,7 +34,6 @@
     }
   ],
   "dependencies": {
-    "@amplitude/analytics-browser": "^2.11.10",
     "@breezystack/lamejs": "^1.2.7",
     "@chatwoot/ninja-keys": "1.2.3",
     "@chatwoot/prosemirror-schema": "1.4.6",
@@ -56,7 +55,6 @@
     "@sindresorhus/slugify": "2.2.1",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/vue-table": "^8.20.5",
-    "@twilio/voice-sdk": "^2.12.4",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vue/compiler-sfc": "^3.5.8",
     "@vuelidate/core": "^2.0.3",
