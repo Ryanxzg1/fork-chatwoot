@@ -14,10 +14,6 @@ defineProps({
     type: Boolean,
     required: true,
   },
-  showStatusFilter: {
-    type: Boolean,
-    default: true,
-  },
 });
 
 const emit = defineEmits(['changeFilter']);
@@ -27,43 +23,9 @@ const { t } = useI18n();
 
 const { updateUISettings } = useUISettings();
 
-const chatStatusFilter = useMapGetter('getChatStatusFilter');
 const chatSortFilter = useMapGetter('getChatSortFilter');
 
 const [showActionsDropdown, toggleDropdown] = useToggle();
-
-const currentStatusFilter = computed(() => {
-  return chatStatusFilter.value || wootConstants.STATUS_TYPE.OPEN;
-});
-
-const currentSortBy = computed(() => {
-  return (
-    chatSortFilter.value || wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC
-  );
-});
-
-const chatStatusOptions = computed(() => [
-  {
-    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.open.TEXT'),
-    value: 'open',
-  },
-  {
-    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.resolved.TEXT'),
-    value: 'resolved',
-  },
-  {
-    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.pending.TEXT'),
-    value: 'pending',
-  },
-  {
-    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.snoozed.TEXT'),
-    value: 'snoozed',
-  },
-  {
-    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.all.TEXT'),
-    value: 'all',
-  },
-]);
 
 const chatSortOptions = computed(() => [
   {
@@ -108,37 +70,27 @@ const chatSortOptions = computed(() => [
   },
 ]);
 
-const activeChatStatusLabel = computed(
-  () =>
-    chatStatusOptions.value.find(m => m.value === chatStatusFilter.value)
-      ?.label || ''
-);
-
 const activeChatSortLabel = computed(
   () =>
     chatSortOptions.value.find(m => m.value === chatSortFilter.value)?.label ||
     ''
 );
 
-const saveSelectedFilter = (type, value) => {
+const saveSelectedFilter = value => {
+  const currentStatus =
+    store.getters.getChatStatusFilter || wootConstants.STATUS_TYPE.OPEN;
   updateUISettings({
     conversations_filter_by: {
-      status: type === 'status' ? value : currentStatusFilter.value,
-      order_by: type === 'sort' ? value : currentSortBy.value,
+      status: currentStatus,
+      order_by: value,
     },
   });
-};
-
-const handleStatusChange = value => {
-  emit('changeFilter', value, 'status');
-  store.dispatch('setChatStatusFilter', value);
-  saveSelectedFilter('status', value);
 };
 
 const handleSortChange = value => {
   emit('changeFilter', value, 'sort');
   store.dispatch('setChatSortFilter', value);
-  saveSelectedFilter('sort', value);
+  saveSelectedFilter(value);
 };
 </script>
 
@@ -161,25 +113,7 @@ const handleSortChange = value => {
         'ltr:right-0 rtl:left-0': isOnExpandedLayout,
       }"
     >
-      <div
-        v-if="showStatusFilter"
-        class="flex items-center justify-between gap-2"
-      >
-        <span class="text-sm truncate text-n-slate-12">
-          {{ $t('CHAT_LIST.CHAT_SORT.STATUS') }}
-        </span>
-        <SelectMenu
-          :model-value="chatStatusFilter"
-          :options="chatStatusOptions"
-          :label="activeChatStatusLabel"
-          :sub-menu-position="isOnExpandedLayout ? 'left' : 'right'"
-          @update:model-value="handleStatusChange"
-        />
-      </div>
-      <div
-        class="flex items-center justify-between gap-2"
-        :class="{ 'mt-4': showStatusFilter }"
-      >
+      <div class="flex items-center justify-between gap-2">
         <span class="text-sm truncate text-n-slate-12">
           {{ $t('CHAT_LIST.CHAT_SORT.ORDER_BY') }}
         </span>

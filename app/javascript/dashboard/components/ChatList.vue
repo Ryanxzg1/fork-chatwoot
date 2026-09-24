@@ -13,6 +13,7 @@ import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import ConversationFilter from 'next/filter/ConversationFilter.vue';
 import SaveCustomView from 'next/filter/SaveCustomView.vue';
 import ChatTypeTabs from './widgets/ChatTypeTabs.vue';
+import ConversationStatusFilterPills from './widgets/conversation/ConversationStatusFilterPills.vue';
 import DeleteCustomViews from 'dashboard/routes/dashboard/customviews/DeleteCustomViews.vue';
 import ConversationBulkActions from './widgets/conversation/conversationBulkActions/Index.vue';
 import TeleportWithDirection from 'dashboard/components-next/TeleportWithDirection.vue';
@@ -61,7 +62,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['conversationLoad']);
-const { uiSettings } = useUISettings();
+const { uiSettings, updateUISettings } = useUISettings();
 const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
@@ -633,12 +634,25 @@ function updateAssigneeTab(selectedTab) {
   }
 }
 
+function onStatusChange(status) {
+  activeStatus.value = status;
+  store.dispatch('setChatStatusFilter', status);
+  const { conversations_filter_by: filterBy = {} } = uiSettings.value;
+  updateUISettings({
+    conversations_filter_by: {
+      ...filterBy,
+      status,
+    },
+  });
+  resetAndFetchData();
+}
+
 function onBasicFilterChange(value, type) {
   if (type === 'status') {
-    activeStatus.value = value;
-  } else {
-    activeSortBy.value = value;
+    onStatusChange(value);
+    return;
   }
+  activeSortBy.value = value;
 
   if (type === 'sort' && hasAppliedFiltersOrActiveFolders.value) {
     resetBulkActions();
@@ -904,7 +918,6 @@ watch(appliedFilters, () => resetBulkActions());
       :contact-filter="appliedContactFilter"
       :has-applied-filters="hasAppliedFilters"
       :has-active-folders="hasActiveFolders"
-      :active-status="activeStatus"
       :is-on-expanded-layout="isOnExpandedLayout"
       :conversation-stats="conversationStats"
       :is-list-loading="chatListLoading && !conversationList.length"
@@ -942,6 +955,12 @@ watch(appliedFilters, () => resetBulkActions());
       :active-tab="activeAssigneeTab"
       is-compact
       @chat-tab-change="updateAssigneeTab"
+    />
+
+    <ConversationStatusFilterPills
+      v-if="!hasAppliedFiltersOrActiveFolders"
+      :active-status="activeStatus"
+      @status-change="onStatusChange"
     />
 
     <p
