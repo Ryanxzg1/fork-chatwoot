@@ -86,12 +86,11 @@ class WidgetsController < ActionController::Base
   end
 
   def allow_iframe_requests
-    if @web_widget.allowed_domains.blank? || embedded_from_non_web_origin?
-      response.headers.delete('X-Frame-Options')
-    else
-      domains = @web_widget.allowed_domains.split(',').map(&:strip).join(' ')
-      response.headers['Content-Security-Policy'] = "frame-ancestors #{domains}"
-    end
+    response.headers.delete('X-Frame-Options')
+    return if @web_widget.allowed_domains.blank? || embedded_from_non_web_origin?
+
+    domains = @web_widget.allowed_domains.split(',').map(&:strip).join(' ')
+    response.headers['Content-Security-Policy'] = "frame-ancestors #{domains}"
   end
 
   # Mobile WebViews (iOS/Android) load content from file:// or null origins,

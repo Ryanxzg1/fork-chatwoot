@@ -8,6 +8,8 @@ module TrackSessionActivity
   private
 
   def update_session_activity
+    # Skip for devise controllers to prevent method clashes (e.g. resource_class) in auth/super_admin flows
+    return if devise_controller?
     return unless current_user
     return if request.headers['client'].blank?
 

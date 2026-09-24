@@ -70,9 +70,20 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
     account = Account.find(params[:id])
 
     DeleteObjectJob.perform_later(account) if account.present?
-    # rubocop:disable Rails/I18nLocaleTexts
-    redirect_back(fallback_location: [namespace, requested_resource], notice: 'Account deletion is in progress.')
-    # rubocop:enable Rails/I18nLocaleTexts
+    notice_text = 'Account deletion is in progress.'
+    respond_to do |format|
+      format.html do
+        redirect_back(fallback_location: [namespace, requested_resource], notice: notice_text)
+      end
+      format.json do
+        redirect_url = begin
+          polymorphic_path([namespace, Account])
+        rescue StandardError
+          nil
+        end
+        render json: { success: true, message: notice_text, redirect_url: redirect_url }, status: :ok
+      end
+    end
   end
 
   private

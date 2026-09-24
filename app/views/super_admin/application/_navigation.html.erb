@@ -20,17 +20,17 @@ as defined by the routes in the `admin/` namespace
   }
 %>
 
-<div class="border-slate-100 border-r w-56 flex-shrink-0 justify-between h-full flex flex-col" role="navigation">
-  <div>
-    <div class="flex mx-4 mb-4 border-slate-100 border-b py-6">
+<div class="border-slate-100 border-r w-56 flex-shrink-0 h-full flex flex-col bg-white" role="navigation">
+  <div class="flex-1 overflow-y-auto">
+    <div class="flex mx-4 mb-2 border-slate-100 border-b py-5">
       <%= link_to image_tag('/brand-assets/logo_thumbnail.svg', alt: 'Chatwoot Admin Dashboard', class: 'h-10'), super_admin_root_url %>
       <div class="flex flex-col ml-3">
-        <div class="text-sm">Chatwoot <%= Chatwoot.config[:version] %></div>
-        <div class="text-xs text-slate-700 mt-0.5">Super Admin Console</div>
+        <div class="text-sm font-semibold text-slate-800">Chatwoot <%= Chatwoot.config[:version] %></div>
+        <div class="text-xs text-slate-500 mt-0.5">Super Admin Console</div>
       </div>
     </div>
 
-    <ul class="my-4">
+    <ul class="my-2">
       <%= render partial: "nav_item", locals: { icon: 'icon-grid-line', url: super_admin_root_url, label: 'Dashboard' } %>
       <% Administrate::Namespace.new(namespace).resources.each do |resource| %>
         <% next if ["account_users", "access_tokens", "installation_configs", "dashboard", "devise/sessions", "app_configs", "instance_statuses", "settings", "push_diagnostics"].include?  resource.resource %>
@@ -45,14 +45,18 @@ as defined by the routes in the `admin/` namespace
       <% end %>
       <%= render 'settings_menu', open: settings_open? %>
     </ul>
-  </div>
-  <div>
-    <ul class="my-4">
-      <%= render partial: "nav_item", locals: { icon: 'icon-mist-fill', url: sidekiq_web_url, label: 'Sidekiq Dashboard' } %>
-      <%= render partial: "nav_item", locals: { icon: 'icon-health-book-line', url: super_admin_instance_status_url, label: 'Instance Health' } %>
-      <%= render partial: "nav_item", locals: { icon: 'icon-mail-send-fill', url: super_admin_push_diagnostics_url, label: 'Push Diagnostics' } %>
-      <%= render partial: "nav_item", locals: { icon: 'icon-dashboard-line', url: '/', label: 'Agent Dashboard' } %>
-      <%= render partial: "nav_item", locals: { icon: 'icon-logout-circle-r-line', url: super_admin_logout_url, label: 'Logout' } %>
-    </ul>
+
+    <div class="pt-3 mt-3 border-t border-slate-100">
+      <div class="px-4 mb-2 text-xxs font-semibold uppercase tracking-wider text-slate-400">
+        System & Tools
+      </div>
+      <ul class="my-1">
+        <%= render partial: "nav_item", locals: { icon: 'icon-mist-fill', url: sidekiq_web_url, label: 'Sidekiq Dashboard' } %>
+        <%= render partial: "nav_item", locals: { icon: 'icon-health-book-line', url: super_admin_instance_status_url, label: 'Instance Health' } %>
+        <%= render partial: "nav_item", locals: { icon: 'icon-mail-send-fill', url: super_admin_push_diagnostics_url, label: 'Push Diagnostics' } %>
+        <%= render partial: "nav_item", locals: { icon: 'icon-dashboard-line', url: '/', label: 'Agent Dashboard' } %>
+        <%= render partial: "nav_item", locals: { icon: 'icon-logout-circle-r-line', url: super_admin_logout_url, label: 'Logout' } %>
+      </ul>
+    </div>
   </div>
 </div>

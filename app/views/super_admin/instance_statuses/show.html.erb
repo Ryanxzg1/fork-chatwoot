@@ -7,17 +7,22 @@
   </h1>
 </header>
 <section class="main-content__body">
-  <table>
-  <tr>
-    <th>Metric</th>
-    <th>Value</th>
-  </tr>
-  <% @metrics.each do |key,value| %>
-   <tr>
-   <td> <%= key %> </td>
-   <td> <%= value %></td>
-  </tr>
-  <% end %>
-</table>
-
+  <div class="border border-slate-100 rounded-lg overflow-hidden bg-white shadow-sm">
+    <table class="w-full text-sm text-left">
+      <thead class="text-xs uppercase bg-slate-25 text-slate-500 border-b border-slate-100">
+        <tr>
+          <th scope="col" class="px-6 py-3 font-semibold">Metric</th>
+          <th scope="col" class="px-6 py-3 font-semibold">Value</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        <% @metrics.each do |key, value| %>
+          <tr class="hover:bg-slate-25 transition-colors">
+            <td class="px-6 py-3.5 font-medium text-slate-700 whitespace-nowrap"><%= key %></td>
+            <td class="px-6 py-3.5 text-slate-900 font-mono text-xs"><%= value %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 </section>

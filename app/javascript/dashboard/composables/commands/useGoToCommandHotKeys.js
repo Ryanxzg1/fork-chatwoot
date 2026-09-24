@@ -19,7 +19,6 @@ import {
   ICON_MEGAPHONE,
   ICON_MESSAGE_CIRCLE,
   ICON_MESSAGE_QUOTE,
-  ICON_PHONE,
   ICON_REPEAT,
   ICON_SMILE,
   ICON_SQUARE_USER,
@@ -55,21 +54,6 @@ const GO_TO_COMMANDS = [
     section: SECTION_GENERAL,
     icon: ICON_CONTACT,
     routeName: 'contacts_dashboard_index',
-  },
-  {
-    id: 'goto_captain',
-    title: 'COMMAND_BAR.COMMANDS.GO_TO_CAPTAIN',
-    section: SECTION_GENERAL,
-    icon: ICON_BOT,
-    routeName: 'captain_assistants_index',
-    params: { navigationPath: 'captain_assistants_overview_index' },
-  },
-  {
-    id: 'goto_calls_dashboard',
-    title: 'COMMAND_BAR.COMMANDS.GO_TO_CALLS_DASHBOARD',
-    section: SECTION_GENERAL,
-    icon: ICON_PHONE,
-    routeName: 'calls_dashboard_index',
   },
   {
     id: 'goto_campaigns',
@@ -273,13 +257,25 @@ export function useGoToCommandHotKeys(isPaywalled = ref(false)) {
 
   // Resolve by name, not path: paths can land on redirect records with no meta,
   // which would leave the command ungated.
-  const resolveRoute = command =>
-    router.resolve({
-      name: command.routeName,
-      params: { accountId: currentAccountId.value, ...command.params },
-    });
+  const resolveRoute = command => {
+    try {
+      if (
+        typeof router.hasRoute === 'function' &&
+        !router.hasRoute(command.routeName)
+      ) {
+        return null;
+      }
+      return router.resolve({
+        name: command.routeName,
+        params: { accountId: currentAccountId.value, ...command.params },
+      });
+    } catch {
+      return null;
+    }
+  };
 
   const isAvailable = route => {
+    if (!route) return false;
     const { meta } = route;
 
     if (!isFeatureFlagEnabled(meta?.featureFlag)) return false;
@@ -292,7 +288,7 @@ export function useGoToCommandHotKeys(isPaywalled = ref(false)) {
   const goToCommandHotKeys = computed(() =>
     GO_TO_COMMANDS.flatMap(command => {
       const route = resolveRoute(command);
-      if (!isAvailable(route)) return [];
+      if (!route || !isAvailable(route)) return [];
 
       return {
         id: command.id,

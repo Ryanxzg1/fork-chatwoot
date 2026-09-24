@@ -1,0 +1,11 @@
+<div class="field-unit__label">
+  <%= f.label field.attribute %>
+</div>
+<div class="field-unit__field">
+  <%= f.select(
+        field.attribute,
+        options_for_select(field.selectable_options, field.data),
+        {},
+        class: 'rounded border border-n-weak bg-white p-2 text-sm text-slate-800 focus:outline-none focus:border-woot-500 min-w-[220px]'
+      ) %>
+</div>

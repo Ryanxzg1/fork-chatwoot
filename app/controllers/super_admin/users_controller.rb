@@ -49,7 +49,11 @@ class SuperAdmin::UsersController < SuperAdmin::ApplicationController
   def destroy_avatar
     avatar = requested_resource.avatar
     avatar.purge
-    redirect_back(fallback_location: super_admin_users_path)
+    notice = 'Avatar removed successfully'
+    respond_to do |format|
+      format.html { redirect_back(fallback_location: super_admin_users_path) }
+      format.json { render json: { success: true, message: notice }, status: :ok }
+    end
   end
 
   def resend_confirmation

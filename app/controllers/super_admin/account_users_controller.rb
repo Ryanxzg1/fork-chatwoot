@@ -19,11 +19,38 @@ class SuperAdmin::AccountUsersController < SuperAdmin::ApplicationController
 
   def destroy
     if requested_resource.destroy
-      flash[:notice] = translate_with_resource('destroy.success')
+      handle_destroy_success
     else
-      flash[:error] = requested_resource.errors.full_messages.join('<br/>')
+      handle_destroy_failure
     end
-    redirect_back(fallback_location: [namespace, requested_resource.account])
+  end
+
+  private
+
+  def handle_destroy_success
+    notice = translate_with_resource('destroy.success')
+    respond_to do |format|
+      format.html do
+        flash[:notice] = notice
+        redirect_back(fallback_location: [namespace, requested_resource.account])
+      end
+      format.json do
+        render json: { success: true, message: notice }, status: :ok
+      end
+    end
+  end
+
+  def handle_destroy_failure
+    error = requested_resource.errors.full_messages.join('<br/>')
+    respond_to do |format|
+      format.html do
+        flash[:error] = error
+        redirect_back(fallback_location: [namespace, requested_resource.account])
+      end
+      format.json do
+        render json: { success: false, message: error }, status: :unprocessable_entity
+      end
+    end
   end
 
   # Override this method to specify custom lookup behavior.

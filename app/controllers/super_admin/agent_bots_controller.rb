@@ -45,7 +45,11 @@ class SuperAdmin::AgentBotsController < SuperAdmin::ApplicationController
   def destroy_avatar
     avatar = requested_resource.avatar
     avatar.purge
-    redirect_back(fallback_location: super_admin_agent_bots_path)
+    notice = 'Avatar removed successfully'
+    respond_to do |format|
+      format.html { redirect_back(fallback_location: super_admin_agent_bots_path) }
+      format.json { render json: { success: true, message: notice }, status: :ok }
+    end
   end
 
   def scoped_resource
