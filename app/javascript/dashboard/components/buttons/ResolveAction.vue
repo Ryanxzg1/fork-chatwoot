@@ -152,6 +152,7 @@ const keyboardEvents = {
       event.preventDefault();
       onCmdResolveConversation();
     },
+    allowOnFocusedInput: true,
   },
   '$mod+Alt+KeyE': {
     action: async event => {
@@ -166,6 +167,7 @@ const keyboardEvents = {
       }
       event.preventDefault();
     },
+    allowOnFocusedInput: true,
   },
 };
 

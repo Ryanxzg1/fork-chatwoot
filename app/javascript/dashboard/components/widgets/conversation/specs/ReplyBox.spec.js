@@ -327,6 +327,91 @@ describe('ReplyBox', () => {
         modelValue: 'half typed reply',
       });
     });
+
+    it('preserves draft attachments when switching between conversations', async () => {
+      const { wrapper, store } = mountWith({
+        inbox: { channel_type: 'Channel::WebWidget' },
+        chat: { id: 1, status: 'open' },
+      });
+      await nextTick();
+
+      const mockFile = {
+        file: new File(['dummy'], 'test.png', { type: 'image/png' }),
+      };
+      wrapper.vm.attachedFiles = [mockFile];
+
+      store.commit('selectChat', {
+        ...REPLIABLE,
+        id: 2,
+        status: 'open',
+      });
+      await nextTick();
+      expect(wrapper.vm.attachedFiles).toEqual([]);
+
+      store.commit('selectChat', {
+        ...REPLIABLE,
+        id: 1,
+        status: 'open',
+      });
+      await nextTick();
+      expect(wrapper.vm.attachedFiles).toEqual([mockFile]);
+    });
+
+    it('does not allow attaching more than 5 files', () => {
+      const { wrapper } = mountWith({
+        inbox: { channel_type: 'Channel::WebWidget' },
+        chat: { id: 1, status: 'open' },
+      });
+
+      wrapper.vm.attachedFiles = [
+        { resource: 'file1' },
+        { resource: 'file2' },
+        { resource: 'file3' },
+        { resource: 'file4' },
+        { resource: 'file5' },
+      ];
+
+      const extraFile = {
+        file: new File(['extra'], 'extra.png', { type: 'image/png' }),
+      };
+      wrapper.vm.attachFile({ file: extraFile });
+
+      expect(wrapper.vm.attachedFiles.length).toBe(5);
+    });
+
+    it('evicts the oldest conversation draft attachments when exceeding 10 conversations', async () => {
+      const { wrapper, store } = mountWith({
+        inbox: { channel_type: 'Channel::WebWidget' },
+        chat: { id: 1, status: 'open' },
+      });
+      await nextTick();
+
+      for (let i = 1; i <= 10; i += 1) {
+        wrapper.vm.attachedFiles = [{ id: `file-${i}` }];
+        store.commit('selectChat', {
+          ...REPLIABLE,
+          id: i + 1,
+          status: 'open',
+        });
+        // eslint-disable-next-line no-await-in-loop
+        await nextTick();
+      }
+
+      expect(Object.keys(wrapper.vm.draftAttachments).length).toBe(10);
+      expect(wrapper.vm.draftAttachments[1]).toBeDefined();
+
+      wrapper.vm.attachedFiles = [{ id: 'file-11' }];
+      store.commit('selectChat', {
+        ...REPLIABLE,
+        id: 12,
+        status: 'open',
+      });
+      await nextTick();
+
+      expect(Object.keys(wrapper.vm.draftAttachments).length).toBe(10);
+      expect(wrapper.vm.draftAttachments[1]).toBeUndefined();
+      expect(wrapper.vm.draftAttachments[11]).toBeDefined();
+    });
   });
 
   it('offers content templates on Twilio WhatsApp when no bot owns the conversation', () => {

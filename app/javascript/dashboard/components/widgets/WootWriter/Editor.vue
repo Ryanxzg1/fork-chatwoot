@@ -713,11 +713,11 @@ async function pasteInlineImageFromClipboard() {
 useKeyboardEvents({
   'Alt+KeyP': {
     action: focusEditorInputField,
-    allowOnFocusedInput: false,
+    allowOnFocusedInput: true,
   },
   'Alt+KeyL': {
     action: focusEditorInputField,
-    allowOnFocusedInput: false,
+    allowOnFocusedInput: true,
   },
   '$mod+Shift+KeyV': {
     action: pasteInlineImageFromClipboard,

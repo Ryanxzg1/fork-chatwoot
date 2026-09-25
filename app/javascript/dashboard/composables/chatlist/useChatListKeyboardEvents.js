@@ -47,11 +47,11 @@ export function useChatListKeyboardEvents(listRef) {
   };
   const keyboardEvents = {
     'Alt+KeyJ': {
-      action: () => handleConversationNavigation('previous'),
+      action: () => handleConversationNavigation('next'),
       allowOnFocusedInput: true,
     },
     'Alt+KeyK': {
-      action: () => handleConversationNavigation('next'),
+      action: () => handleConversationNavigation('previous'),
       allowOnFocusedInput: true,
     },
   };

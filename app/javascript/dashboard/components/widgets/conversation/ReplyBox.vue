@@ -65,6 +65,9 @@ const EmojiIconPicker = defineAsyncComponent(
     import('dashboard/components-next/emoji-icon-picker/EmojiIconPicker.vue')
 );
 
+const MAX_ATTACHMENT_COUNT = 5;
+const MAX_DRAFT_ATTACHMENTS_CONVERSATIONS = 10;
+
 export default {
   components: {
     ArticleSearchPopover,
@@ -167,6 +170,7 @@ export default {
       isFocused: false,
       showEmojiPicker: false,
       attachedFiles: [],
+      draftAttachments: {},
       isRecordingAudio: false,
       recordingAudioState: '',
       recordingAudioDurationText: '',
@@ -576,8 +580,23 @@ export default {
     },
     conversationIdByRoute(conversationId, oldConversationId) {
       if (conversationId !== oldConversationId) {
+        if (oldConversationId) {
+          if (this.attachedFiles && this.attachedFiles.length) {
+            delete this.draftAttachments[oldConversationId];
+            this.draftAttachments[oldConversationId] = [...this.attachedFiles];
+            const draftKeys = Object.keys(this.draftAttachments);
+            if (draftKeys.length > MAX_DRAFT_ATTACHMENTS_CONVERSATIONS) {
+              delete this.draftAttachments[draftKeys[0]];
+            }
+          } else {
+            delete this.draftAttachments[oldConversationId];
+          }
+        }
         this.switchDraftContext(conversationId, this.effectiveReplyMode);
-        this.resetRecorderAndClearAttachments();
+        this.resetAudioRecorderInput();
+        this.attachedFiles = this.draftAttachments[conversationId]
+          ? [...this.draftAttachments[conversationId]]
+          : [];
         this.isQuoteRemoved = false;
       }
     },
@@ -795,6 +814,18 @@ export default {
       // Don't handle paste if editor is disabled
       if (this.isEditorDisabled) return;
       if (!this.showFileUpload && !this.isOnPrivateNote) return;
+
+      if (
+        e.clipboardData?.files?.length > 0 &&
+        this.attachedFiles.length >= MAX_ATTACHMENT_COUNT
+      ) {
+        useAlert(
+          this.$t('CONVERSATION.ATTACHMENT_LIMIT', {
+            MAX_ATTACHMENT_LIMIT: MAX_ATTACHMENT_COUNT,
+          })
+        );
+        return;
+      }
 
       // Filter valid files (non-zero size)
       Array.from(e.clipboardData.files)
@@ -1051,6 +1082,9 @@ export default {
         );
       }
       this.attachedFiles = [];
+      if (this.conversationIdByRoute) {
+        delete this.draftAttachments[this.conversationIdByRoute];
+      }
       this.isRecordingAudio = false;
       this.resetReplyToMessage();
       this.resetAudioRecorderInput();
@@ -1130,6 +1164,15 @@ export default {
     },
     attachFile({ blob, file }) {
       if (!this.showFileUpload && !this.isOnPrivateNote) return;
+
+      if (this.attachedFiles.length >= MAX_ATTACHMENT_COUNT) {
+        useAlert(
+          this.$t('CONVERSATION.ATTACHMENT_LIMIT', {
+            MAX_ATTACHMENT_LIMIT: MAX_ATTACHMENT_COUNT,
+          })
+        );
+        return;
+      }
 
       const reader = new FileReader();
       reader.readAsDataURL(file.file);
