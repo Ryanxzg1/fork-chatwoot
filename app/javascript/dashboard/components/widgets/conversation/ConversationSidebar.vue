@@ -4,7 +4,6 @@ import ContactPanel from 'dashboard/routes/dashboard/conversation/ContactPanel.v
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useWindowSize } from '@vueuse/core';
 import { vOnClickOutside } from '@vueuse/components';
-import wootConstants from 'dashboard/constants/globals';
 
 defineProps({
   currentChat: {
@@ -12,6 +11,8 @@ defineProps({
     type: Object,
   },
 });
+
+const DESKTOP_EXPANDED_BREAKPOINT = 1280;
 
 const { uiSettings, updateUISettings } = useUISettings();
 const { width: windowWidth } = useWindowSize();
@@ -26,7 +27,7 @@ const activeTab = computed(() => {
 });
 
 const isSmallScreen = computed(
-  () => windowWidth.value < wootConstants.SMALL_SCREEN_BREAKPOINT
+  () => windowWidth.value < DESKTOP_EXPANDED_BREAKPOINT
 );
 
 const closeContactPanel = () => {
@@ -51,13 +52,8 @@ const closeContactPanel = () => {
         ],
       },
     ]"
-    class="bg-n-surface-2 h-full overflow-hidden flex flex-col fixed top-0 z-40 w-full max-w-sm transition-transform duration-300 ease-in-out ltr:right-0 rtl:left-0 md:static md:w-[320px] md:min-w-[320px] ltr:border-l rtl:border-r border-n-weak 2xl:min-w-[360px] 2xl:w-[360px] shadow-lg md:shadow-none"
-    :class="[
-      {
-        'md:flex': activeTab === 0,
-        'md:hidden': activeTab !== 0,
-      },
-    ]"
+    class="bg-n-surface-2 h-full overflow-hidden flex-col fixed top-0 z-40 w-full max-w-sm transition-transform duration-300 ease-in-out ltr:right-0 rtl:left-0 xl:static xl:w-[320px] xl:min-w-[320px] ltr:border-l rtl:border-r border-n-weak 2xl:min-w-[360px] 2xl:w-[360px] shadow-lg xl:shadow-none"
+    :class="activeTab === 0 ? 'flex' : 'hidden'"
   >
     <div class="flex flex-1 overflow-auto">
       <ContactPanel

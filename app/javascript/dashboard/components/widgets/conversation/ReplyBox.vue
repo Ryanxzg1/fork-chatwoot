@@ -1611,10 +1611,10 @@ export default {
 }
 
 .reply-box {
-  @apply relative mb-2 mx-2 border border-n-weak rounded-xl bg-n-solid-1;
+  @apply relative mb-2 mx-2 border border-n-weak rounded-xl bg-n-solid-1 transition-all duration-150;
 
   &.is-private {
-    @apply bg-n-solid-amber dark:border-n-amber-3/10 border-n-amber-12/5;
+    @apply bg-n-solid-amber border-n-amber-9 dark:border-n-amber-9 ring-2 ring-n-amber-9/30 dark:ring-n-amber-9/40;
   }
 }
 

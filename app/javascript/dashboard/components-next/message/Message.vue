@@ -549,6 +549,7 @@ provideMessageContext({
   <div
     v-if="shouldRenderMessage"
     :id="`message${props.id}`"
+    role="listitem"
     class="flex w-full mb-2 message-bubble-container"
     :data-message-id="props.id"
     :class="[

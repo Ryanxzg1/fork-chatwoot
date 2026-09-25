@@ -154,12 +154,21 @@ export default {
   <div
     class="flex justify-between gap-2 h-[3.25rem] items-center ltr:pl-3 ltr:pr-2 rtl:pr-3 rtl:pl-2"
   >
-    <EditorModeToggle
-      :mode="mode"
-      :disabled="disabled"
-      :is-reply-restricted="isReplyRestricted"
-      @toggle-mode="handleModeToggle"
-    />
+    <div class="flex items-center gap-2">
+      <EditorModeToggle
+        :mode="mode"
+        :disabled="disabled"
+        :is-reply-restricted="isReplyRestricted"
+        @toggle-mode="handleModeToggle"
+      />
+      <div
+        v-if="mode === REPLY_EDITOR_MODES.NOTE"
+        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-n-amber-3 dark:bg-n-amber-3/20 text-n-amber-11 text-xs font-semibold select-none border border-n-amber-6/50"
+      >
+        <span class="i-ph-lock-key-fill w-3.5 h-3.5" />
+        <span>{{ $t('CONVERSATION.REPLYBOX.PRIVATE_NOTE') }}</span>
+      </div>
+    </div>
     <div class="flex items-center mx-4 my-0">
       <div v-if="isMessageLengthReachingThreshold" class="text-xs">
         <span :class="charLengthClass">
