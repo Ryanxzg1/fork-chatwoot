@@ -323,7 +323,7 @@ class ActionCableConnector extends BaseActionCableConnector {
   onTypingOn = ({ conversation, user }) => {
     const conversationId = conversation.id;
 
-    this.clearTimer(conversationId);
+    this.clearTimer(conversationId, user);
     this.app.$store.dispatch('conversationTypingStatus/create', {
       conversationId,
       user,
@@ -334,7 +334,7 @@ class ActionCableConnector extends BaseActionCableConnector {
   onTypingOff = ({ conversation, user }) => {
     const conversationId = conversation.id;
 
-    this.clearTimer(conversationId);
+    this.clearTimer(conversationId, user);
     this.app.$store.dispatch('conversationTypingStatus/destroy', {
       conversationId,
       user,
@@ -346,19 +346,26 @@ class ActionCableConnector extends BaseActionCableConnector {
     this.scheduleMentionUnreadCountsFetch();
   };
 
-  clearTimer = conversationId => {
-    const timerEvent = this.CancelTyping[conversationId];
+  // eslint-disable-next-line class-methods-use-this
+  getTypingTimerKey = (conversationId, user) => {
+    const userId = user?.id || 'default';
+    return `${conversationId}:${userId}`;
+  };
+
+  clearTimer = (conversationId, user) => {
+    const key = this.getTypingTimerKey(conversationId, user);
+    const timerEvent = this.CancelTyping[key];
 
     if (timerEvent) {
       clearTimeout(timerEvent);
-      this.CancelTyping[conversationId] = null;
+      delete this.CancelTyping[key];
     }
   };
 
   initTimer = ({ conversation, user }) => {
-    const conversationId = conversation.id;
+    const key = this.getTypingTimerKey(conversation.id, user);
     // Turn off typing automatically after 30 seconds
-    this.CancelTyping[conversationId] = setTimeout(() => {
+    this.CancelTyping[key] = setTimeout(() => {
       this.onTypingOff({ conversation, user });
     }, 30000);
   };

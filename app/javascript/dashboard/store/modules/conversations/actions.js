@@ -3,6 +3,7 @@ import ConversationApi from '../../../api/inbox/conversation';
 import MessageApi from '../../../api/inbox/message';
 import { MESSAGE_STATUS, MESSAGE_TYPE } from 'shared/constants/messages';
 import { createPendingMessage } from 'dashboard/helper/commons';
+import { findPendingMessageIndex } from './helpers';
 import filterQueryGenerator, {
   withTimestampTimezone,
 } from 'dashboard/helper/filterQueryGenerator';
@@ -249,10 +250,18 @@ const actions = {
         id: conversationId,
         data: meta,
       });
-      // Find the messages that are not already present in the store
-      const missingMessages = payload.filter(
-        message => !messages.find(item => item.id === message.id)
-      );
+      // Find the messages that are not already present in the store, and reconcile
+      // any optimistic pending messages that match via echo_id so they are replaced
+      // in-place instead of duplicated.
+      const missingMessages = [];
+      payload.forEach(message => {
+        const pendingIndex = findPendingMessageIndex(selectedChat, message);
+        if (pendingIndex > -1) {
+          selectedChat.messages[pendingIndex] = message;
+        } else if (!messages.some(item => item.id === message.id)) {
+          missingMessages.push(message);
+        }
+      });
       selectedChat.messages.push(...missingMessages);
       // Sort the messages by created_at
       const sortedMessages = selectedChat.messages.sort((a, b) => {

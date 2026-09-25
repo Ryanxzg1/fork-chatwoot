@@ -121,7 +121,12 @@ export const mutations = {
     }
   },
   [types.SET_ALL_ATTACHMENTS](_state, { id, data }) {
+    delete _state.attachments[id];
     _state.attachments[id] = [...data];
+    const attachmentKeys = Object.keys(_state.attachments);
+    if (attachmentKeys.length > 10) {
+      delete _state.attachments[attachmentKeys[0]];
+    }
   },
   [types.SET_MISSING_MESSAGES](_state, { id, data }) {
     const [chat] = _state.allConversations.filter(c => c.id === id);
@@ -255,6 +260,9 @@ export const mutations = {
       chat.messages[pendingMessageIndex] = message;
     } else {
       chat.messages.push(message);
+      if (chat.messages.length > 100) {
+        chat.messages.shift();
+      }
       chat.timestamp = message.created_at;
       const { conversation: { unread_count: unreadCount = 0 } = {} } = message;
       chat.unread_count = unreadCount;
@@ -292,7 +300,9 @@ export const mutations = {
       const { messages, ...updates } = conversation;
       allConversations[index] = { ...selectedConversation, ...updates };
       if (_state.selectedChatId === conversation.id) {
-        emitter.emit(BUS_EVENTS.SCROLL_TO_MESSAGE);
+        emitter.emit(BUS_EVENTS.SCROLL_TO_MESSAGE, {
+          preservePositionIfScrolled: true,
+        });
       }
     } else {
       const { conversationType } = _state.conversationFilters || {};

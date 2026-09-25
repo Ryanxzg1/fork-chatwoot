@@ -937,6 +937,50 @@ describe('#addMentions', () => {
     ]);
   });
 
+  it('#syncActiveConversationMessages reconciles pending message with echo_id without duplication', async () => {
+    const conversations = [
+      {
+        id: 1,
+        messages: [
+          {
+            id: 'uuid-123',
+            echo_id: 'uuid-123',
+            content: 'Optimistic text',
+            status: 'progress',
+          },
+        ],
+        meta: { sender: { id: 1 } },
+        inbox_id: 1,
+      },
+    ];
+    axios.get.mockResolvedValue({
+      data: {
+        payload: [
+          {
+            id: 999,
+            echo_id: 'uuid-123',
+            content: 'Optimistic text',
+            status: 'sent',
+          },
+        ],
+        meta: {},
+      },
+    });
+    await actions.syncActiveConversationMessages(
+      {
+        commit,
+        dispatch,
+        state: {
+          allConversations: conversations,
+          syncConversationsMessages: { 1: 1 },
+        },
+      },
+      { conversationId: 1 }
+    );
+    expect(conversations[0].messages.length).toBe(1);
+    expect(conversations[0].messages[0].id).toBe(999);
+  });
+
   describe('#fetchAllAttachments', () => {
     it('fetches all attachments', async () => {
       axios.get.mockResolvedValue({

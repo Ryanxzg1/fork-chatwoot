@@ -348,7 +348,13 @@ export default {
     removeBusListeners() {
       emitter.off(BUS_EVENTS.SCROLL_TO_MESSAGE, this.onScrollToMessage);
     },
-    onScrollToMessage({ messageId = '' } = {}) {
+    onScrollToMessage({
+      messageId = '',
+      preservePositionIfScrolled = false,
+    } = {}) {
+      if (preservePositionIfScrolled && this.hasUserScrolled) {
+        return;
+      }
       this.$nextTick(() => {
         const messageElement = document.getElementById('message' + messageId);
         if (messageElement) {

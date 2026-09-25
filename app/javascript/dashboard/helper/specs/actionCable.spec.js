@@ -377,4 +377,28 @@ describe('ActionCableConnector - Copilot Tests', () => {
       expect(mockDispatch).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('typing indicator timer handling', () => {
+    it('isolates typing timers by user to prevent multi-user collisions', () => {
+      vi.useFakeTimers();
+
+      const userA = { id: 10, name: 'Alice' };
+      const userB = { id: 20, name: 'Bob' };
+      const conversation = { id: 100 };
+
+      actionCable.onTypingOn({ conversation, user: userA });
+      actionCable.onTypingOn({ conversation, user: userB });
+
+      expect(actionCable.CancelTyping['100:10']).toBeDefined();
+      expect(actionCable.CancelTyping['100:20']).toBeDefined();
+
+      // Turning off user A does not cancel user B's timer
+      actionCable.onTypingOff({ conversation, user: userA });
+      expect(actionCable.CancelTyping['100:10']).toBeUndefined();
+      expect(actionCable.CancelTyping['100:20']).toBeDefined();
+
+      actionCable.onTypingOff({ conversation, user: userB });
+      expect(actionCable.CancelTyping['100:20']).toBeUndefined();
+    });
+  });
 });

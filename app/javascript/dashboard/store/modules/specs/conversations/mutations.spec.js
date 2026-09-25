@@ -938,7 +938,9 @@ describe('#mutations', () => {
       };
 
       mutations[types.UPDATE_CONVERSATION](state, conversation);
-      expect(emitter.emit).toHaveBeenCalledWith('SCROLL_TO_MESSAGE');
+      expect(emitter.emit).toHaveBeenCalledWith('SCROLL_TO_MESSAGE', {
+        preservePositionIfScrolled: true,
+      });
     });
 
     it('should ignore updates with older timestamps', () => {
