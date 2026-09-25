@@ -34,7 +34,7 @@ dalam satu antarmuka terpadu.
 
 | Layer | Teknologi |
 |---|---|
-| **Backend** | Ruby on Rails 7, Ruby 3.3.x, Puma (web server) |
+| **Backend** | Ruby on Rails 7 (7.2.x), Ruby 3.4.4, Puma (web server) |
 | **Database** | PostgreSQL 14+ (primer), Redis (cache, queue, presence) |
 | **Background Jobs** | Sidekiq dengan 16-queue Strict Priority |
 | **Real-time** | Rails ActionCable over WebSockets |
@@ -77,6 +77,7 @@ Berikut peta direktori top-level beserta **tujuan dan tanggung jawab** masing-ma
 chatwoot/
 │
 ├── app/                        # Inti aplikasi Rails (OSS)
+│   ├── actions/                # Eksekusi aksi domain terisolasi (misal ContactMergeAction)
 │   ├── builders/               # Merakit objek domain kompleks (transaksional, multi-step)
 │   │   └── messages/           # MessageBuilder, NotificationBuilder, dll.
 │   ├── channels/               # ActionCable server-side channels
@@ -85,7 +86,9 @@ chatwoot/
 │   │   ├── api/v1/accounts/    # Semua endpoint API agen/admin (scoped per tenant)
 │   │   ├── api/v1/widget/      # Endpoint untuk Live Chat Widget customer
 │   │   └── webhooks/           # Penerima webhook dari provider eksternal (WhatsApp, Twilio, dll.)
+│   ├── dashboards/             # Administrate dashboards untuk SuperAdmin
 │   ├── dispatchers/            # Event Bus: Dispatcher, SyncDispatcher, AsyncDispatcher
+│   ├── drops/                  # Liquid drops untuk template email/canned response
 │   ├── finders/                # Query builder untuk pencarian dan filter kompleks
 │   ├── helpers/                # Rails view/controller helpers
 │   ├── javascript/             # Semua kode frontend (Vue, JS, SDK)
@@ -95,8 +98,8 @@ chatwoot/
 │   ├── models/                 # ActiveRecord domain models
 │   │   └── concerns/           # Shared behavior antar model (Labelable, Channelable, dll.)
 │   ├── policies/               # Pundit authorization policies (per resource, per role)
-│   ├── serializers/            # JSON serializer (API response shaping)
-│   └── services/               # Business logic terisolasi (non-CRUD, non-builder)
+│   ├── services/               # Business logic terisolasi (non-CRUD, non-builder)
+│   └── views/                  # Rails HTML views & Jbuilder templates (app/views/api/v1/ untuk API JSON)
 │
 ├── config/
 │   ├── initializers/
@@ -379,6 +382,8 @@ File entry point berada di `app/javascript/entrypoints/`:
 | **v3app** | `v3app.js` | Vue 3 SPA, Vue Router, Vuex | Auth pages (Login, SSO, Onboarding) |
 | **portal** | `portal.js` | Hotwire Turbo + Rails UJS | Knowledge Base publik (server-rendered) |
 | **survey** | `survey.js` | Vue 3 mini-SPA, Vuex, Vue I18n | Halaman CSAT (kepuasan pelanggan) |
+| **superadmin** | `superadmin.js` | Vanilla JS + SCSS | SuperAdmin backend management UI |
+| **superadmin_pages** | `superadmin_pages.js` | Vue 3 mounting | SuperAdmin Playground & Dashboard |
 
 Build pipeline:
 - Semua entry point kecuali `sdk` dikompilasi via `vite-plugin-ruby` (integrated dengan Rails asset pipeline).
@@ -399,7 +404,8 @@ app/javascript/dashboard/
 │
 ├── stores/                     # Pinia 3 (fitur baru — migrasi bertahap)
 │   ├── calls.js                # useCallsStore (Twilio Voice WebRTC)
-│   └── callHistory.js          # useCallHistoryStore
+│   ├── callHistory.js          # useCallHistoryStore
+│   └── companies.js            # useCompaniesStore
 │
 └── store/storeFactory.js       # Universal factory: satu definisi → Vuex ATAU Pinia
 ```
@@ -608,7 +614,7 @@ pnpm eslint:fix
 - **Styling**: Tailwind utility class only. Dilarang: custom CSS, scoped CSS, inline styles.
 - **String di template**: Gunakan i18n key — dilarang bare string literal.
 - **Strong params**: Validasi selalu di controller boundary, kembalikan `422 Unprocessable Entity` untuk input invalid.
-- **Enterprise**: Sebelum mengedit file di `app/`, selalu cek apakah ada pasangan overlay di `enterprise/`. Gunakan `prepend_mod_with` untuk ekstensi Enterprise, bukan edit langsung file OSS.
+- **Pure OSS / No Enterprise**: Repositori ini 100% Pure MIT (folder `enterprise/` sudah dipurging habis). Semua pengembangan fitur dilakukan langsung di dalam `app/`. Mekanisme `prepend_mod_with` berjalan pasif sebagai no-op.
 - **Translations**: Hanya update `en.yml` (backend) dan `en.json` (frontend). File bahasa lain dikelola via Crowdin.
 - **Commit messages**: Conventional Commits — `type(scope): subject`. Jangan menyebut nama AI di commit.
 
@@ -649,7 +655,7 @@ Gunakan titik masuk berikut saat menginvestigasi domain tertentu:
 - **Keberadaan bot aktif**: `conversation.inbox.active_bot?` — menentukan status percakapan saat re-open.
 - **Queue Sidekiq job baru**: Sesuaikan dengan prioritas yang sudah ada di `config/sidekiq.yml`.
 - **Scope query tenant**: Semua query **wajib** dimulai dari `Current.account` atau scope yang setara.
-- **Apakah modul Enterprise perlu diupdate**: Jika method OSS dimodifikasi dan ada overlay Enterprise, kedua file harus diperbarui secara konsisten.
+- **Pure MIT Environment**: Direktori `enterprise/` sudah tidak ada. Jangan berasumsi ada file overlay enterprise yang perlu disinkronkan.
 
 ### 9.4 Anti-Pattern yang Harus Dihindari
 
@@ -662,4 +668,5 @@ Gunakan titik masuk berikut saat menginvestigasi domain tertentu:
 - ❌ Mengasumsikan channel menggunakan STI — channel adalah polymorphic association.
 - ❌ Melakukan direct query tanpa scope akun: `Conversation.find(id)` → **SALAH**.
   Gunakan: `Current.account.conversations.find(id)` → **BENAR**.
-- ❌ Memodifikasi file di `enterprise/` untuk logika yang seharusnya ada di `app/` (OSS), atau sebaliknya.
+- ❌ Mencoba membuat atau mencari file di folder `enterprise/` (direktori komersial sudah sepenuhnya dipurging).
+- ❌ Mengharapkan atau membuat file di `app/serializers/` untuk response JSON API — selalu gunakan template Jbuilder di `app/views/api/v1/`.
