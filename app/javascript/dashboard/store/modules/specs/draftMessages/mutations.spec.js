@@ -1,6 +1,8 @@
 import types from '../../../mutation-types';
 import { mutations } from '../../draftMessages';
 
+vi.mock('shared/helpers/localStorage');
+
 describe('#mutations', () => {
   describe('#SET_DRAFT_MESSAGES', () => {
     it('sets the draft messages', () => {

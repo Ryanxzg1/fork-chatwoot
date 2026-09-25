@@ -21,7 +21,7 @@ export const actions = {
     commit(types.SET_DRAFT_MESSAGES, { key, message });
   },
   delete: ({ commit }, { key }) => {
-    commit(types.SET_DRAFT_MESSAGES, { key });
+    commit(types.REMOVE_DRAFT_MESSAGES, { key });
   },
   setReplyEditorMode: ({ commit }, { mode }) => {
     commit(types.SET_REPLY_EDITOR_MODE, { mode });
