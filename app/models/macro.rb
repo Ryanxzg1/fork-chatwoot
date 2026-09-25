@@ -75,4 +75,3 @@ class Macro < ApplicationRecord
   end
 end
 
-Macro.include_mod_with('Audit::Macro')

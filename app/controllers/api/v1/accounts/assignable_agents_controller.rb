@@ -26,4 +26,3 @@ class Api::V1::Accounts::AssignableAgentsController < Api::V1::Accounts::BaseCon
   end
 end
 
-Api::V1::Accounts::AssignableAgentsController.prepend_mod_with('Api::V1::Accounts::AssignableAgentsController')

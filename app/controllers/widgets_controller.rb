@@ -104,4 +104,3 @@ class WidgetsController < ActionController::Base
   end
 end
 
-WidgetsController.prepend_mod_with('WidgetsController')

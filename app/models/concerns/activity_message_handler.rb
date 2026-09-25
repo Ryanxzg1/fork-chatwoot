@@ -122,4 +122,3 @@ module ActivityMessageHandler
   end
 end
 
-ActivityMessageHandler.prepend_mod_with('ActivityMessageHandler')

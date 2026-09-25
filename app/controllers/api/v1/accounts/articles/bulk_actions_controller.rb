@@ -56,4 +56,4 @@ class Api::V1::Accounts::Articles::BulkActionsController < Api::V1::Accounts::Ba
     @portal.categories.exists?(id: params[:category_id])
   end
 end
-Api::V1::Accounts::Articles::BulkActionsController.prepend_mod_with('Api::V1::Accounts::Articles::BulkActionsController')
+

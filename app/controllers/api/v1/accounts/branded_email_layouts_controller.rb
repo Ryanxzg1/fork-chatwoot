@@ -25,4 +25,3 @@ class Api::V1::Accounts::BrandedEmailLayoutsController < Api::V1::Accounts::Base
   end
 end
 
-Api::V1::Accounts::BrandedEmailLayoutsController.prepend_mod_with('Api::V1::Accounts::BrandedEmailLayoutsController')

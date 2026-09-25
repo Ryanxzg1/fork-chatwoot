@@ -278,6 +278,3 @@ class Inbox < ApplicationRecord
   end
 end
 
-Inbox.prepend_mod_with('Inbox')
-Inbox.include_mod_with('Audit::Inbox')
-Inbox.include_mod_with('Concerns::Inbox')

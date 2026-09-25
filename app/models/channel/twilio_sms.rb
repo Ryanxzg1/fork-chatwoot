@@ -86,4 +86,3 @@ class Channel::TwilioSms < ApplicationRecord
   end
 end
 
-Channel::TwilioSms.prepend_mod_with('Channel::TwilioSms')

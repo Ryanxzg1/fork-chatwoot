@@ -8,4 +8,3 @@ class Api::V1::Accounts::Integrations::BaseController < Api::V1::Accounts::BaseC
   end
 end
 
-Api::V1::Accounts::Integrations::BaseController.prepend_mod_with('Api::V1::Accounts::Integrations::BaseController')

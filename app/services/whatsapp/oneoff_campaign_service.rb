@@ -150,4 +150,3 @@ class Whatsapp::OneoffCampaignService
   end
 end
 
-Whatsapp::OneoffCampaignService.prepend_mod_with('Whatsapp::OneoffCampaignService')

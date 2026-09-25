@@ -234,4 +234,3 @@ class Messages::MessageBuilder
   end
 end
 
-Messages::MessageBuilder.prepend_mod_with('Messages::MessageBuilder')

@@ -53,4 +53,3 @@ class ApplicationRecord < ActiveRecord::Base
   end
 end
 
-ApplicationRecord.prepend_mod_with('ApplicationRecord')

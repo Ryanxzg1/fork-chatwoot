@@ -204,4 +204,3 @@ class Portal < ApplicationRecord
   end
 end
 
-Portal.include_mod_with('Concerns::Portal')

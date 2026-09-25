@@ -234,4 +234,3 @@ class ActionCableListener < BaseListener
   end
 end
 
-ActionCableListener.prepend_mod_with('ActionCableListener')

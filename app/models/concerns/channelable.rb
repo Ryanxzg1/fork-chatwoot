@@ -10,4 +10,3 @@ module Channelable
   def create_audit_log_entry; end
 end
 
-Channelable.prepend_mod_with('Channelable')

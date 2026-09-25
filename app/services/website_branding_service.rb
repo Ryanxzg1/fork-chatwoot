@@ -146,4 +146,3 @@ class WebsiteBrandingService
   end
 end
 
-WebsiteBrandingService.prepend_mod_with('WebsiteBrandingService')

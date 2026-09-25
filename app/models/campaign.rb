@@ -164,4 +164,4 @@ class Campaign < ApplicationRecord
     "NEW.display_id := nextval('camp_dpid_seq_' || NEW.account_id);"
   end
 end
-Campaign.include_mod_with('Campaign')
+

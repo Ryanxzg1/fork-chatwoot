@@ -25,4 +25,3 @@ class TriggerScheduledItemsJob < ApplicationJob
   end
 end
 
-TriggerScheduledItemsJob.prepend_mod_with('TriggerScheduledItemsJob')

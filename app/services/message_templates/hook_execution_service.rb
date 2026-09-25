@@ -63,4 +63,4 @@ class MessageTemplates::HookExecutionService
     contact.email
   end
 end
-MessageTemplates::HookExecutionService.prepend_mod_with('MessageTemplates::HookExecutionService')
+

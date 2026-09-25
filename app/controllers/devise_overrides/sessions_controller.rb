@@ -240,4 +240,3 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
   end
 end
 
-DeviseOverrides::SessionsController.prepend_mod_with('DeviseOverrides::SessionsController')

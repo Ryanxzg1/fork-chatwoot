@@ -26,4 +26,4 @@ class ApplicationController < ActionController::Base
     }
   end
 end
-ApplicationController.include_mod_with('Concerns::ApplicationControllerConcern')
+

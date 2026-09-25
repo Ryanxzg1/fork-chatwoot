@@ -182,4 +182,3 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
   end
 end
 
-Webhooks::WhatsappEventsJob.prepend_mod_with('Webhooks::WhatsappEventsJob')

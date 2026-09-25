@@ -66,4 +66,3 @@ class ContactMergeAction
   end
 end
 
-ContactMergeAction.prepend_mod_with('ContactMergeAction')

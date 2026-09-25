@@ -44,4 +44,3 @@ class Shopify::UninstallationService
   end
 end
 
-Shopify::UninstallationService.prepend_mod_with('Shopify::UninstallationService')

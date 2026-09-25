@@ -69,4 +69,3 @@ class Macros::ExecutionService < ActionService
   end
 end
 
-Macros::ExecutionService.include_mod_with('Macros::ExecutionService')

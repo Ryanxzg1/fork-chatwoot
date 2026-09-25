@@ -97,4 +97,3 @@ class CustomAttributeDefinition < ApplicationRecord
   end
 end
 
-CustomAttributeDefinition.include_mod_with('Concerns::CustomAttributeDefinition')

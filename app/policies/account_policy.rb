@@ -44,4 +44,3 @@ class AccountPolicy < ApplicationPolicy
   end
 end
 
-AccountPolicy.prepend_mod_with('AccountPolicy')

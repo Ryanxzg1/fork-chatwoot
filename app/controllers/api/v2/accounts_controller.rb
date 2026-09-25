@@ -66,4 +66,3 @@ class Api::V2::AccountsController < Api::BaseController
   end
 end
 
-Api::V2::AccountsController.prepend_mod_with('Api::V2::AccountsController')

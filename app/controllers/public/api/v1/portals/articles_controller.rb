@@ -97,4 +97,3 @@ class Public::Api::V1::Portals::ArticlesController < Public::Api::V1::Portals::B
   end
 end
 
-Public::Api::V1::Portals::ArticlesController.prepend_mod_with('Public::Api::V1::Portals::ArticlesController')

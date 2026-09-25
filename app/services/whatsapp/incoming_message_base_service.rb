@@ -216,4 +216,3 @@ class Whatsapp::IncomingMessageBaseService
   end
 end
 
-Whatsapp::IncomingMessageBaseService.prepend_mod_with('Whatsapp::IncomingMessageBaseService')

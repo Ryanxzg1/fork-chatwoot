@@ -59,4 +59,3 @@ class Conversations::AssignmentService
   end
 end
 
-Conversations::AssignmentService.prepend_mod_with('Conversations::AssignmentService')

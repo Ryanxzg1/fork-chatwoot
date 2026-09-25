@@ -28,4 +28,3 @@ class Public::Api::V1::Portals::SearchController < Public::Api::V1::Portals::Bas
   end
 end
 
-Public::Api::V1::Portals::SearchController.prepend_mod_with('Public::Api::V1::Portals::SearchController')

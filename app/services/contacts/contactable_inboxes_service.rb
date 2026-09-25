@@ -72,4 +72,3 @@ class Contacts::ContactableInboxesService
   end
 end
 
-Contacts::ContactableInboxesService.prepend_mod_with('Contacts::ContactableInboxesService')

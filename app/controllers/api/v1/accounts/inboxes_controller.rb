@@ -219,4 +219,3 @@ class Api::V1::Accounts::InboxesController < Api::V1::Accounts::BaseController
   end
 end
 
-Api::V1::Accounts::InboxesController.prepend_mod_with('Api::V1::Accounts::InboxesController')

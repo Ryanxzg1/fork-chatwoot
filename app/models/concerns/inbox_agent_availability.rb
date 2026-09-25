@@ -25,4 +25,3 @@ module InboxAgentAvailability
   end
 end
 
-InboxAgentAvailability.prepend_mod_with('InboxAgentAvailability')

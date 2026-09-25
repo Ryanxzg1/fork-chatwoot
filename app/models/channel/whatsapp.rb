@@ -189,4 +189,3 @@ class Channel::Whatsapp < ApplicationRecord
   end
 end
 
-Channel::Whatsapp.prepend_mod_with('Channel::Whatsapp')

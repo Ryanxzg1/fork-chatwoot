@@ -149,5 +149,3 @@ class AutomationRule < ApplicationRecord
   end
 end
 
-AutomationRule.include_mod_with('Audit::AutomationRule')
-AutomationRule.prepend_mod_with('AutomationRule')

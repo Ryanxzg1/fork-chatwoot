@@ -72,4 +72,3 @@ class Onboarding::WebWidgetCreationService
   end
 end
 
-Onboarding::WebWidgetCreationService.prepend_mod_with('Onboarding::WebWidgetCreationService')

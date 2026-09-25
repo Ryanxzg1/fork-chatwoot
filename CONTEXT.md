@@ -52,8 +52,7 @@ dalam satu antarmuka terpadu.
   lisensi **MIT Expat**. Direktori komersial `enterprise/` telah sepenuhnya dipurging/dihapus,
   menjadikan codebase ini bersih, bebas lisensi ganda, dan siap untuk di-deploy di infrastruktur
   GitLab/server internal perusahaan.
-- **Enterprise Hooks**: Pola injeksi `prepend_mod_with` tetap dipertahankan secara pasif (no-op)
-  sebagai standar arsitektur inti tanpa memuat modul enterprise apapun.
+- **No Enterprise Hooks**: Pola injeksi `prepend_mod_with` dan initializer terkait telah dihapus sepenuhnya dari codebase. Model dan controller berjalan secara native Rails tanpa lapisan metaprogramming tambahan.
 
 ### Proses Startup
 
@@ -103,7 +102,6 @@ chatwoot/
 │
 ├── config/
 │   ├── initializers/
-│   │   └── 01_inject_enterprise_edition_module.rb  # Injector prepend_mod_with (no-op saat enterprise dihapus)
 │   │   └── event_handlers.rb                       # Registrasi event listener ke Dispatcher
 │   ├── routes.rb               # Semua route aplikasi OSS
 │   └── sidekiq.yml             # Konfigurasi 16 queue Sidekiq (priority order)
@@ -180,14 +178,12 @@ Isolasi multi-tenant diimplementasikan secara mandiri dengan 4 mekanisme:
 | **Explicit Query Scoping** | Semua query selalu dimulai dari `Current.account.conversations.find(...)` — tidak ada hidden `default_scope` | Semua controllers & finders |
 | **PostgreSQL Sequence per Tenant** | Saat akun dibuat, trigger PostgreSQL membuat sequence `conv_dpid_seq_<account_id>`. `display_id` percakapan diambil dari sequence akun tersebut | `app/models/account.rb`, `app/models/conversation.rb` |
 
-### 3.3 Enterprise Extension Pattern (Status: Inactive / Pure OSS)
+### 3.3 Status Arsitektur: 100% Pure OSS (Hard Fork Standalone)
 
-Secara bawaan, Chatwoot menggunakan pola `prepend_mod_with` untuk mendukung injeksi modul komersial.
-Namun, karena direktori `enterprise/` telah dihapus:
-- `ChatwootApp.enterprise?` selalu mengembalikan `false`.
-- `ChatwootApp.extensions` menghasilkan array kosong `[]`.
-- Semua pemanggilan `prepend_mod_with` di akhir model OSS berjalan sebagai **no-op (tanpa operasi)**.
-- Kode berjalan 100% murni di atas implementasi Rails OSS (`app/`).
+Repositori ini telah sepenuhnya didecoupling dari arsitektur komersial upstream:
+- Direktori komersial `enterprise/` dan `spec/enterprise/` telah dipurging.
+- Initializer metaprogramming `01_inject_enterprise_edition_module.rb` dan pemanggilan `prepend_mod_with` / `include_mod_with` di 93 berkas domain telah dibersihkan secara tuntas.
+- Kode berjalan 100% murni di atas implementasi Rails OSS native (`app/`) dengan boot time lebih efisien dan stack trace yang bersih.
 
 ### 3.4 Sidekiq Queue Priority (16 Queues)
 
@@ -614,7 +610,7 @@ pnpm eslint:fix
 - **Styling**: Tailwind utility class only. Dilarang: custom CSS, scoped CSS, inline styles.
 - **String di template**: Gunakan i18n key — dilarang bare string literal.
 - **Strong params**: Validasi selalu di controller boundary, kembalikan `422 Unprocessable Entity` untuk input invalid.
-- **Pure OSS / No Enterprise**: Repositori ini 100% Pure MIT (folder `enterprise/` sudah dipurging habis). Semua pengembangan fitur dilakukan langsung di dalam `app/`. Mekanisme `prepend_mod_with` berjalan pasif sebagai no-op.
+- **Pure OSS / No Enterprise**: Repositori ini 100% Pure MIT (folder `enterprise/` sudah dipurging habis). Semua hook metaprogramming `prepend_mod_with` telah dibongkar. Semua kode berjalan secara native di `app/`.
 - **Translations**: Hanya update `en.yml` (backend) dan `en.json` (frontend). File bahasa lain dikelola via Crowdin.
 - **Commit messages**: Conventional Commits — `type(scope): subject`. Jangan menyebut nama AI di commit.
 

@@ -6,4 +6,3 @@ class Internal::TriggerHourlyScheduledItemsJob < ApplicationJob
   end
 end
 
-Internal::TriggerHourlyScheduledItemsJob.prepend_mod_with('Internal::TriggerHourlyScheduledItemsJob')

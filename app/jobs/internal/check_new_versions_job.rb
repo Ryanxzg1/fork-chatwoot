@@ -17,4 +17,3 @@ class Internal::CheckNewVersionsJob < ApplicationJob
   end
 end
 
-Internal::CheckNewVersionsJob.prepend_mod_with('Internal::CheckNewVersionsJob')

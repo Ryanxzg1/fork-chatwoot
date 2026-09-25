@@ -40,4 +40,3 @@ class DeleteObjectJob < ApplicationJob
   end
 end
 
-DeleteObjectJob.prepend_mod_with('DeleteObjectJob')

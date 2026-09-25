@@ -7,4 +7,4 @@ class Account::ConversationsResolutionSchedulerJob < ApplicationJob
     end
   end
 end
-Account::ConversationsResolutionSchedulerJob.prepend_mod_with('Account::ConversationsResolutionSchedulerJob')
+

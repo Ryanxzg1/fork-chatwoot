@@ -66,4 +66,3 @@ class MessageFinder
   end
 end
 
-MessageFinder.prepend_mod_with('MessageFinder')

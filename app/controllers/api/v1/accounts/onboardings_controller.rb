@@ -86,4 +86,3 @@ class Api::V1::Accounts::OnboardingsController < Api::V1::Accounts::BaseControll
   end
 end
 
-Api::V1::Accounts::OnboardingsController.prepend_mod_with('Api::V1::Accounts::OnboardingsController')

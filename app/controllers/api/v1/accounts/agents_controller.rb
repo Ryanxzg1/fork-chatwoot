@@ -117,4 +117,3 @@ class Api::V1::Accounts::AgentsController < Api::V1::Accounts::BaseController
   end
 end
 
-Api::V1::Accounts::AgentsController.prepend_mod_with('Api::V1::Accounts::AgentsController')

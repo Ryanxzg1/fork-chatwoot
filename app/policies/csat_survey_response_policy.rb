@@ -12,4 +12,3 @@ class CsatSurveyResponsePolicy < ApplicationPolicy
   end
 end
 
-CsatSurveyResponsePolicy.prepend_mod_with('CsatSurveyResponsePolicy')

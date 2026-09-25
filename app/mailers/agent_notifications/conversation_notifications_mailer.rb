@@ -71,4 +71,3 @@ class AgentNotifications::ConversationNotificationsMailer < ApplicationMailer
   end
 end
 
-AgentNotifications::ConversationNotificationsMailer.prepend_mod_with('AgentNotifications::ConversationNotificationsMailer')

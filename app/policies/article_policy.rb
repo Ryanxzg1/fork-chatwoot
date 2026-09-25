@@ -28,4 +28,3 @@ class ArticlePolicy < ApplicationPolicy
   end
 end
 
-ArticlePolicy.prepend_mod_with('ArticlePolicy')

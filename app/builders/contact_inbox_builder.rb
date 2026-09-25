@@ -104,4 +104,3 @@ class ContactInboxBuilder
   end
 end
 
-ContactInboxBuilder.prepend_mod_with('ContactInboxBuilder')

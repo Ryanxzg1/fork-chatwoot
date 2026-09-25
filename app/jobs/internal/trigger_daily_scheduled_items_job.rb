@@ -24,4 +24,3 @@ class Internal::TriggerDailyScheduledItemsJob < ApplicationJob
   end
 end
 
-Internal::TriggerDailyScheduledItemsJob.prepend_mod_with('Internal::TriggerDailyScheduledItemsJob')

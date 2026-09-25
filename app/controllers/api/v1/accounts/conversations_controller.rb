@@ -236,4 +236,3 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   end
 end
 
-Api::V1::Accounts::ConversationsController.prepend_mod_with('Api::V1::Accounts::ConversationsController')

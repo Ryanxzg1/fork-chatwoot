@@ -41,4 +41,3 @@ class InboxMember < ApplicationRecord
   end
 end
 
-InboxMember.include_mod_with('Audit::InboxMember')

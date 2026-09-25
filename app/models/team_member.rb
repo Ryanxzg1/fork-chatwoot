@@ -28,4 +28,3 @@ class TeamMember < ApplicationRecord
   end
 end
 
-TeamMember.include_mod_with('Audit::TeamMember')

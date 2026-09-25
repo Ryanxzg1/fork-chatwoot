@@ -101,4 +101,3 @@ class SuperAdmin::AppConfigsController < SuperAdmin::ApplicationController
   end
 end
 
-SuperAdmin::AppConfigsController.prepend_mod_with('SuperAdmin::AppConfigsController')

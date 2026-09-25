@@ -207,4 +207,4 @@ class ConversationFinder
     end
   end
 end
-ConversationFinder.prepend_mod_with('ConversationFinder')
+

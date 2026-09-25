@@ -45,4 +45,3 @@ class Conversations::PermissionFilterService
   end
 end
 
-Conversations::PermissionFilterService.prepend_mod_with('Conversations::PermissionFilterService')

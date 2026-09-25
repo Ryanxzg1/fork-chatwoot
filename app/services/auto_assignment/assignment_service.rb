@@ -141,4 +141,3 @@ class AutoAssignment::AssignmentService
   end
 end
 
-AutoAssignment::AssignmentService.prepend_mod_with('AutoAssignment::AssignmentService')

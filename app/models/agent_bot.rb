@@ -69,4 +69,3 @@ class AgentBot < ApplicationRecord
   end
 end
 
-AgentBot.include_mod_with('Audit::AgentBot')

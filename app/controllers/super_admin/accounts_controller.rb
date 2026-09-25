@@ -169,4 +169,3 @@ class SuperAdmin::AccountsController < SuperAdmin::ApplicationController
   end
 end
 
-SuperAdmin::AccountsController.prepend_mod_with('SuperAdmin::AccountsController')

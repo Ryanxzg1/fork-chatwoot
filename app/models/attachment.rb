@@ -225,4 +225,3 @@ class Attachment < ApplicationRecord
   end
 end
 
-Attachment.include_mod_with('Concerns::Attachment')
