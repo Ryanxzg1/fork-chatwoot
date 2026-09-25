@@ -686,6 +686,33 @@ RSpec.describe Conversation do
     end
   end
 
+  describe '#unread_incoming_messages_count' do
+    let(:conversation) { create(:conversation, agent_last_seen_at: 1.hour.ago, last_activity_at: 1.minute.ago) }
+    let(:message_params) do
+      {
+        conversation: conversation,
+        account: conversation.account,
+        inbox: conversation.inbox,
+        sender: conversation.assignee,
+        created_at: 1.minute.ago
+      }
+    end
+
+    before do
+      create(:message, message_type: :incoming, **message_params)
+      create(:message, message_type: :outgoing, **message_params)
+    end
+
+    it 'returns count of unread incoming messages when agent seen time is older than last activity' do
+      expect(conversation.unread_incoming_messages_count).to eq(1)
+    end
+
+    it 'fast returns 0 without querying messages when agent seen time is at or after last activity' do
+      conversation.update!(agent_last_seen_at: Time.current)
+      expect(conversation.unread_incoming_messages_count).to eq(0)
+    end
+  end
+
   describe '#push_event_data' do
     subject(:push_event_data) { conversation.push_event_data }
 

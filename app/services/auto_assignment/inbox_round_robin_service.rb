@@ -45,8 +45,13 @@ class AutoAssignment::InboxRoundRobinService
   def pop_push_to_queue(user_id)
     return if user_id.blank?
 
-    remove_agent_from_queue(user_id)
-    add_agent_to_queue(user_id)
+    # Execute remove + re-append as a single pipelined batch so both commands
+    # are sent in one network round-trip and cannot be interleaved with a
+    # concurrent reset_queue call.
+    ::Redis::Alfred.pipelined do |pipeline|
+      pipeline.lrem(round_robin_key, 0, user_id)
+      pipeline.lpush(round_robin_key, user_id)
+    end
   end
 
   def validate_queue?

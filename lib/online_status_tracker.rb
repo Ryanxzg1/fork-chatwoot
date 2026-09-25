@@ -73,8 +73,16 @@ class OnlineStatusTracker
     account = Account.find(account_id)
     range_start = (Time.zone.now - PRESENCE_DURATION).to_i
     user_ids = ::Redis::Alfred.zrangebyscore(presence_key(account_id, 'User'), range_start, '+inf')
-    # since we are dealing with redis items as string, casting to string
-    user_ids += account.account_users.where(auto_offline: false)&.map(&:user_id)&.map(&:to_s)
+    # Agents with auto_offline disabled manage their own availability manually.
+    # Only include them if they have not explicitly set themselves to offline in
+    # the database, so that agents who are off duty do not permanently attract
+    # new auto-assignments just because they disabled the auto-offline feature.
+    non_auto_offline_user_ids = account.account_users
+                                       .where(auto_offline: false)
+                                       .where.not(availability: :offline)
+                                       .map(&:user_id)
+                                       .map(&:to_s)
+    user_ids += non_auto_offline_user_ids
     user_ids.uniq
   end
 end

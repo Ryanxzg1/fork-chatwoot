@@ -207,6 +207,17 @@ class Conversation < ApplicationRecord
     unread_messages.where(account_id: account_id).incoming.last(10)
   end
 
+  # Avoids hitting the messages table at all when the agent has already seen
+  # every message in this conversation (agent_last_seen_at is at or after the
+  # last activity). Falls back to a cheap COUNT(*) instead of loading 10 rows.
+  def unread_incoming_messages_count
+    if agent_last_seen_at.present? && last_activity_at.present? && agent_last_seen_at >= last_activity_at
+      return 0
+    end
+
+    unread_messages.where(account_id: account_id).incoming.count
+  end
+
   def cached_label_list_array
     (cached_label_list || '').split(',').map(&:strip)
   end

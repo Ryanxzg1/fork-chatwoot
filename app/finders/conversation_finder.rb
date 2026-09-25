@@ -136,10 +136,10 @@ class ConversationFinder
     return unless params[:q]
 
     allowed_message_types = [Message.message_types[:incoming], Message.message_types[:outgoing]]
-    @conversations = conversations.joins(:messages).where('messages.content ILIKE :search', search: "%#{params[:q]}%")
-                                  .where(messages: { message_type: allowed_message_types }).includes(:messages)
+    @conversations = conversations.joins(:messages)
                                   .where('messages.content ILIKE :search', search: "%#{params[:q]}%")
                                   .where(messages: { message_type: allowed_message_types })
+                                  .includes(:messages)
   end
 
   def filter_by_status
@@ -192,7 +192,9 @@ class ConversationFinder
 
   def conversations_base_query
     @conversations.includes(
-      :taggings, :team, :contact_inbox, { assignee: { avatar_attachment: [:blob] } }, { contact: { avatar_attachment: [:blob] } }
+      :taggings, :team, :contact_inbox,
+      { assignee: [:account_users, { avatar_attachment: [:blob] }] },
+      { contact: { avatar_attachment: [:blob] } }
     ).preload(inbox: :channel, ai_assignee: { avatar_attachment: [:blob] })
   end
 
