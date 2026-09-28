@@ -42,10 +42,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  showSnoozedAction: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const emit = defineEmits(['selectAllConversations']);
@@ -188,7 +184,7 @@ onUnmounted(() => {
           <BulkUpdateActions
             :show-resolve="!showResolvedAction"
             :show-reopen="!showOpenAction"
-            :show-snooze="!showSnoozedAction"
+            :show-snooze="false"
             @update="onUpdateConversations"
           />
           <BulkAgentActions

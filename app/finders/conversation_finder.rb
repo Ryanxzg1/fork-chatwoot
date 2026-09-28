@@ -143,9 +143,22 @@ class ConversationFinder
   end
 
   def filter_by_status
-    return if params[:status] == 'all'
+    return if params[:status].blank? || params[:status] == 'all' || params[:status] == 'open'
 
-    @conversations = @conversations.where(status: params[:status] || DEFAULT_STATUS)
+    @conversations = case params[:status]
+                     when 'pending'
+                       @conversations.assigned
+                                     .where.not(status: :resolved)
+                                     .where(first_reply_created_at: nil)
+                     when 'active'
+                       @conversations.assigned
+                                     .where.not(status: :resolved)
+                                     .where.not(first_reply_created_at: nil)
+                     when 'resolved'
+                       @conversations.assigned.where(status: :resolved)
+                     else
+                       @conversations.where(status: params[:status])
+                     end
   end
 
   def filter_by_team
@@ -209,4 +222,3 @@ class ConversationFinder
     end
   end
 end
-

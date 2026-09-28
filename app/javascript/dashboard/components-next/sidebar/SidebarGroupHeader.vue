@@ -13,6 +13,7 @@ const props = defineProps({
   isActive: { type: Boolean, default: false },
   hasActiveChild: { type: Boolean, default: false },
   getterKeys: { type: Object, default: () => ({}) },
+  childCount: { type: Number, default: 0 },
 });
 
 const emit = defineEmits(['toggle']);
@@ -23,6 +24,12 @@ const dynamicCount = useMapGetter(props.getterKeys.count);
 const count = computed(() =>
   dynamicCount.value > 99 ? '99+' : dynamicCount.value
 );
+
+const shouldShowChevron = computed(() => {
+  if (!props.expandable) return false;
+  if (props.childCount === 1) return false;
+  return true;
+});
 
 // A real link so Cmd/Ctrl-click opens it in a new tab; a plain click keeps
 // the in-app toggle instead of following the href.
@@ -77,7 +84,7 @@ const onClick = event => {
       </span>
     </div>
     <span
-      v-if="expandable"
+      v-if="shouldShowChevron"
       v-show="isExpanded"
       class="i-lucide-chevron-up size-3"
       @click.stop.prevent="emit('toggle')"

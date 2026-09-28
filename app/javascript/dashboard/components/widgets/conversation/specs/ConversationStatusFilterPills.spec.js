@@ -15,26 +15,30 @@ const mountPills = (props = {}) =>
   });
 
 describe('ConversationStatusFilterPills', () => {
-  it('renders all 5 status options with labels and dot indicators', () => {
+  it('renders all 4 status options with labels and icons', () => {
     const wrapper = mountPills();
     const buttons = wrapper.findAll('button[role="tab"]');
 
-    expect(buttons).toHaveLength(5);
+    expect(buttons).toHaveLength(4);
     expect(buttons[0].text()).toContain(
       'CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.open.TEXT'
     );
+    expect(buttons[0].find('.i-lucide-inbox').exists()).toBe(true);
+
     expect(buttons[1].text()).toContain(
       'CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.pending.TEXT'
     );
+    expect(buttons[1].find('.i-lucide-hourglass').exists()).toBe(true);
+
     expect(buttons[2].text()).toContain(
-      'CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.snoozed.TEXT'
+      'CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.active.TEXT'
     );
+    expect(buttons[2].find('.i-lucide-rotate-cw').exists()).toBe(true);
+
     expect(buttons[3].text()).toContain(
       'CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.resolved.TEXT'
     );
-    expect(buttons[4].text()).toContain(
-      'CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.all.TEXT'
-    );
+    expect(buttons[3].find('.i-lucide-check').exists()).toBe(true);
   });
 
   it('highlights the active status tab', () => {

@@ -295,6 +295,7 @@ watch(
         :has-active-child="hasActiveChild"
         :expandable="hasChildren"
         :is-expanded="isExpanded"
+        :child-count="visibleChildren.length"
         @toggle="toggleTrigger"
       />
       <ul

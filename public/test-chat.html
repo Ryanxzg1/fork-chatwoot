@@ -2,84 +2,555 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulasi Pengunjung - Chatwoot Live Widget</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Customer Live Chat - ApexCare Support (Full Screen POV)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    :root {
+      --slate-900: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --emerald-500: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 60px 20px;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f8fafc;
-      color: #1e293b;
+      color: #0f172a;
+    }
+
+    .app-viewport {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* TOP DEMO CONTROL BAR */
+    .demo-bar {
+      background: var(--slate-900);
+      color: #f8fafc;
+      height: 46px;
+      min-height: 46px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.25s ease;
+    }
+
+    .demo-bar.hidden {
+      margin-top: -46px;
+      pointer-events: none;
+    }
+
+    .demo-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .demo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald-500);
+      box-shadow: 0 0 6px var(--emerald-500);
+    }
+
+    .token-control-form {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .token-control-form label {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .token-input-field {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: monospace;
+      width: 220px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .token-input-field:focus {
+      border-color: #38bdf8;
+    }
+
+    .btn-bar {
+      background: var(--slate-800);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .btn-bar:hover {
+      background: var(--slate-700);
+      color: #ffffff;
+    }
+
+    .btn-bar-primary {
+      background: var(--primary);
+      border-color: transparent;
+      color: white;
+    }
+
+    .btn-bar-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .demo-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* FLOATING BUTTON TO RESTORE BAR WHEN HIDDEN */
+    .btn-restore-bar {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--slate-900);
+      color: #94a3b8;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 99;
+      opacity: 0.85;
+      transition: all 0.2s;
+    }
+
+    .btn-restore-bar:hover {
+      opacity: 1;
+      color: #fff;
+      background: #000;
+    }
+
+    /* FULLPAGE CHAT CONTAINER */
+    .chat-container {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      position: relative;
+      background: #ffffff;
+    }
+
+    /* IFRAME */
+    .chat-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #ffffff;
+    }
+
+    /* LOADING SKELETON / SPINNER */
+    .loader-overlay {
+      position: absolute;
+      inset: 0;
+      background: #ffffff;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 80vh;
-      text-align: center;
+      gap: 14px;
+      z-index: 10;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
     }
-    .card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 40px;
-      max-width: 600px;
-      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+
+    .loader-overlay.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
-    h1 {
-      margin-top: 0;
-      color: #0f172a;
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e2e8f0;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
-    p {
-      color: #64748b;
-      font-size: 16px;
-      line-height: 1.6;
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
-    .badge {
-      display: inline-block;
-      background: #e0f2fe;
-      color: #0369a1;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-weight: 600;
+
+    .loader-text {
       font-size: 14px;
+      font-weight: 600;
+      color: var(--slate-600);
+    }
+
+    /* TOKEN ERROR MESSAGE */
+    .error-container {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: #ffffff;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      z-index: 20;
+    }
+
+    .error-box {
+      max-width: 460px;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 12px;
+      padding: 32px 24px;
+    }
+
+    .error-box h3 {
+      font-size: 17px;
+      color: #9f1239;
+      margin-bottom: 8px;
+    }
+
+    .error-box p {
+      font-size: 13px;
+      color: #881337;
+      line-height: 1.5;
       margin-bottom: 16px;
     }
-    .hint {
-      margin-top: 24px;
-      padding: 16px;
-      background: #f1f5f9;
-      border-radius: 8px;
-      font-size: 14px;
-      color: #334155;
+
+    .error-box code {
+      background: rgba(0, 0, 0, 0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 640px) {
+      .token-input-field {
+        width: 140px;
+      }
+      .demo-bar-left span:not(.demo-badge) {
+        display: none;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="badge">Mode Pengunjung (Customer)</div>
-    <h1>Tes Live Chat Widget Chatwoot</h1>
-    <p>Halaman ini menyimulasikan website toko / aplikasi kamu yang dikunjungi oleh pelanggan.</p>
-    <div class="hint">
-      👉 <strong>Cara mencoba:</strong> Lihat di <strong>pojok kanan bawah</strong> layar ini. Klik gelembung obrolan biru untuk mengirim pesan pertama ke agen customer service!
-    </div>
+
+  <div class="app-viewport">
+    <!-- TOP DEMO CONTROL BAR -->
+    <header id="demoBar" class="demo-bar">
+      <div class="demo-bar-left">
+        <div class="demo-badge">
+          <span class="pulse-dot"></span>
+          Live Chat POV
+        </div>
+        <div class="token-control-form">
+          <label for="tokenInput">Token:</label>
+          <input type="text" id="tokenInput" class="token-input-field" placeholder="website_token inbox">
+          <button type="button" class="btn-bar btn-bar-primary" onclick="applyNewToken()">Terapkan</button>
+        </div>
+      </div>
+
+      <div class="demo-bar-right">
+        <button type="button" class="btn-bar" title="Mulai sesi percakapan baru dari awal" onclick="resetChatSession()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          Sesi Baru
+        </button>
+
+        <button type="button" class="btn-bar" title="Sembunyikan toolbar untuk tampilan layar penuh murni" onclick="toggleDemoBar(false)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 14 10 14 10 20"></polyline>
+            <polyline points="20 10 14 10 14 4"></polyline>
+            <line x1="14" y1="10" x2="21" y2="3"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+          Fullscreen
+        </button>
+      </div>
+    </header>
+
+    <!-- FLOATING RESTORE BUTTON (VISIBLE WHEN BAR IS HIDDEN) -->
+    <button id="restoreBarBtn" type="button" class="btn-restore-bar" onclick="toggleDemoBar(true)">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 3 21 3 21 9"></polyline>
+        <polyline points="9 21 3 21 3 15"></polyline>
+        <line x1="21" y1="3" x2="14" y2="10"></line>
+        <line x1="3" y1="21" x2="10" y2="14"></line>
+      </svg>
+      Atur Token
+    </button>
+
+    <!-- FULLSCREEN CHAT CONTAINER -->
+    <main class="chat-container">
+      <!-- LOADING SKELETON -->
+      <div id="loaderOverlay" class="loader-overlay">
+        <div class="spinner"></div>
+        <div class="loader-text">Menghubungkan ke Live Chat Support...</div>
+      </div>
+
+      <!-- ERROR STATE (SHOWN IF TOKEN IS INVALID/MISSING) -->
+      <div id="errorContainer" class="error-container">
+        <div class="error-box">
+          <h3>Token Live Chat Belum Diatur</h3>
+          <p>Masukkan <code>website_token</code> dari inbox Live Chat kamu pada kolom di baris atas untuk memulai percakapan langsung.</p>
+          <button type="button" class="btn-bar btn-bar-primary" style="padding: 8px 16px; font-size: 13px;" onclick="focusTokenInput()">
+            Isi Token Sekarang
+          </button>
+        </div>
+      </div>
+
+      <!-- EMBEDDED CHATWOOT VUE WIDGET -->
+      <iframe 
+        id="chatIframe" 
+        class="chat-iframe"
+        title="Chatwoot Customer Live Chat"
+        allow="camera; microphone; fullscreen; clipboard-read; clipboard-write;"
+      ></iframe>
+    </main>
   </div>
 
-  <!-- Chatwoot Widget Script -->
   <script>
-    (function(d,t) {
-      var BASE_URL="http://localhost:3000";
-      var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-      g.src=BASE_URL+"/packs/js/sdk.js";
-      g.async = true;
-      s.parentNode.insertBefore(g,s);
-      g.onload=function(){
-        window.chatwootSDK.run({
-          websiteToken: 'tBjzD5mxwbZxTuZY3TVvx5vY',
-          baseUrl: BASE_URL
-        })
+    // 1. Resolve Parameters (URL -> LocalStorage -> Fallback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const fallbackToken = 'tBjzD5mxwbZxTuZY3TVvx5vY';
+    let currentToken = urlParams.get('token') || urlParams.get('website_token') || localStorage.getItem('chatwoot_demo_website_token') || fallbackToken;
+    const baseUrl = urlParams.get('baseUrl') || localStorage.getItem('chatwoot_demo_base_url') || window.location.origin;
+
+    const tokenInput = document.getElementById('tokenInput');
+    const chatIframe = document.getElementById('chatIframe');
+    const loaderOverlay = document.getElementById('loaderOverlay');
+    const errorContainer = document.getElementById('errorContainer');
+    const demoBar = document.getElementById('demoBar');
+    const restoreBarBtn = document.getElementById('restoreBarBtn');
+
+    // Initialize Token Field
+    if (tokenInput) {
+      tokenInput.value = currentToken;
+    }
+
+    // 2. Chatwoot Iframe Communication Protocol
+    function sendToWidget(event, data = {}) {
+      if (!chatIframe || !chatIframe.contentWindow) return;
+      try {
+        const payload = `chatwoot-widget:${JSON.stringify({ event, ...data })}`;
+        chatIframe.contentWindow.postMessage(payload, '*');
+      } catch (err) {
+        console.warn('[Customer POV] Failed to send postMessage to widget:', err);
       }
-    })(document,"script");
+    }
+
+    function lockWidgetOpen() {
+      // 1. Matikan dialog unread messages agar auto-reply tidak berubah menjadi popup unread
+      sendToWidget('config-set', {
+        showUnreadMessagesDialog: false,
+        hideMessageBubble: true,
+        locale: 'id',
+        widgetStyle: 'standard',
+        darkMode: 'auto'
+      });
+      // 2. Kunci status widget ke terbuka (isOpen: true)
+      sendToWidget('toggle-open', { isOpen: true });
+      // 3. Pastikan percakapan ter-scroll ke paling bawah
+      sendToWidget('widget-visible');
+    }
+
+    // Tangani sinyal jabat tangan (handshake) dua arah dari iframe Chatwoot
+    window.addEventListener('message', function(e) {
+      if (typeof e.data !== 'string' || !e.data.startsWith('chatwoot-widget:')) return;
+      try {
+        const message = JSON.parse(e.data.replace('chatwoot-widget:', ''));
+        if (message.event === 'loaded') {
+          console.log('[Customer POV] Widget iframe selesai dimuat, mengunci tampilan chat penuh...');
+          lockWidgetOpen();
+        } else if (message.event === 'setUnreadMode') {
+          // Intersepsi jika widget mencoba beralih ke unread preview: paksa kembali ke view messages
+          console.log('[Customer POV] Menolak setUnreadMode, mengembalikan ke chat penuh...');
+          lockWidgetOpen();
+        }
+      } catch (err) {
+        console.error('[Customer POV] Gagal mengurai pesan widget:', err);
+      }
+    });
+
+    // 3. Load Native Chatwoot Widget into Full-Screen Iframe
+    function loadChatWidget(token) {
+      if (!token) {
+        showErrorState();
+        return;
+      }
+
+      hideErrorState();
+      showLoader();
+
+      // Native Chatwoot Widget route
+      const widgetUrl = `${baseUrl}/widget?website_token=${encodeURIComponent(token)}`;
+      console.log('[Customer POV Live Chat] Loading widget from:', widgetUrl);
+
+      chatIframe.src = widgetUrl;
+
+      // When iframe finishes loading
+      chatIframe.onload = function() {
+        setTimeout(hideLoader, 300);
+        // Kirim jabat tangan secara berkala untuk memastikan state terisi sempurna saat hidrasi Vue
+        [100, 300, 600, 1200, 2500].forEach(delay => {
+          setTimeout(lockWidgetOpen, delay);
+        });
+      };
+
+      // Fallback timeout in case of network issue
+      setTimeout(function() {
+        if (loaderOverlay && !loaderOverlay.classList.contains('fade-out')) {
+          hideLoader();
+        }
+      }, 3500);
+    }
+
+    // 3. UI Helpers
+    function showLoader() {
+      if (loaderOverlay) {
+        loaderOverlay.classList.remove('fade-out');
+      }
+    }
+
+    function hideLoader() {
+      if (loaderOverlay) {
+        loaderOverlay.classList.add('fade-out');
+      }
+    }
+
+    function showErrorState() {
+      hideLoader();
+      if (errorContainer) errorContainer.style.display = 'flex';
+      if (chatIframe) chatIframe.style.display = 'none';
+    }
+
+    function hideErrorState() {
+      if (errorContainer) errorContainer.style.display = 'none';
+      if (chatIframe) chatIframe.style.display = 'block';
+    }
+
+    function focusTokenInput() {
+      toggleDemoBar(true);
+      if (tokenInput) tokenInput.focus();
+    }
+
+    function applyNewToken() {
+      const val = (tokenInput.value || '').trim();
+      if (!val) {
+        alert('Mohon masukkan website_token yang valid.');
+        return;
+      }
+
+      currentToken = val;
+      localStorage.setItem('chatwoot_demo_website_token', val);
+
+      // Update URL search param cleanly
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.set('token', val);
+      window.history.replaceState({}, '', newUrl.toString());
+
+      loadChatWidget(val);
+    }
+
+    function resetChatSession() {
+      if (confirm('Mulai sesi percakapan baru? Riwayat obrolan di peramban ini akan direset untuk simulasi customer baru.')) {
+        // Clear local storage keys associated with chatwoot widget
+        for (let i = localStorage.length - 1; i >= 0; i--) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('cw_') || key.includes('chatwoot'))) {
+            // keep demo token intact
+            if (key !== 'chatwoot_demo_website_token' && key !== 'chatwoot_demo_base_url') {
+              localStorage.removeItem(key);
+            }
+          }
+        }
+        
+        // Reload iframe with a fresh cache-busting timestamp
+        const separator = chatIframe.src.includes('?') ? '&' : '?';
+        chatIframe.src = `${baseUrl}/widget?website_token=${encodeURIComponent(currentToken)}${separator}_t=${Date.now()}`;
+        showLoader();
+      }
+    }
+
+    function toggleDemoBar(show) {
+      if (show) {
+        demoBar.classList.remove('hidden');
+        restoreBarBtn.style.display = 'none';
+      } else {
+        demoBar.classList.add('hidden');
+        restoreBarBtn.style.display = 'inline-flex';
+      }
+    }
+
+    // Auto-load on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      loadChatWidget(currentToken);
+    });
   </script>
 </body>
 </html>

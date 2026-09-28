@@ -219,8 +219,7 @@ export default {
       ];
     },
     showSnooze() {
-      // Don't show snooze if the conversation is already snoozed/resolved/pending
-      return this.status === wootConstants.STATUS_TYPE.OPEN;
+      return false;
     },
     filteredLabels() {
       const labels = this.labelSearchQuery

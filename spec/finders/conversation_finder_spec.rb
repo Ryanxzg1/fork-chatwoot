@@ -24,12 +24,87 @@ describe ConversationFinder do
   end
 
   describe '#perform' do
-    context 'with status' do
+    context 'with status open' do
       let(:params) { { status: 'open', assignee_type: 'me' } }
 
-      it 'filter conversations by status' do
+      it 'returns all conversations assigned to me including resolved' do
+        result = conversation_finder.perform
+        expect(result[:conversations].length).to be 3
+      end
+    end
+
+    context 'with status pending' do
+      let(:params) { { status: 'pending', assignee_type: 'me' } }
+
+      it 'returns only assigned conversations waiting for first human agent reply' do
         result = conversation_finder.perform
         expect(result[:conversations].length).to be 2
+      end
+
+      it 'keeps conversation in pending when replied by bot but not human agent' do
+        conv = inbox.conversations.where(assignee: user_1).first
+        create(:message, account: account, inbox: inbox, conversation: conv,
+                         message_type: :outgoing, sender: create(:agent_bot, account: account))
+        expect(conv.reload.first_reply_created_at).to be_nil
+
+        result = conversation_finder.perform
+        expect(result[:conversations].map(&:id)).to include(conv.id)
+      end
+
+      it 'excludes conversations already answered by human agent' do
+        conv = inbox.conversations.where(assignee: user_1).first
+        conv.update!(first_reply_created_at: Time.current)
+
+        result = conversation_finder.perform
+        expect(result[:conversations].map(&:id)).not_to include(conv.id)
+      end
+
+      it 'excludes unassigned conversations even if waiting for reply' do
+        params = { status: 'pending', assignee_type: 'unassigned' }
+        result = described_class.new(user_1, params).perform
+        expect(result[:conversations].length).to be 0
+      end
+    end
+
+    context 'with status active' do
+      let(:params) { { status: 'active', assignee_type: 'me' } }
+
+      it 'returns only assigned conversations that were replied by agent' do
+        # Mark one conversation as answered
+        inbox.conversations.where(assignee: user_1).first.update!(
+          first_reply_created_at: Time.current,
+          waiting_since: nil
+        )
+
+        result = conversation_finder.perform
+        expect(result[:conversations].length).to be 1
+      end
+
+      it 'keeps conversation in active even when customer sends another message (waiting_since present)' do
+        conv = inbox.conversations.where(assignee: user_1).first
+        conv.update!(
+          first_reply_created_at: 1.hour.ago,
+          waiting_since: Time.current
+        )
+
+        result = conversation_finder.perform
+        expect(result[:conversations].map(&:id)).to include(conv.id)
+      end
+    end
+
+    context 'with status resolved' do
+      let(:params) { { status: 'resolved', assignee_type: 'me' } }
+
+      it 'returns only assigned resolved conversations' do
+        result = conversation_finder.perform
+        expect(result[:conversations].length).to be 1
+      end
+
+      it 'excludes unassigned resolved conversations' do
+        create(:conversation, account: account, inbox: inbox, status: 'resolved')
+        params = { status: 'resolved', assignee_type: 'unassigned' }
+        result = described_class.new(user_1, params).perform
+        expect(result[:conversations].length).to be 0
       end
     end
 
@@ -74,7 +149,7 @@ describe ConversationFinder do
 
       it 'filter conversations by assignee type all' do
         result = conversation_finder.perform
-        expect(result[:conversations].length).to be 4
+        expect(result[:conversations].length).to be 5
       end
     end
 
@@ -126,8 +201,8 @@ describe ConversationFinder do
         result = conversation_finder.perform
         conversation_ids = result[:conversations].map(&:id)
 
-        expect(conversation_ids).to include(most_unread_conversation.id, unread_conversation.id, read_conversation.id)
-        expect(conversation_ids).not_to include(resolved_unread_conversation.id)
+        expect(conversation_ids).to include(most_unread_conversation.id, unread_conversation.id, read_conversation.id,
+                                            resolved_unread_conversation.id)
         expect(conversation_ids.index(most_unread_conversation.id)).to be < conversation_ids.index(unread_conversation.id)
         expect(conversation_ids.index(unread_conversation.id)).to be < conversation_ids.index(read_conversation.id)
       end
@@ -169,17 +244,17 @@ describe ConversationFinder do
 
       it 'filter conversations by assignee type assigned' do
         result = conversation_finder.perform
-        expect(result[:conversations].length).to be 4
+        expect(result[:conversations].length).to be 5
         expect(result[:conversations]).to include(agent_bot_conversation)
       end
 
       it 'returns the correct meta' do
         result = conversation_finder.perform
         expect(result[:count]).to eq({
-                                       mine_count: 2,
-                                       assigned_count: 4,
+                                       mine_count: 3,
+                                       assigned_count: 5,
                                        unassigned_count: 1,
-                                       all_count: 5
+                                       all_count: 6
                                      })
       end
     end
@@ -221,7 +296,7 @@ describe ConversationFinder do
 
       it 'returns conversations with any source' do
         result = conversation_finder.perform
-        expect(result[:conversations].length).to be 4
+        expect(result[:conversations].length).to be 5
       end
     end
 
@@ -271,10 +346,10 @@ describe ConversationFinder do
       it 'returns the correct counts' do
         result = conversation_finder.perform_meta_only
         expect(result[:count]).to eq({
-                                       mine_count: 2,
-                                       assigned_count: 3,
+                                       mine_count: 3,
+                                       assigned_count: 4,
                                        unassigned_count: 1,
-                                       all_count: 4
+                                       all_count: 5
                                      })
       end
 
@@ -295,7 +370,7 @@ describe ConversationFinder do
                               assignee: user_1, waiting_since: Time.now.utc) # unattended_conversation_waiting_since
 
         result = conversation_finder.perform
-        expect(result[:conversations].length).to be 2
+        expect(result[:conversations].length).to be 3
       end
     end
 

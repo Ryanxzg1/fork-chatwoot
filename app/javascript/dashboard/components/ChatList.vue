@@ -12,7 +12,6 @@ import ConversationList from './ConversationList.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import ConversationFilter from 'next/filter/ConversationFilter.vue';
 import SaveCustomView from 'next/filter/SaveCustomView.vue';
-import ChatTypeTabs from './widgets/ChatTypeTabs.vue';
 import ConversationStatusFilterPills from './widgets/conversation/ConversationStatusFilterPills.vue';
 import DeleteCustomViews from 'dashboard/routes/dashboard/customviews/DeleteCustomViews.vue';
 import ConversationBulkActions from './widgets/conversation/conversationBulkActions/Index.vue';
@@ -20,6 +19,7 @@ import TeleportWithDirection from 'dashboard/components-next/TeleportWithDirecti
 import ConversationResolveAttributesModal from 'dashboard/components-next/ConversationWorkflow/ConversationResolveAttributesModal.vue';
 
 import { useUISettings } from 'dashboard/composables/useUISettings';
+import { useChatListResize } from 'dashboard/composables/chatlist/useChatListResize';
 import { useAlert } from 'dashboard/composables';
 import { useBulkActions } from 'dashboard/composables/chatlist/useBulkActions';
 import { useFilter } from 'shared/composables/useFilter';
@@ -31,6 +31,7 @@ import {
 } from 'dashboard/composables/useTransformKeys';
 import { useEmitter } from 'dashboard/composables/emitter';
 import { useConversationRequiredAttributes } from 'dashboard/composables/useConversationRequiredAttributes';
+import { useKeyboardEvents } from 'dashboard/composables/useKeyboardEvents';
 
 import { emitter } from 'shared/helpers/mitt';
 
@@ -63,6 +64,12 @@ const props = defineProps({
 
 const emit = defineEmits(['conversationLoad']);
 const { uiSettings, updateUISettings } = useUISettings();
+const {
+  chatListWidth,
+  isResizing: isChatListResizing,
+  onResizeStart: onChatListResizeStart,
+  onResizeHandleDoubleClick: onChatListResizeReset,
+} = useChatListResize();
 const { t } = useI18n();
 const router = useRouter();
 const route = useRoute();
@@ -71,7 +78,7 @@ const { buildConversationListPath } = useConversationRoutePath();
 
 const resolveAttributesModalRef = ref(null);
 
-const activeAssigneeTab = ref(wootConstants.ASSIGNEE_TYPE.ME);
+const activeAssigneeTab = ref(wootConstants.ASSIGNEE_TYPE.ALL);
 const activeStatus = ref(wootConstants.STATUS_TYPE.OPEN);
 const activeSortBy = ref(wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC);
 const showAdvancedFilters = ref(false);
@@ -634,6 +641,21 @@ function updateAssigneeTab(selectedTab) {
   }
 }
 
+const keyboardEvents = {
+  'Alt+KeyN': {
+    action: () => {
+      const items = assigneeTabItems.value;
+      if (!items?.length) return;
+      const currentIndex = items.findIndex(
+        item => item.key === activeAssigneeTab.value
+      );
+      const nextIndex = (currentIndex + 1) % items.length;
+      updateAssigneeTab(items[nextIndex].key);
+    },
+  },
+};
+useKeyboardEvents(keyboardEvents);
+
 function onStatusChange(status) {
   activeStatus.value = status;
   store.dispatch('setChatStatusFilter', status);
@@ -908,9 +930,13 @@ watch(appliedFilters, () => resetBulkActions());
   <div
     class="flex flex-col flex-shrink-0 conversations-list-wrap bg-n-surface-1 relative"
     :class="[
-      { hidden: !showConversationList },
-      isOnExpandedLayout ? 'basis-full' : 'w-[340px] 2xl:w-[412px]',
+      {
+        hidden: !showConversationList,
+        'transition-[width] duration-150 ease-out': !isChatListResizing,
+      },
+      isOnExpandedLayout ? 'basis-full' : '',
     ]"
+    :style="!isOnExpandedLayout ? { width: `${chatListWidth}px` } : undefined"
   >
     <slot />
     <ChatListHeader
@@ -921,11 +947,14 @@ watch(appliedFilters, () => resetBulkActions());
       :is-on-expanded-layout="isOnExpandedLayout"
       :conversation-stats="conversationStats"
       :is-list-loading="chatListLoading && !conversationList.length"
+      :active-assignee-tab="activeAssigneeTab"
+      :assignee-tab-items="assigneeTabItems"
       @add-folders="onClickOpenAddFoldersModal"
       @delete-folders="onClickOpenDeleteFoldersModal"
       @filters-modal="onToggleAdvanceFiltersModal"
       @reset-filters="resetAndFetchData"
       @basic-filter-change="onBasicFilterChange"
+      @assignee-tab-change="updateAssigneeTab"
     />
 
     <TeleportWithDirection
@@ -949,14 +978,6 @@ watch(appliedFilters, () => resetBulkActions());
       @close="onCloseDeleteFoldersModal"
     />
 
-    <ChatTypeTabs
-      v-if="!hasAppliedFiltersOrActiveFolders"
-      :items="assigneeTabItems"
-      :active-tab="activeAssigneeTab"
-      is-compact
-      @chat-tab-change="updateAssigneeTab"
-    />
-
     <ConversationStatusFilterPills
       v-if="!hasAppliedFiltersOrActiveFolders"
       :active-status="activeStatus"
@@ -975,7 +996,6 @@ watch(appliedFilters, () => resetBulkActions());
       :selected-inboxes="uniqueInboxes"
       :show-open-action="allSelectedConversationsStatus('open')"
       :show-resolved-action="allSelectedConversationsStatus('resolved')"
-      :show-snoozed-action="allSelectedConversationsStatus('snoozed')"
       :class="isOnExpandedLayout && 'sm:!w-[24rem] !w-full'"
       @select-all-conversations="toggleSelectAll"
     />
@@ -1021,5 +1041,18 @@ watch(appliedFilters, () => resetBulkActions());
       ref="resolveAttributesModalRef"
       @submit="handleResolveWithAttributes"
     />
+    <!-- Resize Handle (desktop only, condensed layout only) -->
+    <div
+      v-if="!isOnExpandedLayout"
+      class="hidden md:block absolute top-0 h-full w-2 cursor-col-resize z-30 ltr:-right-1 rtl:-left-1 group"
+      @mousedown="onChatListResizeStart"
+      @touchstart="onChatListResizeStart"
+      @dblclick="onChatListResizeReset"
+    >
+      <div
+        class="absolute top-0 h-full w-0.5 ltr:right-1 rtl:left-1 bg-transparent group-hover:bg-n-brand transition-colors"
+        :class="{ 'bg-n-brand': isChatListResizing }"
+      />
+    </div>
   </div>
 </template>

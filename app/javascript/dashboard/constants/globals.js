@@ -9,6 +9,7 @@ export default {
     OPEN: 'open',
     RESOLVED: 'resolved',
     PENDING: 'pending',
+    ACTIVE: 'active',
     SNOOZED: 'snoozed',
     ALL: 'all',
   },

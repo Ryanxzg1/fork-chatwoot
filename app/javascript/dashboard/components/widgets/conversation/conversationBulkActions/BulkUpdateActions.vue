@@ -18,7 +18,7 @@ const props = defineProps({
   },
   showSnooze: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 });
 

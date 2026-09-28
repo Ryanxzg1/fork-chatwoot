@@ -1,6 +1,7 @@
 import {
   findPendingMessageIndex,
   applyPageFilters,
+  filterByStatus,
   filterByInbox,
   filterByTeam,
   filterByLabel,
@@ -109,17 +110,75 @@ describe('#applyPageFilters', () => {
   });
 
   describe('#filter-status', () => {
-    it('returns true if conversation has status and status filter is active', () => {
+    it('returns true if conversation has status and status filter is open (matches all conversations)', () => {
       const filters = {
         status: 'open',
       };
       expect(applyPageFilters(conversationList[1], filters)).toEqual(true);
+      expect(applyPageFilters(conversationList[2], filters)).toEqual(true);
     });
+
     it('returns true if conversation has status and status filter is all', () => {
       const filters = {
         status: 'all',
       };
       expect(applyPageFilters(conversationList[1], filters)).toEqual(true);
+    });
+
+    it('filters pending conversation based on unanswered status', () => {
+      const pendingChat = {
+        id: 101,
+        status: 'open',
+        meta: { assignee: { id: 1 } },
+        first_reply_created_at: 0,
+        waiting_since: 1790000000,
+      };
+      const activeChat = {
+        id: 102,
+        status: 'open',
+        meta: { assignee: { id: 1 } },
+        first_reply_created_at: 1790000000,
+        waiting_since: 0,
+      };
+
+      expect(applyPageFilters(pendingChat, { status: 'pending' })).toEqual(
+        true
+      );
+      expect(applyPageFilters(activeChat, { status: 'pending' })).toEqual(
+        false
+      );
+    });
+
+    it('filters active conversation based on answered status, keeping active even with waiting_since', () => {
+      const activeChat = {
+        id: 201,
+        status: 'open',
+        meta: { assignee: { id: 1 } },
+        first_reply_created_at: 1790000000,
+        waiting_since: 0,
+      };
+      const activeChatWithCustomerFollowUp = {
+        id: 202,
+        status: 'open',
+        meta: { assignee: { id: 1 } },
+        first_reply_created_at: 1790000000,
+        waiting_since: 1790000010,
+      };
+      const unansweredChat = {
+        id: 203,
+        status: 'open',
+        meta: { assignee: { id: 1 } },
+        first_reply_created_at: 0,
+        waiting_since: 1790000010,
+      };
+
+      expect(applyPageFilters(activeChat, { status: 'active' })).toEqual(true);
+      expect(
+        applyPageFilters(activeChatWithCustomerFollowUp, { status: 'active' })
+      ).toEqual(true);
+      expect(applyPageFilters(unansweredChat, { status: 'active' })).toEqual(
+        false
+      );
     });
   });
 });
@@ -170,5 +229,67 @@ describe('#filterByUnattended', () => {
   });
   it('returns true if conversation type is unattended and has first reply', () => {
     expect(filterByUnattended(true, 'mentions', 123)).toEqual(true);
+  });
+});
+
+describe('#filterByStatus', () => {
+  it('returns true when filterStatus is open or all', () => {
+    expect(filterByStatus('open', 'open')).toEqual(true);
+    expect(filterByStatus('resolved', 'open')).toEqual(true);
+    expect(filterByStatus('open', 'all')).toEqual(true);
+  });
+
+  it('correctly matches pending status', () => {
+    const pendingChat = {
+      status: 'open',
+      meta: { assignee: { id: 1 } },
+      waiting_since: 12345,
+    };
+    const activeChat = {
+      status: 'open',
+      meta: { assignee: { id: 1 } },
+      first_reply_created_at: 12345,
+    };
+    const answeredChatMarkedPending = {
+      status: 'pending',
+      meta: { assignee: { id: 1 } },
+      first_reply_created_at: 12345,
+    };
+    expect(filterByStatus(pendingChat, 'pending')).toEqual(true);
+    expect(filterByStatus('pending', 'pending')).toEqual(true);
+    expect(filterByStatus(activeChat, 'pending')).toEqual(false);
+    expect(filterByStatus(answeredChatMarkedPending, 'pending')).toEqual(false);
+    expect(filterByStatus('resolved', 'pending', pendingChat)).toEqual(false);
+  });
+
+  it('correctly matches active status', () => {
+    const activeChat = {
+      status: 'open',
+      meta: { assignee: { id: 1 } },
+      first_reply_created_at: 12345,
+      waiting_since: 0,
+    };
+    const activeChatWithWaitingSince = {
+      status: 'open',
+      meta: { assignee: { id: 1 } },
+      first_reply_created_at: 12345,
+      waiting_since: 99999,
+    };
+    const pendingChat = {
+      status: 'open',
+      meta: { assignee: { id: 1 } },
+      waiting_since: 12345,
+    };
+    const answeredChatMarkedPending = {
+      status: 'pending',
+      meta: { assignee: { id: 1 } },
+      first_reply_created_at: 12345,
+    };
+    expect(filterByStatus(activeChat, 'active')).toEqual(true);
+    expect(filterByStatus(activeChatWithWaitingSince, 'active')).toEqual(true);
+    expect(filterByStatus(answeredChatMarkedPending, 'active')).toEqual(true);
+    expect(filterByStatus('active', 'active')).toEqual(true);
+    expect(filterByStatus(pendingChat, 'active')).toEqual(false);
+    expect(filterByStatus('resolved', 'active', activeChat)).toEqual(false);
   });
 });

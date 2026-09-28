@@ -24,11 +24,14 @@
       "open": {
         "TEXT": "Open"
       },
-      "resolved": {
-        "TEXT": "Resolved"
-      },
       "pending": {
         "TEXT": "Pending"
+      },
+      "active": {
+        "TEXT": "Active"
+      },
+      "resolved": {
+        "TEXT": "Resolved"
       },
       "snoozed": {
         "TEXT": "Snoozed"

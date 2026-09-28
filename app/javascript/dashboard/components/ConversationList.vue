@@ -86,7 +86,7 @@ defineExpose({ conversationListRef });
       {{ $t('CHAT_LIST.EOF') }}
     </p>
     <IntersectionObserver
-      v-else
+      v-else-if="conversationList.length"
       :options="intersectionObserverOptions"
       @observed="loadMoreConversations"
     />

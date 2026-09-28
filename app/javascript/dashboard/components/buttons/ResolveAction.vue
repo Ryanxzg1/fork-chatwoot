@@ -48,8 +48,12 @@ const isSnoozed = computed(
   () => currentChat.value.status === wootConstants.STATUS_TYPE.SNOOZED
 );
 
+const hasFirstReply = computed(() =>
+  Boolean(currentChat.value?.first_reply_created_at)
+);
+
 const showAdditionalActions = computed(
-  () => !isPending.value && !isSnoozed.value
+  () => !isPending.value && !isSnoozed.value && !hasFirstReply.value
 );
 
 const showOpenButton = computed(() => {
@@ -74,11 +78,6 @@ const getConversationParams = () => {
     activeIndex: activeConversationIndex,
     lastIndex: lastConversationIndex,
   };
-};
-
-const openSnoozeModal = () => {
-  const ninja = document.querySelector('ninja-keys');
-  ninja.open({ parent: 'snooze_conversation' });
 };
 
 const toggleStatus = (status, snoozedUntil, customAttributes = null) => {
@@ -189,7 +188,10 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         size="sm"
         color="slate"
         no-animation
-        class="ltr:rounded-r-none rtl:rounded-l-none !outline-0"
+        class="!outline-0"
+        :class="{
+          'ltr:rounded-r-none rtl:rounded-l-none': showAdditionalActions,
+        }"
         :is-loading="isLoading"
         @click="onCmdResolveConversation"
       />
@@ -199,7 +201,10 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         size="sm"
         color="slate"
         no-animation
-        class="ltr:rounded-r-none rtl:rounded-l-none !outline-0"
+        class="!outline-0"
+        :class="{
+          'ltr:rounded-r-none rtl:rounded-l-none': showAdditionalActions,
+        }"
         :is-loading="isLoading"
         @click="onCmdOpenConversation"
       />
@@ -209,6 +214,7 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         size="sm"
         color="slate"
         no-animation
+        class="!outline-0"
         :is-loading="isLoading"
         @click="onCmdOpenConversation"
       />
@@ -231,19 +237,7 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
       class="border rounded-lg shadow-lg border-n-strong dark:border-n-strong box-content p-2 w-fit z-10 bg-n-alpha-3 backdrop-blur-[100px] absolute block left-auto top-full mt-0.5 start-0 xl:start-auto xl:end-0 max-w-[12.5rem] min-w-[9.75rem] [&_ul>li]:mb-0"
     >
       <WootDropdownMenu class="mb-0">
-        <WootDropdownItem v-if="!isPending">
-          <Button
-            :label="t('CONVERSATION.RESOLVE_DROPDOWN.SNOOZE_UNTIL')"
-            ghost
-            slate
-            sm
-            start
-            icon="i-lucide-alarm-clock-minus"
-            class="w-full"
-            @click="() => openSnoozeModal()"
-          />
-        </WootDropdownItem>
-        <WootDropdownItem v-if="!isPending">
+        <WootDropdownItem v-if="!isPending && !hasFirstReply">
           <Button
             :label="t('CONVERSATION.RESOLVE_DROPDOWN.MARK_PENDING')"
             ghost

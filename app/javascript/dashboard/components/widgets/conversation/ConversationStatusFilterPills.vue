@@ -18,27 +18,22 @@ const statusItems = computed(() => [
   {
     key: wootConstants.STATUS_TYPE.OPEN,
     label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.open.TEXT'),
-    dotClass: 'bg-emerald-500 dark:bg-emerald-400',
+    icon: 'i-lucide-inbox',
   },
   {
     key: wootConstants.STATUS_TYPE.PENDING,
     label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.pending.TEXT'),
-    dotClass: 'bg-amber-500 dark:bg-amber-400',
+    icon: 'i-lucide-hourglass',
   },
   {
-    key: wootConstants.STATUS_TYPE.SNOOZED,
-    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.snoozed.TEXT'),
-    dotClass: 'bg-indigo-500 dark:bg-indigo-400',
+    key: wootConstants.STATUS_TYPE.ACTIVE,
+    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.active.TEXT'),
+    icon: 'i-lucide-rotate-cw',
   },
   {
     key: wootConstants.STATUS_TYPE.RESOLVED,
     label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.resolved.TEXT'),
-    dotClass: 'bg-slate-400 dark:bg-slate-500',
-  },
-  {
-    key: wootConstants.STATUS_TYPE.ALL,
-    label: t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.all.TEXT'),
-    dotClass: 'bg-blue-500 dark:bg-blue-400',
+    icon: 'i-lucide-check',
   },
 ]);
 
@@ -69,7 +64,7 @@ const selectStatus = key => {
       "
       @click="selectStatus(status.key)"
     >
-      <span class="size-1.5 rounded-full shrink-0" :class="status.dotClass" />
+      <span class="size-3.5 shrink-0" :class="status.icon" />
       <span>{{ status.label }}</span>
     </button>
   </div>
