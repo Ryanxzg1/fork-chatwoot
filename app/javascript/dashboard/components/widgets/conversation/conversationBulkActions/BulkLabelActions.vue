@@ -124,7 +124,7 @@ const handleDismiss = () => {
       :label="buttonLabel"
       :icon="isRemoveAction ? 'i-woot-tag-remove' : 'i-lucide-tag'"
       slate
-      :size="isTypeContact ? 'sm' : 'xs'"
+      size="sm"
       ghost
       :class="{
         'bg-n-alpha-2': showDropdown,
@@ -159,7 +159,7 @@ const handleDismiss = () => {
         :search-placeholder="t('BULK_ACTION.SEARCH_INPUT_PLACEHOLDER')"
         class="w-60 max-h-80"
         :class="{
-          'ltr:-right-[6.5rem] rtl:-left-[6.5rem] ltr:2xl:right-0 rtl:2xl:left-0 bottom-8':
+          'ltr:-right-[6.5rem] rtl:-left-[6.5rem] ltr:2xl:right-0 rtl:2xl:left-0 bottom-full mb-2':
             !isTypeContact,
           'ltr:right-0 rtl:left-0 mb-1 top-10': isTypeContact,
         }"

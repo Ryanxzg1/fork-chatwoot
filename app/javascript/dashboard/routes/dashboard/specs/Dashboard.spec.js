@@ -103,6 +103,11 @@ describe('Dashboard', () => {
           FloatingCallWidget: true,
           AddAccountModal: true,
           WootKeyShortcutModal: true,
+          Logo: true,
+          SidebarAccountSwitcher: true,
+          ComposeConversation: true,
+          ButtonNext: true,
+          RouterLink: true,
         },
       },
     });

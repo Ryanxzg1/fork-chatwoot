@@ -9,8 +9,10 @@ import MoreActions from './MoreActions.vue';
 import Avatar from 'next/avatar/Avatar.vue';
 import SLACardLabel from './components/SLACardLabel.vue';
 import ConversationCallButton from './ConversationCallButton.vue';
+import SidepanelSwitch from 'dashboard/components-next/Conversation/SidepanelSwitch.vue';
 import { conversationListPageURL } from 'dashboard/helper/URLHelper';
 import { useInbox } from 'dashboard/composables/useInbox';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useAlert } from 'dashboard/composables';
 import { useI18n } from 'vue-i18n';
 import { copyTextToClipboard } from 'shared/helpers/clipboard';
@@ -29,9 +31,21 @@ const props = defineProps({
 const { t } = useI18n();
 const store = useStore();
 const route = useRoute();
+const { uiSettings, updateUISettings } = useUISettings();
 const conversationHeader = ref(null);
 const { width } = useElementSize(conversationHeader);
 const { isAWebWidgetInbox } = useInbox();
+
+const isContactSidebarOpen = computed(
+  () => uiSettings.value.is_contact_sidebar_open
+);
+
+const handleContactProfileToggle = () => {
+  updateUISettings({
+    is_contact_sidebar_open: !isContactSidebarOpen.value,
+    is_copilot_panel_open: false,
+  });
+};
 
 const currentChat = computed(() => store.getters.getSelectedChat);
 const accountId = computed(() => store.getters.getCurrentAccountId);
@@ -96,57 +110,73 @@ const copyConversationId = async () => {
 <template>
   <div
     ref="conversationHeader"
-    class="flex flex-col gap-3 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-3 pt-3 pb-2 h-24 xl:h-12"
+    class="flex flex-col sm:flex-row gap-2.5 sm:gap-4 items-start sm:items-center justify-between flex-1 w-full min-w-0 px-3.5 py-2 sm:py-0 min-h-[3.25rem] sm:h-14 bg-n-surface-1"
   >
     <div
-      class="flex items-center justify-start w-full xl:w-auto max-w-full min-w-0 xl:flex-1"
+      class="flex items-center justify-start w-full sm:w-auto max-w-full min-w-0 sm:flex-1"
     >
       <BackButton
         v-if="showBackButton"
         :back-url="backButtonUrl"
         class="me-2"
       />
-      <Avatar
-        :name="currentContact.name"
-        :src="currentContact.thumbnail"
-        :size="32"
-        :status="currentContact.availability_status"
-        hide-offline-status
-      />
-      <div class="flex flex-col items-start min-w-0 ms-2 overflow-hidden">
-        <div class="flex flex-row items-center max-w-full gap-1 p-0 m-0">
-          <span
-            class="text-sm font-medium truncate leading-tight text-n-slate-12"
-          >
-            {{ currentContact.name }}
-          </span>
-          <fluent-icon
-            v-if="!isHMACVerified"
-            v-tooltip="$t('CONVERSATION.UNVERIFIED_SESSION')"
-            size="14"
-            class="text-n-amber-10 my-0 mx-0 min-w-[14px] flex-shrink-0"
-            icon="warning"
+      <div class="flex items-center min-w-0">
+        <button
+          type="button"
+          class="flex-shrink-0 rounded-full focus-visible:outline-1 focus-visible:outline-n-brand"
+          :title="$t('CONVERSATION.SIDEBAR.CONTACT')"
+          @click="handleContactProfileToggle"
+        >
+          <Avatar
+            :name="currentContact.name"
+            :src="currentContact.thumbnail"
+            :size="32"
+            :status="currentContact.availability_status"
+            hide-offline-status
           />
-        </div>
-
+        </button>
         <div
-          class="flex items-center gap-1 overflow-hidden text-xs conversation--header--actions text-n-slate-11 text-ellipsis whitespace-nowrap"
+          class="flex flex-col justify-center items-start min-w-0 ms-2.5 overflow-hidden"
         >
           <button
             type="button"
-            class="truncate text-label-small text-n-slate-11 hover:text-n-slate-12 !p-0 cursor-pointer"
-            @click="copyConversationId"
+            class="flex flex-row items-center max-w-full gap-1.5 p-0 m-0 text-start group cursor-pointer focus-visible:outline-1 focus-visible:outline-n-brand rounded"
+            :title="$t('CONVERSATION.SIDEBAR.CONTACT')"
+            @click="handleContactProfileToggle"
           >
-            {{ `#${chat.id}` }}
+            <span
+              class="text-sm font-semibold truncate leading-tight text-n-slate-12 group-hover:text-n-brand transition-colors"
+            >
+              {{ currentContact.name }}
+            </span>
+            <fluent-icon
+              v-if="!isHMACVerified"
+              v-tooltip="$t('CONVERSATION.UNVERIFIED_SESSION')"
+              size="14"
+              class="text-n-amber-10 my-0 mx-0 min-w-[14px] flex-shrink-0"
+              icon="warning"
+            />
           </button>
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          <span v-if="hasMultipleInboxes">•</span>
-          <InboxName v-if="hasMultipleInboxes" :inbox="inbox" class="!mx-0" />
+
+          <div
+            class="flex items-center gap-1.5 overflow-hidden text-xs conversation--header--actions text-n-slate-11 text-ellipsis whitespace-nowrap mt-0.5"
+          >
+            <button
+              type="button"
+              class="truncate text-label-small text-n-slate-11 hover:text-n-slate-12 !p-0 cursor-pointer hover:underline"
+              @click.stop="copyConversationId"
+            >
+              {{ `#${chat.id}` }}
+            </button>
+            <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+            <span v-if="hasMultipleInboxes" class="text-n-slate-8">•</span>
+            <InboxName v-if="hasMultipleInboxes" :inbox="inbox" class="!mx-0" />
+          </div>
         </div>
       </div>
     </div>
     <div
-      class="flex flex-row items-center justify-start xl:justify-end flex-shrink-0 gap-2 w-full xl:w-auto header-actions-wrap"
+      class="flex flex-row items-center justify-end flex-shrink-0 gap-1.5 sm:gap-2 w-full sm:w-auto header-actions-wrap"
     >
       <SLACardLabel
         v-if="hasSlaPolicyId"
@@ -157,6 +187,8 @@ const copyConversationId = async () => {
       />
       <ConversationCallButton :inbox="inbox" :chat="currentChat" />
       <MoreActions :conversation-id="currentChat.id" />
+      <div class="w-px h-5 bg-n-strong mx-0.5 opacity-60" />
+      <SidepanelSwitch />
     </div>
   </div>
 </template>

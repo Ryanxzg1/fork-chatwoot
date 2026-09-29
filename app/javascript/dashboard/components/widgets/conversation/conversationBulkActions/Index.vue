@@ -154,48 +154,56 @@ onUnmounted(() => {
       <div
         class="flex items-center justify-between gap-2 p-2 bg-n-button-color outline outline-1 -outline-offset-1 rounded-[10px] outline-n-weak shadow-[0_0_12px_0_rgba(27,40,59,0.08)]"
       >
-        <div class="ms-0.5 flex items-center gap-1 min-w-0">
-          <label class="cursor-pointer flex items-center gap-1.5 min-w-0">
+        <div class="ms-0.5 flex items-center gap-1.5 min-w-0">
+          <label class="cursor-pointer flex items-center flex-shrink-0">
             <Checkbox
               v-model="allSelected"
               :indeterminate="!allConversationsSelected"
               class="flex-shrink-0"
             />
-            <span :title="selectedLabel" class="cursor-pointer truncate">
-              {{ selectedLabel }}
-            </span>
           </label>
-          <div class="w-px h-3 bg-n-weak rounded-lg ms-1 flex-shrink-0" />
+          <span
+            :title="selectedLabel"
+            class="text-xs font-medium text-n-slate-12 truncate select-none"
+          >
+            {{ selectedLabel }}
+          </span>
+          <div class="w-px h-3 bg-n-weak rounded-lg flex-shrink-0" />
           <NextButton
             :label="$t('BULK_ACTION.CLEAR_SELECTION')"
             ghost
-            class="!text-n-blue-11 !px-1 !h-6 flex-shrink-0"
+            class="!text-n-blue-11 !px-1.5 flex-shrink-0"
             sm
             @click="allSelected = false"
           />
         </div>
-        <div class="flex items-center gap-2 flex-shrink-0">
-          <BulkLabelActions @assign="onAssignLabels" />
-          <BulkLabelActions
-            action="remove"
-            :applied-labels="appliedLabelsForSelection"
-            @remove="onRemoveLabels"
-          />
-          <BulkUpdateActions
-            :show-resolve="!showResolvedAction"
-            :show-reopen="!showOpenAction"
-            :show-snooze="false"
-            @update="onUpdateConversations"
-          />
-          <BulkAgentActions
-            :selected-inboxes="selectedInboxes"
-            :conversation-count="conversations.length"
-            @select="onAssignAgent"
-          />
-          <BulkTeamActions
-            :conversation-count="conversations.length"
-            @select="onAssignTeam"
-          />
+        <div class="flex items-center gap-1 flex-shrink-0">
+          <div class="flex items-center gap-1">
+            <BulkLabelActions @assign="onAssignLabels" />
+            <BulkLabelActions
+              action="remove"
+              :applied-labels="appliedLabelsForSelection"
+              @remove="onRemoveLabels"
+            />
+          </div>
+          <div class="w-px h-3 bg-n-weak rounded-lg flex-shrink-0 mx-0.5" />
+          <div class="flex items-center gap-1">
+            <BulkUpdateActions
+              :show-resolve="!showResolvedAction"
+              :show-reopen="!showOpenAction"
+              :show-snooze="false"
+              @update="onUpdateConversations"
+            />
+            <BulkAgentActions
+              :selected-inboxes="selectedInboxes"
+              :conversation-count="conversations.length"
+              @select="onAssignAgent"
+            />
+            <BulkTeamActions
+              :conversation-count="conversations.length"
+              @select="onAssignTeam"
+            />
+          </div>
         </div>
       </div>
     </div>

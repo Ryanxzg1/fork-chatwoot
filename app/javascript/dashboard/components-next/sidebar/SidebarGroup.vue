@@ -26,7 +26,8 @@ const {
   resolvePath,
   resolvePermissions,
   resolveFeatureFlag,
-  isAllowed,
+  resolveInstallationType = () => [],
+  isAllowed = () => true,
   isCollapsed,
   isResizing,
 } = useSidebarContext();
@@ -243,9 +244,13 @@ watch(
 <!-- eslint-disable-next-line vue/no-root-v-if -->
 <template>
   <Policy
-    v-if="!hasChildren || hasAccessibleChildren"
+    v-if="
+      (!hasChildren && (!to || isAllowed(to))) ||
+      (hasChildren && hasAccessibleChildren)
+    "
     :permissions="resolvePermissions(to)"
     :feature-flag="resolveFeatureFlag(to)"
+    :installation-types="resolveInstallationType(to)"
     as="li"
     class="grid gap-1 text-sm cursor-pointer select-none min-w-0"
   >

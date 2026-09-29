@@ -116,7 +116,7 @@ const handleToggleDropdown = () => {
       v-tooltip="$t('BULK_ACTION.ASSIGN_AGENT_TOOLTIP')"
       icon="i-lucide-user-round-check"
       slate
-      xs
+      sm
       ghost
       :class="{ 'bg-n-alpha-2': showDropdown }"
       @click="handleToggleDropdown"
@@ -136,7 +136,7 @@ const handleToggleDropdown = () => {
         :is-loading="isLoading"
         show-search
         :search-placeholder="t('BULK_ACTION.SEARCH_INPUT_PLACEHOLDER')"
-        class="ltr:-right-10 rtl:-left-10 ltr:2xl:right-0 rtl:2xl:left-0 bottom-8 w-60 max-h-80"
+        class="ltr:-right-10 rtl:-left-10 ltr:2xl:right-0 rtl:2xl:left-0 bottom-full mb-2 w-60 max-h-80"
         @action="handleSelectAgent"
       >
         <template v-if="selectedAgent" #footer>

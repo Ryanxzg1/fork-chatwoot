@@ -16,7 +16,11 @@ const props = defineProps({
   thinTreeLine: { type: Boolean, default: false },
 });
 
-const { resolvePermissions, resolveFeatureFlag } = useSidebarContext();
+const {
+  resolvePermissions,
+  resolveFeatureFlag,
+  resolveInstallationType = () => [],
+} = useSidebarContext();
 
 const shouldRenderComponent = computed(() => {
   return typeof props.component === 'function' || isVNode(props.component);
@@ -32,6 +36,7 @@ const TREE_CONNECTOR =
   <Policy
     :permissions="resolvePermissions(to)"
     :feature-flag="resolveFeatureFlag(to)"
+    :installation-types="resolveInstallationType(to)"
     as="li"
     class="py-0.5 ps-2 ms-3 relative text-n-slate-11 min-w-0"
     :class="{

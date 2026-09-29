@@ -1,27 +1,24 @@
 <script setup>
 import { h, ref, computed, onMounted, watch } from 'vue';
-import { provideSidebarContext, useSidebarResize } from './provider';
+import { useRoute, useRouter } from 'vue-router';
+import { provideSidebarContext, useRoutePolicy } from './provider';
 import { useAccount } from 'dashboard/composables/useAccount';
-import { useKbd } from 'dashboard/composables/utils/useKbd';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import { useSidebarKeyboardShortcuts } from './useSidebarKeyboardShortcuts';
 import { vOnClickOutside } from '@vueuse/components';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
-import { useWindowSize, useEventListener } from '@vueuse/core';
+import { useWindowSize } from '@vueuse/core';
 
-import Button from 'dashboard/components-next/button/Button.vue';
+import Icon from 'next/icon/Icon.vue';
 import SidebarGroup from './SidebarGroup.vue';
 import SidebarProfileMenu from './SidebarProfileMenu.vue';
-import SidebarChangelogCard from './SidebarChangelogCard.vue';
 import SidebarChangelogButton from './SidebarChangelogButton.vue';
 import ChannelLeaf from './ChannelLeaf.vue';
 import ChannelIcon from 'next/icon/ChannelIcon.vue';
 import EmojiIcon from 'next/emoji-icon-picker/EmojiIcon.vue';
-import SidebarAccountSwitcher from './SidebarAccountSwitcher.vue';
-import Logo from 'next/icon/Logo.vue';
-import ComposeConversation from 'dashboard/components-next/NewConversation/ComposeConversation.vue';
 import {
   SIDEBAR_SORT_SECTIONS,
   getSidebarSortOptions,
@@ -39,26 +36,33 @@ const props = defineProps({
 const emit = defineEmits([
   'closeKeyShortcutModal',
   'openKeyShortcutModal',
-  'showCreateAccountModal',
   'closeMobileSidebar',
 ]);
 
 const { accountScopedRoute, isOnChatwootCloud } = useAccount();
 const store = useStore();
-
-const searchShortcut = useKbd([`$mod`, 'k']);
 const { t } = useI18n();
 
 const isACustomBrandedInstance = useMapGetter(
   'globalConfig/isACustomBrandedInstance'
 );
-const isRTL = useMapGetter('accounts/isRTL');
+const route = useRoute();
+const router = useRouter();
+const { isAllowed } = useRoutePolicy();
 
 const { width: windowWidth } = useWindowSize();
 const isMobile = computed(() => windowWidth.value < 768);
 
 const accountId = useMapGetter('getCurrentAccountId');
 const currentUserId = useMapGetter('getCurrentUserID');
+
+// PERSISTENCE FOR SUBMENU CARD
+const { uiSettings, updateUISettings } = useUISettings();
+const isSubmenuCardOpen = computed({
+  get: () => uiSettings.value.is_sidebar_submenu_open !== false,
+  set: val => updateUISettings({ is_sidebar_submenu_open: val }),
+});
+
 const isFeatureEnabledonAccount = useMapGetter(
   'accounts/isFeatureEnabledonAccount'
 );
@@ -94,6 +98,49 @@ const hasDataImport = computed(() => {
   );
 });
 
+// GETTERS
+const inboxes = useMapGetter('inboxes/getInboxes');
+const labels = useMapGetter('labels/getLabelsOnSidebar');
+const getInboxUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getInboxUnreadCount'
+);
+const getLabelUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getLabelUnreadCount'
+);
+const getTeamUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getTeamUnreadCount'
+);
+const getFolderUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getFolderUnreadCount'
+);
+const teams = useMapGetter('teams/getMyTeams');
+const contactCustomViews = useMapGetter('customViews/getContactCustomViews');
+const conversationCustomViews = useMapGetter(
+  'customViews/getConversationCustomViews'
+);
+const getSidebarSectionSort = useMapGetter(
+  'sidebarSortPreferences/getSectionSort'
+);
+const notificationsUnreadCount = useMapGetter('notifications/getUnreadCount');
+const conversationAllUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getAllUnreadCount'
+);
+const portals = useMapGetter('portals/allPortals');
+const hasPortals = computed(() => (portals.value?.length || 0) > 0);
+
+const hasUnread = item => {
+  if (item.name === 'Inbox') {
+    return Number(notificationsUnreadCount.value) > 0;
+  }
+  if (item.name === 'Conversation') {
+    return Number(conversationAllUnreadCount.value) > 0;
+  }
+  if (item.children?.length) {
+    return item.children.some(child => Number(child.badgeCount) > 0);
+  }
+  return false;
+};
+
 const fetchConversationUnreadCounts = ([currentAccountId, isEnabled]) => {
   if (!currentAccountId) return;
 
@@ -120,113 +167,6 @@ const toggleShortcutModalFn = show => {
 
 useSidebarKeyboardShortcuts(toggleShortcutModalFn);
 
-const expandedItem = ref(null);
-
-const setExpandedItem = name => {
-  expandedItem.value = expandedItem.value === name ? null : name;
-};
-
-const {
-  sidebarWidth,
-  isCollapsed,
-  setSidebarWidth,
-  saveWidth,
-  snapToCollapsed,
-  snapToExpanded,
-  COLLAPSED_THRESHOLD,
-} = useSidebarResize();
-
-// On mobile, sidebar is always expanded (flyout mode)
-const isEffectivelyCollapsed = computed(
-  () => !isMobile.value && isCollapsed.value
-);
-
-// Resize handle logic
-const isResizing = ref(false);
-const startX = ref(0);
-const startWidth = ref(0);
-
-provideSidebarContext({
-  expandedItem,
-  setExpandedItem,
-  isCollapsed: isEffectivelyCollapsed,
-  sidebarWidth,
-  isResizing,
-});
-
-// Get clientX from mouse or touch event
-const getClientX = event =>
-  event.touches ? event.touches[0].clientX : event.clientX;
-
-const onResizeStart = event => {
-  isResizing.value = true;
-  startX.value = getClientX(event);
-  startWidth.value = sidebarWidth.value;
-  Object.assign(document.body.style, {
-    cursor: 'col-resize',
-    userSelect: 'none',
-  });
-  // Prevent default to avoid scrolling on touch
-  event.preventDefault();
-};
-
-const onResizeMove = event => {
-  if (!isResizing.value) return;
-
-  const delta = isRTL.value
-    ? startX.value - getClientX(event)
-    : getClientX(event) - startX.value;
-  setSidebarWidth(startWidth.value + delta);
-};
-
-const onResizeEnd = () => {
-  if (!isResizing.value) return;
-
-  isResizing.value = false;
-  Object.assign(document.body.style, { cursor: '', userSelect: '' });
-
-  // Snap to collapsed state if below threshold
-  if (sidebarWidth.value < COLLAPSED_THRESHOLD) {
-    snapToCollapsed();
-  } else {
-    saveWidth();
-  }
-};
-
-const onResizeHandleDoubleClick = () => {
-  if (isCollapsed.value) snapToExpanded();
-  else snapToCollapsed();
-};
-
-// Support both mouse and touch events
-useEventListener(document, 'mousemove', onResizeMove);
-useEventListener(document, 'mouseup', onResizeEnd);
-useEventListener(document, 'touchmove', onResizeMove, { passive: false });
-useEventListener(document, 'touchend', onResizeEnd);
-
-const inboxes = useMapGetter('inboxes/getInboxes');
-const labels = useMapGetter('labels/getLabelsOnSidebar');
-const getInboxUnreadCount = useMapGetter(
-  'conversationUnreadCounts/getInboxUnreadCount'
-);
-const getLabelUnreadCount = useMapGetter(
-  'conversationUnreadCounts/getLabelUnreadCount'
-);
-const getTeamUnreadCount = useMapGetter(
-  'conversationUnreadCounts/getTeamUnreadCount'
-);
-const getFolderUnreadCount = useMapGetter(
-  'conversationUnreadCounts/getFolderUnreadCount'
-);
-const teams = useMapGetter('teams/getMyTeams');
-const contactCustomViews = useMapGetter('customViews/getContactCustomViews');
-const conversationCustomViews = useMapGetter(
-  'customViews/getConversationCustomViews'
-);
-const getSidebarSectionSort = useMapGetter(
-  'sidebarSortPreferences/getSectionSort'
-);
-
 onMounted(() => {
   store.dispatch('labels/get');
   store.dispatch('inboxes/get');
@@ -235,6 +175,7 @@ onMounted(() => {
   store.dispatch('attributes/get');
   store.dispatch('customViews/get', 'conversation');
   store.dispatch('customViews/get', 'contact');
+  store.dispatch('portals/index');
 });
 
 watch([accountId, hasConversationUnreadCounts], fetchConversationUnreadCounts, {
@@ -606,48 +547,70 @@ const menuItems = computed(() => {
       name: 'Portals',
       label: t('SIDEBAR.HELP_CENTER.TITLE'),
       icon: 'i-lucide-library-big',
-      children: [
-        {
-          name: 'Articles',
-          label: t('SIDEBAR.HELP_CENTER.ARTICLES'),
-          activeOn: [
-            'portals_articles_index',
-            'portals_articles_new',
-            'portals_articles_edit',
-          ],
-          to: accountScopedRoute('portals_index', {
-            navigationPath: 'portals_articles_index',
-          }),
-        },
-        {
-          name: 'Categories',
-          label: t('SIDEBAR.HELP_CENTER.CATEGORIES'),
-          activeOn: [
-            'portals_categories_index',
-            'portals_categories_articles_index',
-            'portals_categories_articles_edit',
-          ],
-          to: accountScopedRoute('portals_index', {
-            navigationPath: 'portals_categories_index',
-          }),
-        },
-        {
-          name: 'Locales',
-          label: t('SIDEBAR.HELP_CENTER.LOCALES'),
-          activeOn: ['portals_locales_index'],
-          to: accountScopedRoute('portals_index', {
-            navigationPath: 'portals_locales_index',
-          }),
-        },
-        {
-          name: 'Settings',
-          label: t('SIDEBAR.HELP_CENTER.SETTINGS'),
-          activeOn: ['portals_settings_index'],
-          to: accountScopedRoute('portals_index', {
-            navigationPath: 'portals_settings_index',
-          }),
-        },
+      activeOn: [
+        'portals_new',
+        'portals_index',
+        'portals_articles_index',
+        'portals_articles_new',
+        'portals_articles_edit',
+        'portals_categories_index',
+        'portals_categories_articles_index',
+        'portals_categories_articles_edit',
+        'portals_locales_index',
+        'portals_settings_index',
       ],
+      children: hasPortals.value
+        ? [
+            {
+              name: 'Articles',
+              label: t('SIDEBAR.HELP_CENTER.ARTICLES'),
+              activeOn: [
+                'portals_articles_index',
+                'portals_articles_new',
+                'portals_articles_edit',
+              ],
+              to: accountScopedRoute('portals_index', {
+                navigationPath: 'portals_articles_index',
+              }),
+            },
+            {
+              name: 'Categories',
+              label: t('SIDEBAR.HELP_CENTER.CATEGORIES'),
+              activeOn: [
+                'portals_categories_index',
+                'portals_categories_articles_index',
+                'portals_categories_articles_edit',
+              ],
+              to: accountScopedRoute('portals_index', {
+                navigationPath: 'portals_categories_index',
+              }),
+            },
+            {
+              name: 'Locales',
+              label: t('SIDEBAR.HELP_CENTER.LOCALES'),
+              activeOn: ['portals_locales_index'],
+              to: accountScopedRoute('portals_index', {
+                navigationPath: 'portals_locales_index',
+              }),
+            },
+            {
+              name: 'Settings',
+              label: t('SIDEBAR.HELP_CENTER.SETTINGS'),
+              activeOn: ['portals_settings_index'],
+              to: accountScopedRoute('portals_index', {
+                navigationPath: 'portals_settings_index',
+              }),
+            },
+          ]
+        : [
+            {
+              name: 'NewPortal',
+              label: t('HELP_CENTER.NEW_PAGE.CREATE_PORTAL_BUTTON'),
+              icon: 'i-lucide-plus',
+              activeOn: ['portals_new', 'portals_index'],
+              to: accountScopedRoute('portals_new'),
+            },
+          ],
     },
     {
       name: 'Settings',
@@ -660,12 +623,6 @@ const menuItems = computed(() => {
           icon: 'i-lucide-briefcase',
           to: accountScopedRoute('general_settings_index'),
         },
-        // {
-        //   name: 'Settings Captain',
-        //   label: t('SIDEBAR.CAPTAIN_AI'),
-        //   icon: 'i-woot-captain',
-        //   to: accountScopedRoute('captain_settings_index'),
-        // },
         {
           name: 'Settings Agents',
           label: t('SIDEBAR.AGENTS'),
@@ -819,10 +776,125 @@ const menuItems = computed(() => {
     },
   ];
 });
+
+const expandedItem = ref(null);
+const setExpandedItem = name => {
+  expandedItem.value = expandedItem.value === name ? null : name;
+};
+
+const sidebarWidth = computed(() => 56);
+
+provideSidebarContext({
+  expandedItem,
+  setExpandedItem,
+  isCollapsed: computed(() => false),
+  sidebarWidth,
+  isResizing: ref(false),
+});
+
+// DEFENSIVE ACTIVE MENU ITEM RESOLUTION (CR-05)
+const isRouteActive = (routeTarget, activeOnList = []) => {
+  if (activeOnList?.includes(route.name)) return true;
+  if (!routeTarget) return false;
+  if (routeTarget.name && routeTarget.name === route.name) return true;
+  try {
+    const resolved = router.resolve(routeTarget);
+    if (resolved?.name === route.name) return true;
+    if (resolved?.path && route.path === resolved.path) return true;
+    if (
+      resolved?.path &&
+      resolved.path !== '/' &&
+      route.path.startsWith(`${resolved.path}/`)
+    ) {
+      return true;
+    }
+  } catch {
+    // ignore route resolve errors
+  }
+  return false;
+};
+
+const isChildAccessible = child => {
+  if (child.children?.length) {
+    return child.children.some(subChild => isChildAccessible(subChild));
+  }
+  return child.to ? isAllowed(child.to) : true;
+};
+
+const visibleRailMenuItems = computed(() => {
+  return menuItems.value.filter(item => {
+    if (item.children?.length) {
+      return item.children.some(child => isChildAccessible(child));
+    }
+    return item.to ? isAllowed(item.to) : true;
+  });
+});
+
+const activeMenuItem = computed(() => {
+  return visibleRailMenuItems.value.find(item => {
+    if (isRouteActive(item.to, item.activeOn)) return true;
+    if (item.children?.length) {
+      return item.children.some(child => {
+        if (!isChildAccessible(child)) return false;
+        if (isRouteActive(child.to, child.activeOn)) return true;
+        if (child.children?.length) {
+          return child.children.some(
+            subChild =>
+              isChildAccessible(subChild) &&
+              isRouteActive(subChild.to, subChild.activeOn)
+          );
+        }
+        return false;
+      });
+    }
+    return false;
+  });
+});
+
+const visibleSubmenuItems = computed(() => {
+  if (!activeMenuItem.value?.children?.length) return [];
+  return activeMenuItem.value.children.filter(child =>
+    isChildAccessible(child)
+  );
+});
+
+const showSubmenuCard = computed(() => {
+  return (
+    visibleSubmenuItems.value.length > 0 &&
+    isSubmenuCardOpen.value &&
+    !isMobile.value
+  );
+});
+
+const handleRailIconClick = item => {
+  const accessibleChildren =
+    item.children?.filter(child => isChildAccessible(child)) || [];
+  if (accessibleChildren.length > 0) {
+    isSubmenuCardOpen.value = true;
+    const firstChild = accessibleChildren[0]?.to
+      ? accessibleChildren[0]
+      : accessibleChildren[0]?.children?.find(
+          sub => sub.to && isAllowed(sub.to)
+        );
+    if (firstChild?.to) {
+      router.push(firstChild.to);
+    }
+  } else if (item.to) {
+    isSubmenuCardOpen.value = false;
+    router.push(item.to);
+  }
+};
+
+const submenuNavRef = ref(null);
+watch(activeMenuItem, (newItem, oldItem) => {
+  if (newItem?.name !== oldItem?.name && submenuNavRef.value) {
+    submenuNavRef.value.scrollTop = 0;
+  }
+});
 </script>
 
 <template>
-  <aside
+  <div
     v-on-click-outside="[
       closeMobileSidebar,
       {
@@ -833,146 +905,168 @@ const menuItems = computed(() => {
         ],
       },
     ]"
-    class="bg-n-background flex flex-col text-sm pb-px fixed top-0 ltr:left-0 rtl:right-0 h-full z-40 w-[200px] md:w-auto md:relative md:flex-shrink-0 md:ltr:translate-x-0 md:rtl:translate-x-0 ltr:border-r rtl:border-l border-n-weak"
+    class="flex h-full overflow-hidden flex-shrink-0 z-40 fixed md:relative top-0 ltr:left-0 rtl:right-0 transition-transform duration-200 ease-out"
     :class="[
       {
         'shadow-lg md:shadow-none': isMobileSidebarOpen,
-        'ltr:-translate-x-full rtl:translate-x-full': !isMobileSidebarOpen,
-        'transition-transform duration-200 ease-out md:transition-[width]':
-          !isResizing,
+        'ltr:-translate-x-full rtl:translate-x-full md:ltr:translate-x-0 md:rtl:translate-x-0':
+          !isMobileSidebarOpen,
       },
     ]"
-    :style="isMobile ? undefined : { width: `${sidebarWidth}px` }"
   >
-    <section
-      class="grid"
-      :class="isEffectivelyCollapsed ? 'mt-3 mb-6 gap-4' : 'mt-1 mb-4 gap-2'"
+    <!-- PRIMARY RAIL (Icon Strip) -->
+    <aside
+      class="bg-n-background flex flex-col text-sm pb-px h-full w-14 ltr:border-r rtl:border-l border-n-weak flex-shrink-0 pt-2"
     >
-      <div
-        class="flex gap-2 items-center min-w-0"
-        :class="{
-          'justify-center px-1': isEffectivelyCollapsed,
-          'px-2': !isEffectivelyCollapsed,
-        }"
+      <!-- Navigation Icons -->
+      <nav
+        class="grid overflow-y-scroll flex-grow gap-2 pb-5 no-scrollbar min-w-0 px-1"
       >
-        <template v-if="isEffectivelyCollapsed">
-          <SidebarAccountSwitcher
-            is-collapsed
-            @show-create-account-modal="emit('showCreateAccountModal')"
-          />
-        </template>
-        <template v-else>
-          <div class="grid flex-shrink-0 place-content-center size-6">
-            <Logo class="size-4" />
-          </div>
-          <div class="flex-shrink-0 w-px h-3 bg-n-strong" />
-          <SidebarAccountSwitcher
-            class="flex-grow -mx-1 min-w-0"
-            @show-create-account-modal="emit('showCreateAccountModal')"
-          />
-        </template>
-      </div>
-      <div
-        class="flex gap-2"
-        :class="isEffectivelyCollapsed ? 'flex-col items-center' : 'px-2'"
-      >
-        <RouterLink
-          v-if="!isEffectivelyCollapsed"
-          :to="{ name: 'search' }"
-          class="flex gap-2 items-center px-2 py-1 w-full h-7 rounded-lg outline outline-1 outline-n-weak bg-n-button-color transition-all duration-100 ease-out"
-        >
-          <span class="flex-shrink-0 i-lucide-search size-4 text-n-slate-10" />
-          <span class="flex-grow text-start text-n-slate-10">
-            {{ t('COMBOBOX.SEARCH_PLACEHOLDER') }}
-          </span>
-          <span
-            class="hidden tracking-wide pointer-events-none select-none text-n-slate-10"
-          >
-            {{ searchShortcut }}
-          </span>
-        </RouterLink>
-        <RouterLink
-          v-else
-          :to="{ name: 'search' }"
-          class="flex items-center justify-center size-8 rounded-lg outline outline-1 outline-n-weak bg-n-button-color transition-all duration-100 ease-out hover:bg-n-alpha-2 dark:hover:bg-n-slate-9/30"
-          :title="t('COMBOBOX.SEARCH_PLACEHOLDER')"
-        >
-          <span class="i-lucide-search size-4 text-n-slate-11" />
-        </RouterLink>
-        <ComposeConversation align="start">
-          <template #trigger="{ isOpen }">
-            <Button
-              icon="i-lucide-pen-line"
-              color="slate"
-              size="sm"
-              class="dark:hover:!bg-n-slate-9/30"
+        <ul class="flex flex-col gap-1 m-0 list-none min-w-0 items-center">
+          <li v-for="item in visibleRailMenuItems" :key="item.name">
+            <button
+              type="button"
+              class="relative flex items-center justify-center size-10 rounded-lg transition-colors duration-150 ease-out"
               :class="[
-                isEffectivelyCollapsed
-                  ? '!size-8 !outline-n-weak !text-n-slate-11'
-                  : '!h-7 !outline-n-weak !text-n-slate-11',
-                { '!bg-n-alpha-2 dark:!bg-n-slate-9/30': isOpen },
+                activeMenuItem?.name === item.name
+                  ? 'text-n-slate-12 bg-n-alpha-2'
+                  : 'text-n-slate-11 hover:bg-n-alpha-2',
               ]"
+              :title="item.label"
+              @click="handleRailIconClick(item)"
+            >
+              <Icon v-if="item.icon" :icon="item.icon" class="size-4" />
+              <!-- Dot badge unread indicator (W-02) -->
+              <span
+                v-if="hasUnread(item)"
+                class="absolute top-1.5 end-1.5 size-2 rounded-full bg-n-brand ring-2 ring-n-background pointer-events-none"
+              />
+            </button>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Profile & Bottom Actions -->
+      <section
+        class="flex relative flex-col flex-shrink-0 gap-1 justify-between items-center pb-2"
+      >
+        <SidebarChangelogButton
+          v-if="isOnChatwootCloud && !isACustomBrandedInstance"
+        />
+        <div
+          class="px-1 py-1.5 flex-shrink-0 flex w-full z-50 justify-center items-center border-t border-n-weak shadow-[0px_-2px_4px_0px_rgba(27,28,29,0.02)]"
+        >
+          <SidebarProfileMenu
+            is-collapsed
+            @open-key-shortcut-modal="emit('openKeyShortcutModal')"
+          />
+        </div>
+      </section>
+    </aside>
+
+    <!-- SECONDARY SUBMENU CARD (The "Card" Panel) -->
+    <Transition
+      enter-active-class="transition-all duration-300 ease-out"
+      enter-from-class="opacity-0 -translate-x-4 max-w-0"
+      enter-to-class="opacity-100 translate-x-0 max-w-[240px]"
+      leave-active-class="transition-all duration-200 ease-in"
+      leave-from-class="opacity-100 translate-x-0 max-w-[240px]"
+      leave-to-class="opacity-0 -translate-x-4 max-w-0"
+    >
+      <div
+        v-if="showSubmenuCard"
+        class="hidden md:flex flex-col w-56 ltr:border-r rtl:border-l border-n-weak bg-n-background z-30"
+      >
+        <!-- Card Header -->
+        <header
+          class="flex items-center justify-between px-4 h-12 border-b border-n-weak"
+        >
+          <span
+            class="text-xs font-semibold text-n-slate-11 uppercase tracking-wider truncate"
+          >
+            {{ activeMenuItem?.label }}
+          </span>
+          <button
+            type="button"
+            class="flex items-center justify-center size-6 rounded-md text-n-slate-11 hover:bg-n-alpha-2 transition-colors"
+            :title="t('SIDEBAR.COLLAPSE')"
+            @click="isSubmenuCardOpen = false"
+          >
+            <span class="i-lucide-chevron-left size-4 rtl:rotate-180" />
+          </button>
+        </header>
+
+        <!-- Card Content (Submenu List) with scroll ref -->
+        <nav
+          ref="submenuNavRef"
+          class="flex-grow overflow-y-auto no-scrollbar p-2"
+        >
+          <ul class="flex flex-col gap-1 m-0 list-none">
+            <SidebarGroup
+              v-for="child in visibleSubmenuItems"
+              :key="child.name"
+              v-bind="child"
             />
-          </template>
-        </ComposeConversation>
+          </ul>
+        </nav>
       </div>
-    </section>
-    <nav
-      class="grid overflow-y-scroll flex-grow gap-2 pb-5 no-scrollbar min-w-0"
-      :class="isEffectivelyCollapsed ? 'px-1' : 'px-2'"
-    >
-      <ul
-        class="flex flex-col gap-1 m-0 list-none min-w-0"
-        :class="{ 'items-center': isEffectivelyCollapsed }"
+    </Transition>
+
+    <!-- MOBILE BACKDROP & SUBMENU (Overlay mode for mobile UX) -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-200 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-150 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
       >
-        <SidebarGroup
-          v-for="item in menuItems"
-          :key="item.name"
-          v-bind="item"
+        <div
+          v-if="isMobile && isMobileSidebarOpen"
+          class="fixed inset-0 bg-black/40 z-40"
+          @click="closeMobileSidebar"
         />
-      </ul>
-    </nav>
-    <section
-      class="flex relative flex-col flex-shrink-0 gap-1 justify-between items-center"
+      </Transition>
+    </Teleport>
+
+    <Transition
+      enter-active-class="transition-transform duration-300 ease-out"
+      enter-from-class="translate-x-full"
+      enter-to-class="translate-x-0"
+      leave-active-class="transition-transform duration-200 ease-in"
+      leave-from-class="translate-x-0"
+      leave-to-class="translate-x-full"
     >
       <div
-        class="pointer-events-none absolute inset-x-0 -top-[1.938rem] h-8 bg-gradient-to-t from-n-background to-transparent"
-      />
-      <SidebarChangelogCard
-        v-if="
-          isOnChatwootCloud &&
-          !isACustomBrandedInstance &&
-          !isEffectivelyCollapsed
-        "
-      />
-      <SidebarChangelogButton
-        v-if="
-          isOnChatwootCloud &&
-          !isACustomBrandedInstance &&
-          isEffectivelyCollapsed
-        "
-      />
-      <div
-        class="px-1 py-1.5 flex-shrink-0 flex w-full z-50 gap-2 items-center border-t border-n-weak shadow-[0px_-2px_4px_0px_rgba(27,28,29,0.02)]"
-        :class="isEffectivelyCollapsed ? 'justify-center' : 'justify-between'"
+        v-if="isMobile && isMobileSidebarOpen && visibleSubmenuItems.length > 0"
+        class="fixed inset-y-0 start-14 end-0 z-50 bg-n-background border-s border-n-weak flex flex-col"
       >
-        <SidebarProfileMenu
-          :is-collapsed="isEffectivelyCollapsed"
-          @open-key-shortcut-modal="emit('openKeyShortcutModal')"
-        />
+        <header
+          class="flex items-center justify-between px-4 h-14 border-b border-n-weak flex-shrink-0"
+        >
+          <span class="text-sm font-semibold text-n-slate-12">
+            {{ activeMenuItem?.label }}
+          </span>
+          <button
+            type="button"
+            class="p-2 text-n-slate-11 hover:text-n-slate-12"
+            @click="closeMobileSidebar"
+          >
+            <span class="i-lucide-x size-5" />
+          </button>
+        </header>
+        <nav class="flex-1 overflow-y-auto p-4 pb-20">
+          <ul class="flex flex-col gap-2 m-0 list-none">
+            <SidebarGroup
+              v-for="child in visibleSubmenuItems"
+              :key="child.name"
+              v-bind="child"
+              @click="closeMobileSidebar"
+            />
+          </ul>
+        </nav>
       </div>
-    </section>
-    <!-- Resize Handle (desktop only) -->
-    <div
-      class="hidden md:block absolute top-0 h-full w-1 cursor-col-resize z-40 ltr:right-0 rtl:left-0 group"
-      @mousedown="onResizeStart"
-      @touchstart="onResizeStart"
-      @dblclick="onResizeHandleDoubleClick"
-    >
-      <div
-        class="absolute top-0 h-full w-px ltr:right-0 rtl:left-0 bg-transparent group-hover:bg-n-brand transition-colors"
-        :class="{ 'bg-n-brand': isResizing }"
-      />
-    </div>
-  </aside>
+    </Transition>
+  </div>
 </template>

@@ -79,9 +79,9 @@ const handleUpdate = item => {
   <div ref="containerRef" class="relative">
     <Button
       v-tooltip="$t('BULK_ACTION.UPDATE.CHANGE_STATUS')"
-      icon="i-lucide-circle-fading-arrow-up"
+      icon="i-lucide-check-circle"
       slate
-      xs
+      sm
       ghost
       :class="{ 'bg-n-alpha-2': showDropdown }"
       @click="toggleDropdown()"
@@ -101,7 +101,7 @@ const handleUpdate = item => {
           { ignore: [containerRef] },
         ]"
         :menu-items="updateMenuItems"
-        class="ltr:-right-[4.5rem] rtl:-left-[4.5rem] ltr:2xl:right-0 rtl:2xl:left-0 bottom-8 w-36"
+        class="ltr:-right-[4.5rem] rtl:-left-[4.5rem] ltr:2xl:right-0 rtl:2xl:left-0 bottom-full mb-2 w-36"
         @action="handleUpdate"
       />
     </Transition>

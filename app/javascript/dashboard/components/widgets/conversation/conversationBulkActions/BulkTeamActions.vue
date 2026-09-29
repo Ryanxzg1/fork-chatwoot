@@ -32,7 +32,7 @@ const teamMenuItems = computed(() => {
       action: 'select',
       value: 'none',
       label: t('BULK_ACTION.TEAMS.NONE'),
-      isSelected: selectedTeam.value?.id === 0,
+      isSelected: selectedTeam.value?.id === null,
     },
   ];
 
@@ -50,11 +50,11 @@ const teamMenuItems = computed(() => {
 
 const handleSelectTeam = item => {
   if (item.value === 'none') {
-    selectedTeam.value = { id: 0, name: t('BULK_ACTION.TEAMS.NONE') };
+    selectedTeam.value = { id: null, name: t('BULK_ACTION.TEAMS.NONE') };
   } else {
     const foundTeam = teams.value.find(team => team.id === item.value);
     selectedTeam.value = foundTeam || {
-      id: 0,
+      id: null,
       name: t('BULK_ACTION.TEAMS.NONE'),
     };
   }
@@ -83,7 +83,7 @@ const handleDismiss = () => {
       v-tooltip="$t('BULK_ACTION.ASSIGN_TEAM_TOOLTIP')"
       icon="i-lucide-users-round"
       slate
-      xs
+      sm
       ghost
       :class="{ 'bg-n-alpha-2': showDropdown }"
       @click="toggleDropdown()"
@@ -102,7 +102,7 @@ const handleDismiss = () => {
         :menu-items="teamMenuItems"
         show-search
         :search-placeholder="t('BULK_ACTION.SEARCH_INPUT_PLACEHOLDER')"
-        class="ltr:-right-2 rtl:-left-2 bottom-8 w-60 max-h-80"
+        class="ltr:-right-2 rtl:-left-2 bottom-full mb-2 w-60 max-h-80"
         @action="handleSelectTeam"
       >
         <template v-if="selectedTeam" #footer>
