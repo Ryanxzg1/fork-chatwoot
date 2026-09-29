@@ -108,6 +108,7 @@ describe('Dashboard', () => {
           ComposeConversation: true,
           ButtonNext: true,
           RouterLink: true,
+          AgentStatusBadge: true,
         },
       },
     });

@@ -431,6 +431,19 @@
           // Intersepsi jika widget mencoba beralih ke unread preview: paksa kembali ke view messages
           console.log('[Customer POV] Menolak setUnreadMode, mengembalikan ke chat penuh...');
           lockWidgetOpen();
+        } else if (message.event === 'conversationResolved' || message.eventIdentifier === 'chatwoot:on-conversation-resolved') {
+          console.log('[Customer POV] Percakapan telah diakhiri oleh pengunjung (status: resolved). Menutup sesi lama...');
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('cw_') || (key.includes('chatwoot') && !key.includes('demo')))) {
+              localStorage.removeItem(key);
+            }
+          }
+          document.cookie = 'cw_conversation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = 'cw_user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          setTimeout(function() {
+            loadChatWidget(currentToken);
+          }, 300);
         }
       } catch (err) {
         console.error('[Customer POV] Gagal mengurai pesan widget:', err);

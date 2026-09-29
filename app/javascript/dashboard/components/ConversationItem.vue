@@ -140,16 +140,16 @@ const onUpdateConversation = (status, snoozedUntil) => {
 };
 
 const onAssignAgent = agent => {
-  assignAgent(agent, [props.source.id]);
+  assignAgent(agent, props.source.id);
   closeContextMenu();
 };
 
 const onAssignLabel = label => {
-  assignLabels([label.title], [props.source.id]);
+  assignLabels([label.title], props.source.id);
 };
 
 const onRemoveLabel = label => {
-  removeLabels([label.title], [props.source.id]);
+  removeLabels([label.title], props.source.id);
 };
 
 const onAssignTeam = team => {

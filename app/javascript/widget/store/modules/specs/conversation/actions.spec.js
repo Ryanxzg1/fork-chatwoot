@@ -509,4 +509,27 @@ describe('#actions', () => {
       expect(commit.mock.calls).toEqual([]);
     });
   });
+
+  describe('#resolveConversation', () => {
+    it('optimistically updates status and calls toggleStatus API', async () => {
+      API.get.mockResolvedValue({ data: {} });
+      const rootGetters = {
+        'conversationAttributes/getConversationParams': { id: 123 },
+      };
+      await actions.resolveConversation({ dispatch, rootGetters });
+      expect(dispatch).toHaveBeenCalledWith(
+        'conversationAttributes/update',
+        { id: 123, status: 'resolved' },
+        { root: true }
+      );
+      expect(API.get).toHaveBeenCalledWith(
+        expect.stringContaining('/api/v1/widget/conversations/toggle_status')
+      );
+      expect(dispatch).toHaveBeenCalledWith(
+        'conversationAttributes/getAttributes',
+        {},
+        { root: true }
+      );
+    });
+  });
 });

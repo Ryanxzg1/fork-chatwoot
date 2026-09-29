@@ -54,6 +54,7 @@ export default {
       unreadMessageCount: 'conversation/getUnreadMessageCount',
       isWidgetStyleFlat: 'appConfig/isWidgetStyleFlat',
       showUnreadMessagesDialog: 'appConfig/getShowUnreadMessagesDialog',
+      conversationAttributes: 'conversationAttributes/getConversationParams',
     }),
     isIFrame() {
       return IFrameHelper.isIFrame();
@@ -177,7 +178,9 @@ export default {
         if ((this.isWidgetOpen || !this.isIFrame) && routeName === 'messages') {
           this.$store.dispatch('conversation/setUserLastSeen');
         }
-        this.setUnreadView();
+        if (this.conversationAttributes?.status !== 'resolved') {
+          this.setUnreadView();
+        }
       });
       emitter.on(ON_UNREAD_MESSAGE_CLICK, () => {
         this.router
@@ -331,10 +334,14 @@ export default {
         } else if (message.event === 'toggle-open') {
           this.$store.dispatch('appConfig/toggleWidgetOpen', message.isOpen);
 
+          const isResolved =
+            this.conversationAttributes &&
+            this.conversationAttributes.status === 'resolved';
           const shouldShowMessageView =
             ['home'].includes(this.$route.name) &&
             message.isOpen &&
-            this.messageCount;
+            this.messageCount &&
+            !isResolved;
           const shouldShowHomeView =
             !message.isOpen &&
             ['unread-messages', 'campaigns'].includes(this.$route.name);

@@ -609,7 +609,7 @@ function onToggleAdvanceFiltersModal() {
 
 function fetchConversations() {
   store.dispatch('updateChatListFilters', conversationFilters.value);
-  store.dispatch('fetchAllConversations').then(emitConversationLoaded);
+  return store.dispatch('fetchAllConversations').then(emitConversationLoaded);
 }
 
 function resetAndFetchData() {
@@ -634,11 +634,11 @@ async function refreshAllConversations() {
   if (isRefreshing.value || chatListLoading.value) return;
   isRefreshing.value = true;
   try {
-    resetAndFetchData();
     await Promise.allSettled([
+      fetchConversations(),
       store.dispatch('conversationStats/get', conversationFilters.value),
       store.dispatch('conversationUnreadCounts/get'),
-      store.dispatch('notifications/getUnreadCount'),
+      store.dispatch('notifications/unReadCount'),
     ]);
   } finally {
     isRefreshing.value = false;
@@ -978,11 +978,14 @@ watch(appliedFilters, () => resetBulkActions());
       :is-on-expanded-layout="isOnExpandedLayout"
       :conversation-stats="conversationStats"
       :is-list-loading="chatListLoading && !conversationList.length"
+      :active-assignee-tab="activeAssigneeTab"
+      :assignee-tab-items="assigneeTabItems"
       @add-folders="onClickOpenAddFoldersModal"
       @delete-folders="onClickOpenDeleteFoldersModal"
       @filters-modal="onToggleAdvanceFiltersModal"
       @reset-filters="resetAndFetchData"
       @basic-filter-change="onBasicFilterChange"
+      @assignee-tab-change="updateAssigneeTab"
     />
 
     <TeleportWithDirection

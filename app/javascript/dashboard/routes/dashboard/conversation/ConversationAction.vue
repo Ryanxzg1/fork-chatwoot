@@ -154,7 +154,6 @@ const assignedPriority = computed({
       useAlert(
         t('CONVERSATION.PRIORITY.CHANGE_PRIORITY.SUCCESSFUL', {
           priority: priorityItem.name,
-          conversationId,
         })
       );
     });

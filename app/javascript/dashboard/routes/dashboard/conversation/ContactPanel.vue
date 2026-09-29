@@ -160,12 +160,16 @@ onMounted(() => {
     <!-- SEGMENTED TABS NAVIGATOR -->
     <div class="px-3 pt-1 pb-3 sticky top-0 bg-n-surface-2 z-10">
       <div
+        role="tablist"
+        :aria-label="$t('CONTACT_PANEL.TABS_LABEL')"
         class="grid grid-cols-3 p-1 rounded-xl bg-n-alpha-2 border border-n-weak/60 gap-1 text-xs font-medium"
       >
         <button
           v-for="tab in tabs"
           :key="tab.key"
           type="button"
+          role="tab"
+          :aria-selected="activeTabKey === tab.key"
           class="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg transition-all duration-150 cursor-pointer select-none text-xs"
           :class="
             activeTabKey === tab.key

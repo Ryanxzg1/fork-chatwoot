@@ -47,13 +47,13 @@ const activeStatus = computed(() => {
   );
 });
 
-function changeAvailabilityStatus(availability) {
+async function changeAvailabilityStatus(availability) {
   if (isImpersonating.value) {
     useAlert(t('PROFILE_SETTINGS.FORM.AVAILABILITY.IMPERSONATING_ERROR'));
     return;
   }
   try {
-    store.dispatch('updateAvailability', {
+    await store.dispatch('updateAvailability', {
       availability,
       account_id: currentAccountId.value,
     });
@@ -74,8 +74,11 @@ function changeAvailabilityStatus(availability) {
         @click="toggle"
       >
         <span
-          class="size-2 rounded-full shrink-0 animate-pulse duration-1000"
-          :class="activeStatus.color"
+          class="size-2 rounded-full shrink-0 duration-1000"
+          :class="[
+            activeStatus.color,
+            { 'animate-pulse': activeStatus.value === 'online' },
+          ]"
         />
         <span class="font-medium text-n-slate-12 hidden sm:inline-block">
           {{ activeStatus.label }}

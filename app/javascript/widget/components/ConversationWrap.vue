@@ -3,6 +3,7 @@ import ChatMessage from 'widget/components/ChatMessage.vue';
 import AgentTypingBubble from 'widget/components/AgentTypingBubble.vue';
 import DateSeparator from 'shared/components/DateSeparator.vue';
 import Spinner from 'shared/components/Spinner.vue';
+import FluentIcon from 'shared/components/FluentIcon/Index.vue';
 import { useDarkMode } from 'widget/composables/useDarkMode';
 import { MESSAGE_TYPE } from 'shared/constants/messages';
 import { mapActions, mapGetters } from 'vuex';
@@ -14,6 +15,7 @@ export default {
     AgentTypingBubble,
     DateSeparator,
     Spinner,
+    FluentIcon,
   },
   props: {
     groupedMessages: {
@@ -53,6 +55,9 @@ export default {
         this.isAgentTyping ||
         (isConversationInPendingStatus && isLastMessageIncoming)
       );
+    },
+    isConversationResolved() {
+      return this.conversationAttributes.status === 'resolved';
     },
   },
   watch: {
@@ -117,6 +122,17 @@ export default {
         />
       </div>
       <AgentTypingBubble v-if="showStatusIndicator" />
+      <div
+        v-if="isConversationResolved"
+        class="flex items-center justify-center my-4 px-4 py-2.5 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-slate-500 dark:text-slate-400 text-xs font-medium text-center gap-2 border border-slate-200/60 dark:border-slate-700/60"
+      >
+        <FluentIcon
+          icon="checkmark-circle"
+          size="16"
+          class="text-emerald-500"
+        />
+        <span>{{ $t('CONVERSATION_ENDED_BANNER') }}</span>
+      </div>
     </div>
   </div>
 </template>

@@ -5,9 +5,9 @@ import { useMapGetter } from 'dashboard/composables/store.js';
 
 // Menjamin ruang horizontal yang cukup agar elemen internal (misal ConversationStatusFilterPills & ChatListHeader)
 // tidak terpotong di berbagai bahasa pada layout terkondensasi.
-export const MIN_CHAT_LIST_WIDTH = 420;
-export const DEFAULT_CHAT_LIST_WIDTH = 420;
-export const DEFAULT_CHAT_LIST_WIDTH_2XL = 460;
+export const MIN_CHAT_LIST_WIDTH = 410;
+export const DEFAULT_CHAT_LIST_WIDTH = 410;
+export const DEFAULT_CHAT_LIST_WIDTH_2XL = 450;
 export const MAX_WIDTH_RATIO = 0.5;
 
 export function useChatListResize() {

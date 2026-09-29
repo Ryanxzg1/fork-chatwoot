@@ -30,7 +30,7 @@
       "SHORTCUTS": {
         "TITLE": "Quick Productivity Shortcuts",
         "NAVIGATE": "Navigate previous / next chat",
-        "RESOLVE": "Resolve current conversation",
+        "RESOLVE": "Mark conversation as done",
         "PRIVATE_NOTE": "Switch to private note"
       }
     },
@@ -311,7 +311,7 @@
     "REPLYBOX": {
       "REPLY": "Reply",
       "PRIVATE_NOTE": "Private Note",
-      "PRIVATE_NOTE_WARNING": "Only visible to agents",
+      "PRIVATE_NOTE_WARNING": "• Only visible to agents",
       "SEND": "Send",
       "CREATE": "Add Private Note",
       "INSERT_READ_MORE": "Read more",

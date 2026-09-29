@@ -147,7 +147,7 @@
     "MESSAGE_READ": "Read",
     "SENDING": "Sending",
     "FOOTER": {
-      "CHAT_COUNT": "{status} Chat : {count} Customers",
+      "CHAT_COUNT": "{status} Chat : {count} Conversations",
       "REFRESH_TOOLTIP": "Refresh conversations",
       "REFRESH_LABEL": "Refresh"
     },

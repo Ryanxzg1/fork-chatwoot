@@ -68,7 +68,8 @@
       "TICKET": "Ticket",
       "CUSTOMER": "Customer",
       "APPS": "Apps & Media"
-    }
+    },
+    "TABS_LABEL": "Contact Panel Tabs"
   },
   "EDIT_CONTACT": {
     "BUTTON_LABEL": "Edit Contact",

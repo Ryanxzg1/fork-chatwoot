@@ -167,9 +167,8 @@ export default {
       >
         <span class="i-ph-lock-key-fill size-3.5" />
         <span>{{ $t('CONVERSATION.REPLYBOX.PRIVATE_NOTE') }}</span>
-        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
         <span class="opacity-75 font-normal hidden sm:inline">
-          &bull; {{ $t('CONVERSATION.REPLYBOX.PRIVATE_NOTE_WARNING') }}
+          {{ $t('CONVERSATION.REPLYBOX.PRIVATE_NOTE_WARNING') }}
         </span>
       </div>
     </div>

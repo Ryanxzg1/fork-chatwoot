@@ -11,6 +11,7 @@ import {
 } from 'widget/api/conversation';
 
 import { ON_CONVERSATION_CREATED } from 'widget/constants/widgetBusEvents';
+import { IFrameHelper } from 'widget/helpers/utils';
 import { createTemporaryMessage, getNonDeletedMessages } from './helpers';
 import { emitter } from 'shared/helpers/mitt';
 export const actions = {
@@ -208,8 +209,36 @@ export const actions = {
     }
   },
 
-  resolveConversation: async () => {
-    await toggleStatus();
+  resolveConversation: async ({ dispatch, rootGetters }) => {
+    const activeParams =
+      rootGetters['conversationAttributes/getConversationParams'] || {};
+    // Optimistic update: langsung set status ke 'resolved' di state lokal
+    if (activeParams.id) {
+      dispatch(
+        'conversationAttributes/update',
+        { id: activeParams.id, status: 'resolved' },
+        { root: true }
+      );
+    }
+    try {
+      await toggleStatus();
+      await dispatch(
+        'conversationAttributes/getAttributes',
+        {},
+        { root: true }
+      );
+      IFrameHelper.sendMessage({
+        event: 'onEvent',
+        eventIdentifier: 'chatwoot:on-conversation-resolved',
+        data: { status: 'resolved', conversationId: activeParams.id },
+      });
+      IFrameHelper.sendMessage({
+        event: 'conversationResolved',
+        data: { status: 'resolved', conversationId: activeParams.id },
+      });
+    } catch (error) {
+      dispatch('conversationAttributes/getAttributes', {}, { root: true });
+    }
   },
 
   setCustomAttributes: async (

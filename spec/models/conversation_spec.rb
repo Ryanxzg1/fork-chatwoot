@@ -276,7 +276,7 @@ RSpec.describe Conversation do
       expect(Conversations::ActivityMessageJob)
         .to(have_been_enqueued.at_least(:once)
         .with(conversation, { account_id: conversation.account_id, inbox_id: conversation.inbox_id, message_type: :activity,
-                              content: "Conversation was marked resolved by #{old_assignee.name}",
+                              content: "Conversation was marked as done by #{old_assignee.name}",
                               content_attributes: { activity: { type: 'conversation_status_changed', status: 'resolved' } } }))
       expect(Conversations::ActivityMessageJob)
         .to(have_been_enqueued.at_least(:once)
@@ -296,7 +296,7 @@ RSpec.describe Conversation do
                      else
                        { key: 'auto_resolved_minutes', count: account.auto_resolve_after }
                      end
-      system_resolved_message = "Conversation was marked resolved by system due to #{message_data[:count]} days of inactivity"
+      system_resolved_message = "Conversation was marked as done by system due to #{message_data[:count]} days of inactivity"
       expect { conversation2.update(status: :resolved) }
         .to have_enqueued_job(Conversations::ActivityMessageJob)
         .with(conversation2, { account_id: conversation2.account_id, inbox_id: conversation2.inbox_id, message_type: :activity,

@@ -44,9 +44,16 @@
   },
   "START_CONVERSATION": "Mulai Percakapan",
   "END_CONVERSATION": "Akhiri Percakapan",
+  "END_CONVERSATION_CONFIRMATION": {
+    "TITLE": "Akhiri Percakapan?",
+    "MESSAGE": "Apakah Anda yakin ingin mengakhiri sesi percakapan ini?",
+    "CONFIRM": "Ya, Akhiri",
+    "CANCEL": "Batal"
+  },
+  "CONVERSATION_ENDED_BANNER": "Percakapan telah diakhiri",
   "CONTINUE_CONVERSATION": "Lanjutkan Percakapan",
   "YOU": "Anda",
-  "START_NEW_CONVERSATION": "Mulai Percakapan",
+  "START_NEW_CONVERSATION": "Mulai Percakapan Baru",
   "VIEW_UNREAD_MESSAGES": "Anda memiliki pesan yang belum dibaca",
   "UNREAD_VIEW": {
     "VIEW_MESSAGES_BUTTON": "Lihat pesan baru",

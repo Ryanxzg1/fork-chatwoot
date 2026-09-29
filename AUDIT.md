@@ -1,492 +1,299 @@
-# LAPORAN AUDIT TEKNIS: UI/UX & SYSTEM DESIGN (AGENT CS INTERFACE) CHATWOOT
+# LAPORAN QUALITY CONTROL & AUDIT TEKNIS CODEBASE CHATWOOT
 
-> **Status Audit:** Selesai  
-> **Target Scope:** Sisi Agen Customer Support (CS) Chatwoot — Frontend (Vue 3/Tailwind), Real-time (ActionCable/Redis), dan Backend (Rails/PostgreSQL).  
-> **Klasifikasi Repositori:** 100% Community Edition (Pure MIT Standalone Fork).
+> **Tanggal Audit:** 29 September 2026  
+> **Target Scope:** Review Perubahan Kode pada Commit HEAD (`9335a855b1`) — 40 files (+967 / -462 baris)  
+> **Klasifikasi Proyek:** 100% Community Edition (Pure MIT Standalone Fork — `enterprise/` purged)  
+> **Status Akhir:** 🔴 **BLOCK MERGE (32 Critical Rejects, 66 Warnings, 74 OFIs)**
 
 ---
 
 ## 📑 DAFTAR ISI
-1. [Ringkasan Eksekutif & Arsitektur Umum](#1-ringkasan-eksekutif--arsitektur-umum)
-2. [Audit UI/UX & Alur Kerja Agen CS (Frontend)](#2-audit-uiux--alur-kerja-agen-cs-frontend)
-   - [2.1 Kekuatan Desain & Komponen](#21-kekuatan-desain--komponen)
-   - [2.2 Temuan Masalah & Friction Points Kritis](#22-temuan-masalah--friction-points-kritis)
-   - [2.3 Audit Aksesibilitas (WCAG 2.1 AA) & Hierarki Visual](#23-audit-aksesibilitas-wcag-21-aa--hierarki-visual)
-   - [2.4 Matriks Temuan UI/UX Beserta File Spesifik](#24-matriks-temuan-uiux-beserta-file-spesifik)
-3. [Audit System Design & Real-Time State Management](#3-audit-system-design--real-time-state-management)
-   - [3.1 Diagram Alur Data End-to-End](#31-diagram-alur-data-end-to-end)
-   - [3.2 Evaluasi Konkurensi & Event Storming](#32-evaluasi-konkurensi--event-storming)
-   - [3.3 Analisis Kebocoran Memori Klien (Vuex State Retention)](#33-analisis-kebocoran-memori-klien-vuex-state-retention)
-   - [3.4 Matriks Risiko Arsitektur Real-Time](#34-matriks-risiko-arsitektur-real-time)
-4. [Audit Backend Data Pipeline, Assignment Engine & Skalabilitas Database](#4-audit-backend-data-pipeline-assignment-engine--skalabilitas-database)
-   - [4.1 Efisiensi Query & Indexing Database](#41-efisiensi-query--indexing-database)
-   - [4.2 N+1 Queries & Payload Bloat (Serializer & Jbuilder)](#42-n1-queries--payload-bloat-serializer--jbuilder)
-   - [4.3 Evaluasi Assignment Engine (Race Condition & Offline Trap)](#43-evaluasi-assignment-engine-race-condition--offline-trap)
-   - [4.4 Mekanisme SLA & Snooze](#44-mekanisme-sla--snooze)
-5. [Rencana Aksi & Rekomendasi Solusi Teknis (P0, P1, P2)](#5-rencana-aksi--rekomendasi-solusi-teknis-p0-p1-p2)
+1. [Ringkasan Eksekutif](#1-ringkasan-eksekutif)
+2. [Matriks Kepatuhan Panduan AGENTS.md & CONTEXT.md](#2-matriks-kepatuhan-panduan-agentsmd--contextmd)
+3. [Daftar Temuan Kritis (🔴 CRITICAL REJECT — 32 Items)](#3-daftar-temuan-kritis--critical-reject--32-items)
+   - [3.1 Pelanggaran Arsitektur Vue (Options API vs Composition API)](#31-pelanggaran-arsitektur-vue-options-api-vs-composition-api)
+   - [3.2 Pelanggaran Aturan Styling (Scoped SCSS & Inline Styles)](#32-pelanggaran-aturan-styling-scoped-scss--inline-styles)
+   - [3.3 Aksesibilitas (WCAG 2.1 AA) & Elemen UI Hilang](#33-aksesibilitas-wcag-21-aa--elemen-ui-hilang)
+   - [3.4 Bug Logika, Resiliensi & Integritas State](#34-bug-logika-resiliensi--integritas-state)
+   - [3.5 Ketidakkonsistenan i18n ("Mark as Done" vs "resolved")](#35-ketidakkonsistenan-i18n-mark-as-done-vs-resolved)
+   - [3.6 Keamanan & Sanitasi Berkas Publik](#36-keamanan--sanitasi-berkas-publik)
+   - [3.7 Gap Pengujian Backend (RSpec)](#37-gap-pengujian-backend-rspec)
+4. [Daftar Peringatan Signifikan (🟡 WARNING — 66 Items)](#4-daftar-peringatan-signifikan--warning--66-items)
+5. [Peluang Peningkatan (💡 OFI — 74 Items)](#5-peluang-peningkatan--ofi--74-items)
+6. [Audit Lintas-Domain (Cross-Cutting Concerns)](#6-audit-lintas-domain-cross-cutting-concerns)
+7. [Rencana Aksi Remediasi Bertahap (P0, P1, P2)](#7-rencana-aksi-remediasi-bertahap-p0-p1-p2)
 
 ---
 
-## 1. RINGKASAN EKSEKUTIF & ARSITEKTUR UMUM
+## 1. RINGKASAN EKSEKUTIF
 
-Antarmuka agen Chatwoot mengadopsi pola **Three-Pane Layout**:
-- **Left Pane (Chat List):** Antrean tiket percakapan, filter inbox, status, tim, dan label.
-- **Center Pane (Conversation Thread & Composer):** Kronologi riwayat pesan, bubble pesan modular, private notes, dan kotak balas (*WootWriter / ProseMirror*).
-- **Right Pane (Contact/Context Panel):** Profil kontak CRM, custom attributes, eksekusi makro, dan *conversation actions*.
+Audit teknis mendalam ini dilakukan terhadap seluruh perubahan pada commit `9335a855b1` (`feat: update conversation resolution copy to mark as done and add agent status and list footer components`). Audit mencakup evaluasi kode baris-per-baris di 40 berkas modifikasi dan berkas-berkas relasi di seluruh layer aplikasi: **Frontend Dashboard**, **Widget Iframe**, **Backend Rails/RSpec**, dan **Kamus Bahasa (i18n)**.
 
-Sistem berkomunikasi via REST API (Puma/Rails) untuk mutasi state persisten dan ActionCable (WebSocket didukung Redis Pub/Sub) untuk pembaruan *real-time* (pesan masuk, status *typing*, *presence*, dan pergantian assignee).
+### Ringkasan Angka Temuan per Domain
 
-Meskipun fondasi komponennya sudah modern (Vue 3 Composition API & Tailwind CSS), audit mendalam ini mengidentifikasi kelemahan arsitektur kritis pada:
-1. **Skalabilitas Konkurensi:** $O(N)$ Pub/Sub fan-out di Sidekiq, missing database indexes pada sort default inbox, dan N+1 queries di Jbuilder.
-2. **Resiliensi Klien:** Kebocoran memori (memory leak) di Vuex store tab browser agen dan duplikasi pesan saat reconnect jaringan.
-3. **Integritas Data & UX Agen:** Kehilangan draf lampiran seketika saat beralih percakapan, hotkeys esensial yang terblokir saat mengetik, dan race condition penugasan tiket (*assignment overwrite*).
-
----
-
-## 2. AUDIT UI/UX & ALUR KERJA AGEN CS (FRONTEND)
-
-### 2.1 Kekuatan Desain & Komponen
-1. **Modularitas `components-next/`:**
-   Pemisahan gelembung pesan (`Text/`, `Email/`, `Activity.vue`) memberikan enkapsulasi state yang baik. Sistem token warna Tailwind (`text-n-slate-12`, `bg-n-surface-1`, `border-n-weak`) mempermudah konsistensi visual dan peralihan Dark/Light mode (`themeHelper.js:4-17`).
-2. **Contextual In-Editor Triggers (ProseMirror):**
-   Integrasi plugin di `WootWriter/Editor.vue:347-382` mendeteksi trigger dengan sangat responsif:
-   - `@` untuk Mention Agents/Teams (`TagAgents.vue`)
-   - `/` untuk Canned Responses (`CannedResponse.vue`)
-   - `{{` untuk Dynamic Variables (`VariableList.vue`)
-   - `#` untuk Macro Execution (`MacroList.vue`)
-   - `:` untuk Emoji Picker (`keyboardEmojiSelector.vue`)
-   Menggunakan `CaretAnchoredPicker.vue` yang melayang tepat di posisi *caret* kursor pengetikan.
-3. **Global Command Bar Palette (`ninja-keys`):**
-   Shortcut `Cmd+K` / `Ctrl+K` (`ReplyBox.vue:109-116`, `useConversationHotKeys.js:1-403`) memungkinkan triase cepat (assignee, label, status, prioritas) tanpa mouse.
-4. **Kustomisasi Panel Kontak:**
-   Komponen accordion di `ContactPanel.vue:151-160` dapat diatur ulang (*drag & drop*) via `vuedraggable` dan otomatis disimpan ke `useUISettings.js`.
+| Domain Kerja | Berkas Diperiksa | 🔴 Critical | 🟡 Warning | 💡 OFI | Status Kelulusan |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Dashboard Sidebar & Status Agen** | 3 | 2 | 5 | 4 | 🔴 REJECT |
+| **Chat List & Komponen Percakapan** | 11 | 5 | 6 | 8 | 🔴 REJECT |
+| **Aksi Percakapan (Resolve / Done)** | 4 | 0 | 6 | 10 | 🟡 CONDITIONAL PASS |
+| **WootWriter (Reply Top & Bottom Panel)** | 2 | 11 | 8 | 11 | 🔴 REJECT |
+| **Contact Panel & Contact Info (Rewrite)** | 7 | 7 | 15 | 5 | 🔴 REJECT |
+| **Widget Iframe (Vue 3 Client)** | 8 | 3 | 15 | 23 | 🔴 REJECT |
+| **Kamus i18n & RSpec Backend** | 12 | 3 | 8 | 12 | 🔴 REJECT |
+| **Berkas Pengujian & Skrip Demo** | 2 | 1 | 3 | 1 | 🔴 REJECT |
+| **TOTAL KONSOLIDASI** | **49** | **32** | **66** | **74** | 🔴 **BLOCK MERGE** |
 
 ---
 
-### 2.2 Temuan Masalah & Friction Points Kritis
+## 2. MATRIKS KEPATUHAN PANDUAN AGENTS.MD & CONTEXT.MD
 
-#### A. Data Loss: Lampiran Berkas & Audio Terhapus Saat Berpindah Chat
-- **Lokasi Kode:** `app/javascript/dashboard/components/widgets/conversation/ReplyBox.vue:578-583`
-  ```javascript
-  conversationIdByRoute(conversationId, oldConversationId) {
-    if (conversationId !== oldConversationId) {
-      this.switchDraftContext(conversationId, this.effectiveReplyMode);
-      this.resetRecorderAndClearAttachments(); // <-- Data Dihapus
-      this.isQuoteRemoved = false;
-    }
-  }
-  ```
-- **Masalah:** Jika agen sedang mengunggah berkas PDF/gambar atau merekam voice note, lalu beralih ke tiket lain untuk memeriksa nomor pesanan/konteks, **seluruh attachment dan rekaman audio langsung dihapus tanpa konfirmasi**. Draft store (`draftMessages.js`) hanya menyimpan teks, bukan berkas.
-
-#### B. Timpaan Otomatis Recipient Email (CC / BCC) Saat Berpindah Chat
-- **Lokasi Kode:** `ReplyBox.vue:570-576`, `ReplyBox.vue:1255-1270`
-- **Masalah:** Pada inbox email, jika agen menambahkan alamat supervisor/vendor di field CC/BCC lalu berpindah chat atau menerima update event pesan baru, `lastEmail` watcher memanggil `setCCAndToEmailsFromLastChat()` yang **menimpa balik** field CC/BCC ke default database, membuang input manual agen.
-
-#### C. Ketiadaan Indikator Visual Draft di List Percakapan
-- **Lokasi Kode:** `ConversationCard.vue`
-- **Masalah:** Saat agen menulis draf tanggapan lalu terdistraksi tiket lain, kartu percakapan tidak menampilkan indikator draf (tidak ada ikon pensil, tidak ada label `[Draft]`). Agen sering lupa bahwa tiket tersebut belum terkirim.
-
-#### D. Hotkeys Kritis Terblokir Saat Mengetik (`allowOnFocusedInput: false`)
-- **Lokasi Kode:** `ReplyTopPanel.vue:108`, `Editor.vue:716`, `ResolveAction.vue:146-170`
-- **Masalah:** Agen menghabiskan 90% waktunya dengan kursor aktif di kotak teks. Namun, shortcut *Resolve Conversation* (`Alt+E` / `Cmd+Alt+E`), switch ke *Private Note* (`Alt+P`), dan switch ke *Reply* (`Alt+L`) secara sengaja disetel `allowOnFocusedInput: false`. Agen wajib mengklik mouse ke luar editor terlebih dahulu untuk menggunakan shortcut tersebut.
-
-#### E. Inversi Tombol Navigasi Vim (`Alt+J` vs `Alt+K`)
-- **Lokasi Kode:** `app/javascript/dashboard/composables/chatlist/useChatListKeyboardEvents.js:49-56`
-- **Masalah:** Di standar industri (Vim, Gmail, Linear), `J` = Next / Down dan `K` = Previous / Up. Di Chatwoot justru terbalik: `Alt+J` memanggil `previous` (ke atas) dan `Alt+K` memanggil `next` (ke bawah).
-
-#### F. Kerentanan Resiko Pengiriman Catatan Internal ke Pelanggan
-- **Lokasi Kode:** `ReplyBox.vue` & `ReplyBoxBanner.vue`
-- **Masalah:** Pembeda antara *Public Reply* dan *Private Note* hanya warna tombol dan strip banner tipis. Di tengah beban kerja CS tinggi, agen rawan salah mengetik catatan internal rahasia ke pelanggan eksternal karena area editor tidak memiliki border aksen kontras atau watermark status.
+| Standar / Aturan Wajib | Status | Catatan Evaluator |
+|---|:---:|---|
+| **Vue 3 Composition API `<script setup>`** | ❌ **FAIL** | 8 komponen masih menggunakan pola legacy Options API dan Vuex mixins. |
+| **Tailwind Only (Zero Custom/Scoped CSS)** | ❌ **FAIL** | 6 komponen menyertakan blok `<style lang="scss" scoped>` atau manipulasi inline style DOM. |
+| **Desain Token Radix (`n-*`) & Iconify** | ⚠️ **PARTIAL** | Masih ditemukan token warna legacy (`ruby`), `fluent-icon`, dan emoji unicode mentah. |
+| **Aturan i18n (Zero Bare Strings)** | ⚠️ **PARTIAL** | Terdapat teks bahasa Inggris yang belum diterjemahkan di `widget/id.json` dan string mentah di template. |
+| **Konvensi "Done" (UI) vs "resolved" (DB/API)** | ❌ **FAIL** | Kunci kamus UI masih menggunakan nama `RESOLVE*` alih-alih `MARK_AS_DONE`/`DONE`. Pesan error Rails `en.yml` salah memakai kata "done". |
+| **Multi-Tenancy `Current.account` Scoping** | ✅ **PASS** | Semua query model dan controller API tetap konsisten terikat pada tenant aktif. |
+| **Arsitektur 100% Pure MIT (No Enterprise)** | ✅ **PASS** | Tidak ditemukan dependensi atau sisa pemanggilan `prepend_mod_with` / `enterprise/`. |
+| **Pencegahan Kebocoran Memori (Cleanup Listeners)** | ❌ **FAIL** | Composable `useChatListResize` dan event listener DOM pada Widget tidak memiliki hook cleanup `onUnmounted`. |
 
 ---
 
-### 2.3 Audit Aksesibilitas (WCAG 2.1 AA) & Hierarki Visual
+## 3. DAFTAR TEMUAN KRITIS (🔴 CRITICAL REJECT — 32 ITEMS)
 
-1. **Non-Semantic HTML pada Kartu Percakapan (`ConversationCard.vue:111-122`):**
-   - Kartu dirender sebagai tag `<div>` polos dengan `@click`.
-   - **Pelanggaran WCAG 2.1.1 & 4.1.2:** Tidak memiliki `role="button"`, tidak memiliki `tabindex="0"`, tidak ada atribut status `aria-selected`, dan tidak mendukung keyboard enter/space. Pengguna keyboard murni tidak dapat memfokuskan daftar chat.
-2. **Struktur List HTML Tidak Valid (`MessageList.vue:169` & `Message.vue:549`):**
-   - Container utama menggunakan tag `<ul>`, namun elemen anak langsung di dalam `v-for` adalah `<div>` (bukan `<li>`), merusak pohon aksesibilitas screen reader (**WCAG 1.3.1**).
-3. **Desinkronisasi Navigasi Keyboard Virtual List:**
-   - Di `useChatListKeyboardEvents.js:5-21`, navigasi membaca DOM langsung: `querySelectorAll('div.conversation')`.
-   - Karena `ConversationList.vue:66` menggunakan `<Virtualizer>`, hanya kartu yang masuk viewport yang terpasang di DOM. Saat agen menekan shortcut melebihi tinggi layar, navigasi macet dan berhenti scroll.
-4. **Pemborosan Ruang Layar pada Layar Sedang (< 1280px):**
-   - Di `ConversationHeader.vue:113`, header dipaksa bertumpuk vertikal dengan tinggi `h-24` (96px) pada resolusi di bawah `xl`. Ditambah navbar dan composer, area baca pesan tersisa kurang dari 450px pada laptop 1366x768.
+### 3.1 Pelanggaran Arsitektur Vue (Options API vs Composition API)
+Sesuai aturan `AGENTS.md` (*"Vue API: Always use Composition API with `<script setup>` at the top"*), komponen baru atau yang mengalami refaktor besar dilarang menggunakan Options API:
 
----
-
-### 2.4 Matriks Temuan UI/UX Beserta File Spesifik
-
-| No | Kategori | Deskripsi Masalah | File & Baris Spesifik |
-|---|---|---|---|
-| 1 | **Critical Bug** | Penghapusan draf memanggil `SET_DRAFT_MESSAGES` alih-alih `REMOVE_DRAFT_MESSAGES`, menyisakan sampah key `{ [id]: undefined }` selamanya di LocalStorage. | `store/modules/draftMessages.js:23-25` |
-| 2 | **Critical UX** | File lampiran dan rekaman suara dibersihkan seketika tanpa peringatan saat agen beralih tiket chat. | `components/widgets/conversation/ReplyBox.vue:578-583` |
-| 3 | **Friction** | Shortcut *Resolve* (`Alt+E`), *Note* (`Alt+P`), dan *Reply* (`Alt+L`) mati total saat kursor aktif di editor (`allowOnFocusedInput: false`). | `buttons/ResolveAction.vue:146-170`<br>`WootWriter/ReplyTopPanel.vue:106-114` |
-| 4 | **Friction** | Navigasi keyboard membaca DOM langsung (`querySelectorAll`), macet saat berhadapan dengan virtualizer windowing. | `composables/chatlist/useChatListKeyboardEvents.js:5-21` |
-| 5 | **Cognitive** | Tombol navigasi Vim terbalik: `Alt+J` ke atas dan `Alt+K` ke bawah. | `composables/chatlist/useChatListKeyboardEvents.js:49-56` |
-| 6 | **A11y** | Kartu percakapan murni berupa `div` tanpa semantik button/listitem dan atribut `tabindex`/`aria-selected`. | `components/widgets/conversation/ConversationCard.vue:111-122` |
-| 7 | **A11y** | Tag pembungkus gelembung pesan `<ul>` berisi anak langsung `<div>` tanpa `<li>` atau `role="listitem"`. | `components-next/message/MessageList.vue:169`<br>`components-next/message/Message.vue:549` |
-| 8 | **Responsive** | Pada tablet (768px - 1024px), sidebar navigasi, ChatList, dan ContactPanel dipaksa berdampingan secara statis, menyisakan area chat tengah hanya selebar ~164px. | `ConversationSidebar.vue:54`<br>`ChatList.vue:912` |
-| 9 | **UI Glitch** | Kesalahan ketik nama kelas CSS `cucursor-pointer` (dobel 'cu') pada tombol copy ID percakapan di header. | `ConversationHeader.vue:151` |
+1. **`app/javascript/dashboard/routes/dashboard/conversation/contact/ContactInfo.vue` (428 baris):**
+   - Ditulis ulang dengan pola Options API (`export default { data(), methods, computed, watch }`).
+   - Masih menggunakan helper Vuex usang `mapGetters` alih-alih composable `useMapGetter`.
+2. **`app/javascript/dashboard/routes/dashboard/conversation/contact/ContactInfoRow.vue` (178 baris):**
+   - Menggunakan Options API dan mewajibkan prop `emoji` (string unicode) alih-alih komponen Iconify.
+3. **`app/javascript/dashboard/routes/dashboard/conversation/contact/ContactForm.vue` (452 baris):**
+   - Menggunakan Options API penuh dengan integrasi `@vuelidate` versi legacy.
+4. **`app/javascript/dashboard/components/widgets/conversation/EmptyState/EmptyStateMessage.vue`:**
+   - Masih berupa Options API dengan path aset gambar SVG yang di-hardcode.
+5. **`app/javascript/dashboard/components/widgets/conversation/EmptyState/FeaturePlaceholder.vue`:**
+   - Menggunakan Options API dan memanggil komponen legacy `Hotkey` dari direktori lama.
+6. **`app/javascript/dashboard/components/widgets/WootWriter/ReplyTopPanel.vue`:**
+   - Menggunakan Options API, tidak mengimplementasikan token status percakapan, SLA timer, maupun badge bot.
+7. **`app/javascript/dashboard/components/widgets/WootWriter/ReplyBottomPanel.vue`:**
+   - Menggunakan Options API dan `inboxMixin` (mixins sudah ditinggalkan di Vue 3).
+8. **`app/javascript/dashboard/components/ChatListHeader.vue`:**
+   - Mengakses store melalui `getCurrentInstance()?.proxy?.$store` (anti-pattern Vue 3), melanggar decoupling composable `useStore()`.
 
 ---
 
-## 3. AUDIT SYSTEM DESIGN & REAL-TIME STATE MANAGEMENT
+### 3.2 Pelanggaran Aturan Styling (Scoped SCSS & Inline Styles)
+Sesuai aturan `AGENTS.md` (*"Tailwind Only: Do not write custom CSS, Do not use scoped CSS, Do not use inline styles"*):
 
-### 3.1 Diagram Alur Data End-to-End
-
-```
-+---------------------------------------------------------------------------------------------------+
-| SENDER AGENT (Browser)                                                                            |
-| 1. Submit pesan di ReplyBox.vue                                                                   |
-| 2. createPendingMessage() -> tempMessageId (UUID), echo_id = tempMessageId, status = 'progress'   |
-| 3. Vuex commit(ADD_MESSAGE) -> Optimistic UI (bubble pesan muncul dengan spinner)                 |
-+---------------------------------------------------------------------------------------------------+
-           │                                                        │
-           │ (A) HTTP POST /api/v1/.../messages                     │ (B) WebSocket (ActionCable)
-           │     payload: { content, echo_id, ... }                 │     (Hanya listener, bukan transport POST)
-           ▼                                                        │
-+-------------------------------------------------------------+     │
-| RAILS API CONTROLLER                                        |     │
-| (MessagesController#create)                                 |     │
-| - Messages::MessageBuilder.new(...)                         |     │
-| - Set transient attr_accessor :echo_id                      |     │
-+-------------------------------------------------------------+     │
-           │                                                        │
-           ▼                                                        │
-+-------------------------------------------------------------+     │
-| POSTGRESQL DB                                               |     │
-| - INSERT INTO messages (...) -> Mendapatkan DB id permanen  |     │
-| - after_create_commit :dispatch_create_events               |     │
-+-------------------------------------------------------------+     │
-           │                                                        │
-           ▼                                                        │
-+-------------------------------------------------------------+     │
-| RAILS EVENT DISPATCHER                                      |     │
-| - Dispatcher.dispatch('message.created')                    |     │
-| - SyncDispatcher -> ActionCableListener#message_created     |     │
-| - user_tokens = inbox.members + account.administrators      |     │
-| - Enqueue ActionCableBroadcastJob ke Sidekiq (:critical)    |     │
-+-------------------------------------------------------------+     │
-           │                                                        │
-           +-----------------------+                                │
-           │ (HTTP Response 200)   │                                │
-           ▼                       │                                │
-+-------------------------------+  │                                │
-| SENDER AGENT (HTTP Success)   │  │                                │
-| - Vuex ADD_MESSAGE:           │  │                                │
-|   findPendingMessageIndex()   │  │                                │
-|   match: m.id == echo_id      │  │                                │
-| - Replace UUID -> DB ID       │  │                                │
-| - status: 'sent'              │  │                                │
-+-------------------------------+  │                                │
-                                   ▼                                │
-+-------------------------------------------------------------+     │
-| SIDEKIQ WORKER (ActionCableBroadcastJob)                    |     │
-| - queue: :critical                                          |     │
-| - Loop O(N): members.each do |pubsub_token|                 |     │
-|   ActionCable.server.broadcast(pubsub_token, payload)       |     │
-+-------------------------------------------------------------+     │
-           │                                                        │
-           ▼                                                        │
-+-------------------------------------------------------------+     │
-| REDIS PUB/SUB                                               |     │
-| - Redis PUBLISH ke masing-masing channel token agent        |     │
-+-------------------------------------------------------------+     │
-           │                                                        │
-           ▼                                                        │
-+-------------------------------------------------------------+     │
-| ACTIONCABLE WS SERVER (Puma Worker Threads)                 |     │
-| - Push WebSocket frame ke koneksi aktif RoomChannel         |     │
-+-------------------------------------------------------------+     │
-           │                                                        │
-           +────────────────────────────────────────────────────────+
-           │
-           +─────────────────────────────────────────+
-           │                                         │
-           ▼ (WS frame ke Sender)                    ▼ (WS frame ke Agent Lain)
-+---------------------------------------+ +---------------------------------------+
-| SENDER AGENT (Echo Suppression)       | | AGENT LAIN (Broadcast Receiver)       |
-| - ActionCableConnector.onMessageCreated| | - ActionCableConnector.onMessageCreated|
-| - Vuex ADD_MESSAGE:                   | | - Vuex ADD_MESSAGE:                   |
-|   findPendingMessageIndex()           | |   findPendingMessageIndex() == -1     |
-|   m.id == message.id (sudah ada)      | | - chat.messages.push(message)         |
-| - Ditimpa di tempat (no duplicate)    | | - Audio alert diputar                 |
-+---------------------------------------+ +---------------------------------------+
-```
-
----
-
-### 3.2 Evaluasi Konkurensi & Event Storming
-
-#### A. O(N) Fan-Out di Layer Aplikasi (Sidekiq & Redis Overload)
-- **Lokasi Kode:** `app/listeners/action_cable_listener.rb:205-209`, `app/jobs/action_cable_broadcast_job.rb:46-54`
-- **Mekanisme:** Chatwoot tidak menggunakan channel berbasis inbox (`stream_from "inbox_#{id}"`), melainkan token individual agen (`stream_from pubsub_token`).
-- **Dampak Konkurensi:** Jika 1 inbox memiliki 100 agen/admin, 1 pesan masuk memicu **loop 100 kali di Sidekiq** yang mengeksekusi **100 perintah Redis `PUBLISH` individual**. Pada beban 10 pesan/detik, terbentuk **1.000 Redis PUBLISH/detik**. Ini membebani CPU Redis dan thread pool Sidekiq queue `:critical`.
-
-#### B. N+1 Re-Query Database di Background Worker
-- **Lokasi Kode:** `app/jobs/action_cable_broadcast_job.rb:25-43`
-- **Mekanisme:** Untuk setiap event update percakapan (`CONVERSATION_UPDATE_EVENTS`: read receipt, status, assignee, team), Sidekiq melakukan kueri ulang ke PostgreSQL:
-  ```ruby
-  account = Account.find(data[:account_id])
-  conversation = account.conversations.find_by!(display_id: data[:id])
-  broadcast_data = conversation.push_event_data...
-  ```
-- **Dampak:** Saat banyak agen melakukan triase serentak (assign/resolve), worker Sidekiq membombardir database dengan kueri `SELECT` dan serialisasi data asosiasi yang sebenarnya sudah tersedia di proses web.
-
-#### C. Secondary API Storming (Thundering Herd ke REST API)
-- **Lokasi Kode:** `actionCable.js:117, 122, 204, 210` & `conversation_finder.rb:170-179`
-- **Mekanisme:** Payload WebSocket untuk event `assignee.changed`, `conversation.status_changed`, dan `conversation.unread_count_changed` tidak membawa angka ringkasan statistik terbaru (*zero/sparse payload*). Begitu event diterima, browser masing-masing agen memicu `fetch_conversation_stats`, yang mengirimkan request HTTP GET ke `/api/v1/conversations/meta`.
-- **Dampak:** 100 browser agen secara serentak menembak endpoint `meta`. Di backend, `ConversationFinder#set_count_for_all_conversations` menjalankan 3 kueri agregasi `COUNT(*) FILTER (...)` tanpa caching di PostgreSQL.
-
-#### D. Race Condition & Overhead Typing Indicator via HTTP POST
-- **Lokasi Kode:** `conversationTypingStatus.js:14-19`, `conversations_controller.rb:106-110`, `actionCable.js:349-365`
-- **Mekanisme:** Event ephemeral *typing on/off* tidak dikirim via ActionCable WebSocket RPC, melainkan melalui **HTTP POST** penuh (melewati Devise auth, DB lookup, event dispatch, dan antrean Sidekiq).
-- **Race Condition 1 (Reordering):** Jika request HTTP `typing_on` mengalami lag jaringan sedangkan `typing_off` selesai lebih cepat, status agen mengetik akan menyala permanen hingga timeout 30 detik.
-- **Race Condition 2 (Timer Collision):** Di `actionCable.js:350-364`, `this.CancelTyping` di-indeks hanya berdasarkan `conversationId`. Jika User A dan Agent B mengetik di chat yang sama, timer User A akan terhapus oleh Agent B.
-
----
-
-### 3.3 Analisis Kebocoran Memori Klien (Vuex State Retention)
-
-- **Status:** **CRITICAL BOTTLENECK TERKONFIRMASI.**
-- **Lokasi Kode:** `app/javascript/dashboard/store/modules/conversations/index.js:11-27, 45-89, 120, 245-265`
-
-#### Mekanisme Retensi Tanpa Batas:
-1. **Tidak Ada Message Eviction / Virtual Window:**
-   Array `chat.messages` dalam `_state.allConversations` hanya bertambah via `chat.messages.push(message)` (pesan baru) dan `chat.messages.unshift(...newMessages)` (infinite scroll pagination).
-2. **Tidak Ada Garbage Collection saat Ganti Percakapan:**
-   Saat agen berpindah percakapan, action `clearSelectedState` hanya mengubah `_state.selectedChatId = null`. Seluruh array pesan dari percakapan lama tetap tersimpan utuh di memori Vuex.
-3. **Preservasi State Eksplisit saat List Di-refresh:**
-   Pada mutasi `SET_ALL_CONVERSATION` (baris 61-65) dan `REPLACE_CONVERSATION_LIST` (baris 81-86), helper `preserveConversationMessageState` sengaja mempertahankan seluruh array pesan lama:
-   ```javascript
-   const preserveConversationMessageState = (conversation, existingConversation) => ({
-     ...conversation,
-     allMessagesLoaded: existingConversation.allMessagesLoaded,
-     messages: existingConversation.messages, // <-- Tidak pernah dibersihkan
-     dataFetched: existingConversation.dataFetched,
-   });
+9. **`app/javascript/dashboard/routes/dashboard/conversation/ContactPanel.vue` (baris 337–341):**
+   ```scss
+   <style lang="scss" scoped>
+   :deep(.contact--profile) {
+     @apply pb-3 border-b border-solid border-n-weak;
+   }
+   </style>
    ```
-4. **Akumulasi Objek Lampiran & Media:**
-   `_state.attachments` menyimpan seluruh metadata attachment per `conversationId` dan tidak pernah dihapus. Untuk pesan email, payload menyimpan string HTML mentah lengkap (`email.html_content`).
-5. **Dampak Nyata:**
-   Dalam shift 8 jam, agen yang membuka 50–100 tiket dengan riwayat panjang akan mengakumulasi ratusan megabyte memory heap di tab browser, memicu degradasi performa (*frame drop*), GC pauses berat, dan akhirnya *browser tab crash* (*Out of Memory*).
+10. **`app/javascript/dashboard/components/widgets/conversation/contact/CustomAttributes.vue` (baris 329–332):**
+    ```scss
+    <style lang="scss" scoped>
+    .ghost {
+      @apply opacity-50 bg-n-slate-3 dark:bg-n-slate-9;
+    }
+    </style>
+    ```
+11. **`app/javascript/widget/components/ConversationWrap.vue` (baris 140–155):**
+    - Menyertakan SCSS scoped dengan custom property CSS `color-scheme: light/dark` yang merusak integrasi Tailwind dark mode.
+12. **`app/javascript/widget/components/HeaderActions.vue` (baris 202–204):**
+    - Menyertakan tag `<style scoped>` dengan deklarasi `.rn-close-button { display: block !important }`.
+13. **`app/javascript/dashboard/components/widgets/WootWriter/ReplyBottomPanel.vue` (baris 407–425):**
+    - Memuat 18 baris SCSS scoped dengan target selektor `:deep(.file-uploads)`.
+14. **`app/javascript/widget/App.vue` (baris 130–136):**
+    - Menggunakan manipulasi style DOM langsung: `document.documentElement.style.setProperty(...)` alih-alih class utility Tailwind.
 
 ---
 
-### 3.4 Matriks Risiko Arsitektur Real-Time
+### 3.3 Aksesibilitas (WCAG 2.1 AA) & Elemen UI Hilang
 
-| No | Lokasi Kode | Deskripsi Masalah | Tingkat Risiko |
-|---|---|---|---|
-| 1 | `action_cable_listener.rb:205-209`<br>`action_cable_broadcast_job.rb:46-54` | **O(N) Fan-Out PubSub di Sidekiq:** Broadcaster melooping token agen satu per satu, mengeksekusi puluhan/ratusan Redis `PUBLISH` per 1 pesan. | 🔴 Critical |
-| 2 | `action_cable_broadcast_job.rb:28-30` | **DB Reload di Background Job:** Setiap conversation update event memicu kueri ulang `Account.find` dan `conversations.find_by!` di Postgres. | 🔴 Critical |
-| 3 | `conversations/index.js:63-65, 81-86` | **Client Memory Leak:** Array `chat.messages` dan `attachments` pada percakapan yang sudah tidak aktif disimpan selamanya di Vuex. | 🔴 Critical |
-| 4 | `conversations/actions.js:253-255` | **Race Condition Duplikasi Pesan saat Reconnect:** `syncActiveConversationMessages` hanya mengecek `item.id === message.id` tanpa memeriksa `echo_id`. Pending message (UUID) akan dobel dengan hasil fetch server (Integer ID). | 🔴 Critical |
-| 5 | `conversationTypingStatus.js:14-19`<br>`conversations_controller.rb:106-110` | **Typing Indicator via HTTP POST:** Overhead request HTTP, Devise auth, dan Sidekiq dispatch untuk event sementara, memicu HTTP race condition. | 🟡 High |
-| 6 | `actionCable.js:350-364` | **Typing Timer Collision:** `CancelTyping` memakai key `conversationId` tunggal; multi-user typing saling menimpa timer pembersihan. | 🟡 High |
-| 7 | `room_channel.rb:22-25`<br>`lib/online_status_tracker.rb:72-79` | **Presence Polling Over WS & DB Hits:** Polling snapshot setiap 20 detik tanpa jitter memicu kueri `Account.find` dan `account_users.where` per agen. | 🟡 High |
-| 8 | `actionCable.js:117, 204`<br>`conversation_finder.rb:170-179` | **Secondary API Storming:** WS event kosong memicu ratusan agen serentak menembak HTTP endpoint agregasi `/conversations/meta`. | 🟡 High |
-| 9 | `conversations/index.js:294-296` | **Aggressive Viewport Auto-Scroll:** Chat melompat paksa ke bawah setiap kali ada perubahan metadata minor saat agen sedang membaca riwayat chat. | 🟡 Medium |
-
----
-
-## 4. AUDIT BACKEND DATA PIPELINE, ASSIGNMENT ENGINE & SKALABILITAS DATABASE
-
-### 4.1 Efisiensi Query & Indexing Database
-
-#### A. Missing Index pada Default Sort Inbox (`last_activity_at`)
-- **Lokasi Kode:** `conversation_finder.rb:201`, `Conversations::SortService::DEFAULT_SORT`, `db/schema.rb:863-911`
-- **Temuan:**
-  Sort bawaan Chatwoot adalah `'last_activity_at_desc'`:
-  ```sql
-  SELECT conversations.* FROM conversations
-  WHERE conversations.account_id = $1 AND conversations.status = 0
-  ORDER BY conversations.last_activity_at DESC LIMIT 25 OFFSET 0;
-  ```
-  **TIDAK ADA INDEX pada kolom `last_activity_at` di tabel `conversations`**. Index yang ada hanyalah `(account_id, status, created_at)`.
-- **Dampak:** PostgreSQL dipaksa memindai seluruh record `open` akun tersebut ke dalam memori (`work_mem`), lalu melakukan **in-memory Sort / Disk Merge Sort (Top-N Heapsort)**. Pada akun dengan ratusan ribu tiket, kueri mengalami lonjakan latensi (mencapai > 2–5 detik) dan IO thrashing.
-
-#### B. Correlated Subquery pada Urutan Unread (`sort_on_unread`)
-- **Lokasi Kode:** `app/models/conversation.rb:92-94, 238-256`
-- **Temuan:** Scope `sort_on_unread` menyuntikkan subquery Arel ke klausa `ORDER BY` untuk menghitung unread messages per row.
-- **Dampak:** Jika akun memiliki 10.000 percakapan, PostgreSQL menjalankan **10.000 kalkulasi agregat terpisah** ke tabel `messages` sebelum dapat memfilter 25 baris pertama paginasi.
-
-#### C. Full Table Scan Trigram & Duplikasi Query pada Search
-- **Lokasi Kode:** `conversation_finder.rb:135-143`
-- **Temuan:** Terdapat duplikasi klausa `WHERE messages.content ILIKE` dan `where(messages: { message_type: ... })` yang dieksekusi dua kali berturut-turut pada method `filter_by_query`.
+15. **`app/javascript/dashboard/components-next/sidebar/AgentStatusBadge.vue` (baris 69–90):**
+    - Trigger tombol status tidak memiliki atribut ARIA (`aria-haspopup="menu"`, `:aria-expanded="isOpen"`, `aria-controls="agent-status-menu"`). Item menu tidak dapat difokuskan via navigasi keyboard (Arrow Up/Down).
+16. **`app/javascript/dashboard/routes/dashboard/Dashboard.vue` (baris 133–177):**
+    - Landmark `<header>` tidak memiliki accessible name (`aria-label="Dashboard toolbar"`).
+17. **`app/javascript/dashboard/components/widgets/conversation/ConversationCard.vue`:**
+    - **Hilangnya Indikator Status Percakapan:** Badge status (`open`, `pending`, `resolved/Done`, `snoozed`) **sama sekali tidak dirender** pada kartu chat. Agen tidak dapat mengetahui status tiket tanpa membuka context menu.
+18. **`app/javascript/dashboard/components/widgets/conversation/ConversationListFooter.vue`:**
+    - Komponen baru ini hanya menampilkan teks jumlah chat tanpa navigasi paginasi, tombol "Load More", atau penanganan empty state saat data 0.
+19. **`app/javascript/widget/components/HeaderActions.vue` (baris 149–192):**
+    - **Teleport Modal Rusak pada Iframe:** Komponen menggunakan `<Teleport to="body">` di dalam iframe widget. Hal ini menyebabkan konfirmasi modal mencoba merender ke root dokumen induk atau terpotong oleh batas iframe, merusak focus trap dan UX pelanggan.
 
 ---
 
-### 4.2 N+1 Queries & Payload Bloat (Serializer & Jbuilder)
+### 3.4 Bug Logika, Resiliensi & Integritas State
 
-#### A. Pola N+1 Parah di `_conversation.json.jbuilder` (Per 25 Baris Sidebar)
-1. **Unread Count Triple Evaluation (`_conversation.json.jbuilder:67`, `message.rb:162`):**
-   `conversation.unread_incoming_messages.count` memanggil `.last(10)`, yang mengeksekusi **query `SELECT ... LIMIT 10` lalu menginstansiasi array di memori Ruby**, bukan query `COUNT(*)` SQL. Ini dipanggil 3 kali dalam serializer yang sama (**75 query pesan per 25 percakapan**).
-2. **N+1 Last Message & Non-Activity Message (`_conversation.json.jbuilder:35-37, 68`):**
-   `conversation.messages.where(...).first` memicu 25 kueri pesan tambahan.
-3. **N+1 Missing Preload `account_users` (`_agent.json.jbuilder:4-12`):**
-   `ConversationFinder` melakukan preload `{ assignee: { avatar_attachment: [:blob] } }`, tetapi **tidak mem-preload `:account_users`**. Memanggil `resource.availability_status` memicu kueri `SELECT * FROM account_users WHERE user_id = ?` per agen unik.
-4. **N+1 Redis Network Trips:**
-   Pengecekan status online agen memicu `OnlineStatusTracker.get_presence` sinkron per baris, menghasilkan 50–75 Redis network trips di dalam satu thread request Puma.
-
-#### B. Analisis Payload Bloat
-- Serializer mengirimkan data yang berlebihan untuk kebutuhan list sidebar:
-  1. Menyertakan 2 objek pesan penuh (`messages: [last_message]` dan `last_non_activity_message`) dengan seluruh `content_attributes` dan `additional_attributes`.
-  2. Menyertakan data kontak lengkap (HTTP user-agent mentah, referer URL, geo IP).
-  3. Payload mencapai **100–200 KB JSON uncompressed per 25 percakapan**, memboroskan kuota bandwidth mobile dan memperlambat V8 JSON parse di frontend.
+20. **`app/javascript/dashboard/composables/chatlist/useChatListResize.js` (baris 19–30, 65–92):**
+    - **Kerapuhan SSR / Window Error:** Fungsi `getDefaultWidth()` dan `getMaxWidth()` mengakses objek global `window.innerWidth` secara langsung di tingkat inisialisasi tanpa guard `typeof window !== 'undefined'`.
+    - **Kebocoran Style:** Event listener `mousemove` dan mutasi `document.body.style` tidak dibersihkan jika komponen di-unmount saat proses resize sedang berlangsung (hilangnya hook `onUnmounted`).
+    - **Layout Thrashing:** Event `onResizeMove` berjalan tanpa `requestAnimationFrame` atau throttling/debounce.
+21. **`app/javascript/widget/store/modules/conversation/actions.js` (baris 212–242):**
+    - **Rollback State Gagal pada `resolveConversation`:** Status percakapan diubah secara optimistik ke `resolved`. Jika request jaringan gagal (HTTP 500/timeout), catch block hanya memanggil `getAttributes` tanpa membatalkan status optimistik di state lokal. UI agen/widget tetap menampilkan status "Done" palsu.
+22. **`app/javascript/dashboard/components/widgets/WootWriter/ReplyBottomPanel.vue` (baris 25–40):**
+    - Menggunakan library `vue-upload-component` yang sudah tidak dimaintain, tidak menyediakan validasi error yang kuat, dan tidak memunculkan indikator visual daftar attachment yang siap dikirim di area panel bawah.
+23. **`app/javascript/dashboard/components/widgets/WootWriter/ReplyBottomPanel.vue`:**
+    - Ketiadaan area `aria-live="polite"` untuk mengumumkan status pengiriman pesan (mengirim, terkirim, gagal).
 
 ---
 
-### 4.3 Evaluasi Assignment Engine (Race Condition & Offline Trap)
+### 3.5 Ketidakkonsistenan i18n ("Mark as Done" vs "resolved")
+Sesuai dokumen `CONTEXT.md` Bagian 4.3: **UI Presentation Wajib Menggunakan "Done" / "Mark as Done", sedangkan Backend/DB/API Wajib Mempertahankan Token Mesin `resolved`**.
 
-#### A. Race Condition: Manual Assignment (Dua Agen Mengklaim Tiket Bersamaan)
-- **Lokasi Kode:** `app/services/conversations/assignment_service.rb:16-27`
-- **Masalah:** Meskipun menggunakan `conversation.with_lock`, **tidak ada validasi state sebelumnya (tanpa optimistic lock)**.
-- **Skenario:** Jika Agen A dan Agen B mengklik *"Assign to me"* pada detik yang sama:
-  1. Agen A mengambil row lock, menetapkan `assignee = Agen A`, commit.
-  2. Agen B yang menunggu lock langsung melanjutkan eksekusi, **menimpa** `assignee = Agen B`, commit.
-  Penugasan Agen A hilang tanpa notifikasi atau peringatan.
-
-#### B. Desinkronisasi Non-Atomik pada Round-Robin Redis
-- **Lokasi Kode:** `app/services/auto_assignment/inbox_round_robin_service.rb:37-55`
-- **Masalah:** Operasi antrean **TIDAK ATOMIK** (menggunakan Ruby array intersection, disusul `LREM` terpisah lalu `LPUSH` terpisah tanpa Redis Lua Script / Transaction).
-- Dua worker serentak dapat memilih agen yang sama dan menduplikasi push ke antrean. Selain itu, jika thread lain memanggil `validate_queue?` di sela-sela jeda `LREM` dan `LPUSH`, antrean dianggap corrupt dan di-`reset_queue` dari nol.
-
-#### C. The "Permanent Online" Trap: Melempar Tugas ke Agen yang Offline
-- **Lokasi Kode:** `lib/online_status_tracker.rb:72-78`
-- **Mekanisme:**
-  ```ruby
-  def self.get_available_user_ids(account_id)
-    account = Account.find(account_id)
-    range_start = (Time.zone.now - PRESENCE_DURATION).to_i
-    user_ids = ::Redis::Alfred.zrangebyscore(presence_key(account_id, 'User'), range_start, '+inf')
-    user_ids += account.account_users.where(auto_offline: false)&.map(&:user_id)&.map(&:to_s)
-    user_ids.uniq
-  end
-  ```
-- **Dampak Fatal:** Jika agen mengaktifkan konfigurasi `auto_offline: false`, ID agen tersebut **selalu dimasukkan ke dalam daftar agen yang tersedia, meskipun laptopnya sudah dimatikan atau koneksi websocket terputus**. Auto-assignment akan terus menugaskan percakapan baru ke agen yang sedang tidak aktif.
+24. **`app/javascript/dashboard/i18n/locale/en/conversation.json`:**
+    - Masih menggunakan nama section `RESOLVE_DROPDOWN` dan key `CARD_CONTEXT_MENU.RESOLVED`. Seharusnya menggunakan standardisasi key `MARK_AS_DONE` dan `DONE`.
+25. **`app/javascript/dashboard/i18n/locale/en/automation.json` (baris 183, 197):**
+    - Menggunakan event key `CONVERSATION_RESOLVED` dan action key `RESOLVE_CONVERSATION`.
+26. **`app/javascript/dashboard/i18n/locale/en/chatlist.json` (baris 33–34):**
+    - Filter item menggunakan `CHAT_STATUS_FILTER_ITEMS.resolved.TEXT: "Done"` secara tidak simetris.
+27. **`app/javascript/dashboard/i18n/locale/en/inboxMgmt.json` (baris 723):**
+    - Menggunakan key `ALLOW_MESSAGES_AFTER_RESOLVED` namun deskripsinya berbunyi "marked as done".
+28. **`config/locales/en.yml` (baris 116):**
+    - Pesan error backend Rails menyimpang dari konvensi token mesin: `"conversation.resolved": "Conversation was marked as done by %{user_name}"`. Backend harus tetap menggunakan istilah konsisten "resolved" pada layer logging/internal exception.
+29. **`app/javascript/widget/i18n/locale/id.json`:**
+    - Terdapat 10 string esensial yang masih berbahasa Inggris tanpa terjemahan Indonesia: `BACK_AS_SOON_AS_POSSIBLE`, `BACK_IN_HOURS`, `BACK_IN_MINUTES`, `BACK_AT_TIME`, `BACK_ON_DAY`, `BACK_TOMORROW`, `BACK_IN_SOME_TIME`, `PHONE_NUMBER.DROPDOWN_SEARCH`, `EMOJI_ICON_PICKER.SEARCH_EMOJI`, `EMOJI_ICON_PICKER.FREQUENTLY_USED`.
 
 ---
 
-### 4.4 Mekanisme SLA & Snooze
+### 3.6 Keamanan & Sanitasi Berkas Publik
 
-#### A. Mekanisme Reopen Snoozed: Polling Cron Sidekiq
-- **Lokasi Kode:** `config/schedule.yml:12-15`, `Conversations::ReopenSnoozedConversationsJob`
-- **Alur Kerja:** Cron job berjalan setiap 5 menit (`*/5 * * * *`) mengeksekusi:
-  ```ruby
-  Conversation.where(status: :snoozed)
-              .where(snoozed_until: 3.days.ago..Time.current)
-              .all.find_each(batch_size: 100, &:open!)
-  ```
-- **Kelemahan Kritis:**
-  1. **Index Miss:** Tabel `conversations` **tidak memiliki index pada kolom `snoozed_until`** (table scan).
-  2. **Jeda Waktu:** Tiket yang dijadwalkan bangun pukul 09:01 baru akan aktif pada pukul 09:05.
-  3. **Synchronous Execution Cascading:** Eksekusi `find_each(&:open!)` berjalan sinkron di satu worker. Tiap `.open!` memicu lock row, activity message, auto-assignment, dan broadcast websocket. Jika ada 300 tiket snooze bangun di jam 09:00, satu worker Sidekiq terkunci puluhan detik.
-  4. **Data Loss Window (Hardcoded `3.days.ago`):** Jika Sidekiq down/backlog lebih dari 3 hari, tiket snooze yang lewat dari 3 hari lalu akan **terkunci permanen dalam status snoozed**.
+30. **`public/test-chat.html` (baris 380):**
+    - **Hardcoded Credential Token:** Terdapat token website aktif:
+      ```javascript
+      const fallbackToken = 'tBjzD5mxwbZxTuZY3TVvx5vY';
+      ```
+      Karena direktori `public/` disajikan secara terbuka oleh server web (Puma/Nginx), berkas demo ini mengekspos token saluran obrolan ke internet. File ini wajib dihapus dari `public/` atau token dihilangkan sepenuhnya.
 
 ---
 
-## 5. RENCANA AKSI & REKOMENDASI SOLUSI TEKNIS (P0, P1, P2)
+### 3.7 Gap Pengujian Backend (RSpec)
 
-### 🔴 Prioritas P0 (Harus Segera Diperbaiki / Kritis)
-
-#### 1. Database Indexing Migration (Atasi Slow Query Default Sort)
-Tambahkan migrasi PostgreSQL berikut untuk mengeliminasi disk-spilling sort dan scanning berulang:
-
-```ruby
-class OptimizeConversationAndMessagePerformance < ActiveRecord::Migration[7.0]
-  disable_ddl_transaction!
-
-  def change
-    # Mengatasi slow query default sort ConversationFinder (Index Scan presorted)
-    add_index :conversations, [:account_id, :status, :last_activity_at],
-              order: { last_activity_at: :desc },
-              algorithm: :concurrently,
-              name: 'idx_conversations_account_status_last_activity'
-
-    # Mengatasi scan berulang setiap 5 menit pada ReopenSnoozedConversationsJob
-    add_index :conversations, [:status, :snoozed_until],
-              where: "status = 3",
-              algorithm: :concurrently,
-              name: 'idx_conversations_snoozed_lookup'
-
-    # Mengatasi cursor pagination scan pada MessageFinder
-    add_index :messages, [:conversation_id, :id],
-              order: { id: :desc },
-              algorithm: :concurrently,
-              name: 'idx_messages_conversation_id_id_desc'
-  end
-end
-```
-
-#### 2. Channel Multiplexing / Inbox Topic Streams (Atasi O(N) Fan-Out)
-- Di `app/channels/room_channel.rb`, ubah stream agar agen mendengarkan channel level inbox/akun: `stream_from "account_#{account_id}_inbox_#{inbox_id}"`.
-- Di `ActionCableListener`, backend cukup memanggil 1 kali broadcast:
-  `ActionCable.server.broadcast("account_#{account_id}_inbox_#{inbox_id}", payload)`.
-- Redis pub/sub dan ActionCable C-engine akan mendistribusikan frame ke seluruh subscriber secara paralel tanpa loop di Sidekiq.
-
-#### 3. Pertahankan Lampiran (*Attachments*) & Audio Antar Percakapan
-- Perluas struktur draf di `draftMessages.js` agar menyimpan:
-  `{ text: '', attachments: [], ccEmails: '', bccEmails: '' }`.
-- Hapus pemanggilan `resetRecorderAndClearAttachments()` secara destruktif di `ReplyBox.vue:580`. Simpan draft berkas sementara berdasarkan ID percakapan.
-
-#### 4. Perbaiki Mutasi Store Draft Messages
-Perbaiki `app/javascript/dashboard/store/modules/draftMessages.js:23-25`:
-```javascript
-// SEBELUM:
-delete: ({ commit }, { key }) => {
-  commit(types.SET_DRAFT_MESSAGES, { key });
-}
-
-// SESUDAH:
-delete: ({ commit }, { key }) => {
-  commit(types.REMOVE_DRAFT_MESSAGES, { key });
-}
-```
-
-#### 5. Batasi Message Window (LRU Eviction) di Vuex Store
-- Tetapkan batas maksimal pesan per percakapan di memori browser (maks 50–100 pesan terakhir).
-- Ketika agen beralih ke percakapan lain, kosongkan array `messages` percakapan sebelumnya (`chat.messages = []` dan `chat.dataFetched = undefined`) agar garbage collector browser dapat membebaskan memory heap.
+31. **`spec/models/conversation_spec.rb` (Ketiadaan Tes PostgreSQL Sequence Multi-Tenant):**
+    - CONTEXT.md Bab 3.2 menegaskan bahwa `display_id` percakapan diambil dari sequence mandiri per akun (`conv_dpid_seq_<account_id>`). Pengujian saat ini hanya menguji keberadaan ID, **tidak menguji isolasi sequence antar dua tenant independen** (memastikan Account B mulai dari display_id = 1 meskipun Account A sudah memiliki ratusan percakapan).
+32. **`spec/models/conversation_spec.rb` (Ketiadaan Validasi Rejeki Enum Invalid):**
+    - Model spec tidak memiliki test case penolakan nilai status di luar enum resmi (`open`, `resolved`, `pending`, `snoozed`).
 
 ---
 
-### 🟡 Prioritas P1 (Tinggi / Dampak Skalabilitas Signifikan)
+## 4. DAFTAR PERINGATAN SIGNIFIKAN (🟡 WARNING — 66 ITEMS)
 
-#### 1. Denormalisasi `unread_count` & Eliminasi N+1 Jbuilder
-- Tambahkan kolom integer `unread_count` pada tabel `conversations` yang diperbarui secara atomik (`increment_counter` / reset saat dilihat). Hentikan pemanggilan `unread_incoming_messages.count` (dan `.last(10)`) di view Jbuilder.
-- Di `ConversationFinder#conversations_base_query`, sertakan preload lengkap:
-  `{ assignee: [:account_users, { avatar_attachment: [:blob] }] }`.
-- Buat partial ringan `_conversation_card.json.jbuilder` yang hanya membawa ringkasan teks 100 karakter, bukan objek pesan utuh.
+Berikut daftar 20 peringatan paling berdampak yang wajib ditinjau:
 
-#### 2. Atomic Guard pada Manual Claim & Redis Round-Robin
-- Gunakan conditional update di `Conversations::AssignmentService#assign_agent`:
-  ```ruby
-  updated_rows = Conversation.where(id: @conversation.id, assignee_id: nil)
-                             .update_all(assignee_id: assignee.id, updated_at: Time.current)
-  raise CustomExceptions::AlreadyAssignedError if updated_rows.zero? && @conversation.assignee_id != assignee.id
-  ```
-- Bungkus rotasi antrean round-robin Redis (`inbox_round_robin_service.rb`) ke dalam **Redis Lua Script** agar pergeseran pointer antrean berjalan 100% atomik.
-
-#### 3. Validasi Presence Ketat pada Auto-Assignment
-- Pada `OnlineStatusTracker.get_available_user_ids`, **dilarang** memasukkan user `auto_offline: false` jika timestamp presensi websocket agen (`zscore` di sorted set) sudah lewat dari `PRESENCE_DURATION`.
-
-#### 4. Aktifkan Hotkeys Kritis di Mode Editor (`allowOnFocusedInput: true`)
-- Di `ResolveAction.vue:146-170`, setel `allowOnFocusedInput: true` pada `Alt+KeyE` dan `$mod+Alt+KeyE`.
-- Di `ReplyTopPanel.vue:106-114` dan `Editor.vue:713-721`, setel `allowOnFocusedInput: true` untuk `Alt+KeyP` dan `Alt+KeyL`.
-- Sesuaikan arah navigasi di `useChatListKeyboardEvents.js:49-56`: ubah `Alt+KeyJ` ke `next` (bawah) dan `Alt+KeyK` ke `previous` (atas).
-
-#### 5. Peningkatan Kontras Visual Mode Private Note
-- Pada `ReplyBox.vue`, saat `isOnPrivateNote === true`, berikan border aksen warna oranye/amber yang mencolok (`ring-2 ring-n-amber-9 border-n-amber-9`) dan watermark status permanen di pojok editor untuk mencegah salah kirim catatan internal ke pelanggan.
+1. **`app/javascript/widget/App.vue` (baris 275–363):** Listener `window.addEventListener('message')` hanya memvalidasi prefix nama event tanpa memverifikasi `event.origin`, membuka celah spoofing event postMessage dari domain lain.
+2. **`app/javascript/widget/components/HeaderActions.vue` (baris 81):** Pemanggilan `RNHelper.isRNWebView` tidak disertai tanda kurung `()`. Karena bertipe function, nilainya selalu truthy.
+3. **`app/javascript/widget/components/ChatFooter.vue` (baris 75–78):** Pemasangan listener global `document.addEventListener('keypress')` tanpa pelepasan saat komponen berpindah route (potensi memory leak).
+4. **`app/javascript/dashboard/composables/chatlist/useBulkActions.js` (baris 169–175):** Getter `store.getters.getConversationById(id)` dipanggil di dalam perulangan `reduce` tanpa reaktivitas Vuex yang benar.
+5. **`app/javascript/dashboard/components/ConversationList.vue` (baris 66):** Komponen virtualizer `<Virtualizer>` tidak memiliki prop `:estimate-size` dan konfigurasi `overscan` yang memadai, memicu lompatan scroll (scroll jump).
+6. **`app/javascript/dashboard/routes/dashboard/conversation/ContactPanel.vue` (baris 188–297):** Tab panel kontak menggunakan `v-show` alih-alih `v-if` atau lazy loading async, memaksa render DOM pohon histori, atribut, dan catatan secara bersamaan.
+7. **`app/javascript/dashboard/components-next/sidebar/AgentStatusBadge.vue` (baris 31):** Pemetaan warna status agen bergantung pada urutan indeks array `['bg-n-teal-9', 'bg-n-amber-9', 'bg-n-slate-9']` yang rapuh terhadap perubahan urutan enum.
+8. **`app/javascript/dashboard/components/buttons/ResolveAction.vue` (baris 145–155):** Shortcut keyboard `Alt+E` tidak memiliki guard pengecekan status loading (`if (isLoading.value) return;`), memungkinkan pengiriman ganda request resolve.
+9. **`app/javascript/dashboard/routes/dashboard/conversation/contact/ContactInfo.vue` (baris 125–136):** Helper bendera negara menyuntikkan tag HTML mentah `<span class="fi fi-...">` alih-alih komponen ikon standar.
+10. **`app/javascript/dashboard/components/widgets/conversation/contact/CustomAttributes.vue`:** Ketergantungan berat pada `vuedraggable` dan selektor arbitrary Tailwind `[&>*:nth-child(odd)]:!bg-n-surface-1`.
+11. **`app/javascript/widget/store/modules/specs/conversation/actions.spec.js` (baris 312 vs 477):** Ketidaksinkronan struktur state unit test antara `state.conversations` dan `state.conversation`, menyebabkan pengujian lolos semu.
+12. **`app/javascript/dashboard/components/ChatList.vue` (baris 952–954):** Watcher pada `chatLists` melakukan re-assign ke `chatsOnView` pada setiap mutasi store kecil sekalipun.
+13. **`app/javascript/dashboard/components/ChatListHeader.vue` (baris 344):** Penggunaan token warna usang non-standar `ruby`.
+14. **`app/javascript/widget/components/ConversationWrap.vue` (baris 83–86):** Manipulasi `scrollTop` dijalankan tanpa koordinasi `$nextTick` atau `requestAnimationFrame`.
+15. **`config/locales/en.yml` (baris 116):** Enum status percakapan ActiveRecord hanya memiliki terjemahan untuk `resolved`, kehilangan label terjemahan resmi untuk `open`, `pending`, dan `snoozed`.
+16. **`app/javascript/dashboard/i18n/locale/en/bulkActions.json` (baris 15):** Kesalahan pengetikan (typo) pada key: `RESOLVE_SUCCESFUL` (kurang huruf 'L').
+17. **`app/javascript/dashboard/i18n/locale/en/contact.json` (baris 284–285):** Terjemahan menyertakan tag HTML mentah `<strong>{primaryContactName}</strong>` yang berisiko XSS jika dirender via directive v-html sembarangan.
+18. **`app/javascript/dashboard/components/widgets/WootWriter/ReplyTopPanel.vue` (baris 45–60):** Tooltip dan pesan batas karakter `CHAR_LENGTH_WARNING` tidak diintegrasikan dengan kamus bahasa i18n.
+19. **`app/javascript/dashboard/components/widgets/WootWriter/ReplyBottomPanel.vue` (baris 351):** Tombol pemilih template konten secara keliru menampilkan icon WhatsApp (`i-ph-whatsapp-logo`).
+20. **`public/test-chat.html` (baris 288–449):** Terdapat belasan baris instruksi `console.log`, `console.warn`, dan pembersihan agresif `localStorage` global tanpa namespace.
 
 ---
 
-### 🟢 Prioritas P2 (Medium / Peningkatan Kualitas & Standar)
+## 5. PELUANG PENINGKATAN (💡 OFI — 74 ITEMS)
 
-1. **Pindahkan Typing Indicator ke Pure WebSocket Client RPC:**
-   Hapus endpoint HTTP `toggle_typing_status`. Gunakan RPC action native di `RoomChannel` (`def typing_on ...`) dan simpan timer pembatalan di frontend dengan composite key `${conversationId}:${user.type}:${user.id}`.
-2. **Sidekiq Scheduled Delay untuk Tiket Snooze:**
-   Jadwalkan job individual `ReopenConversationJob.set(wait_until: snoozed_until).perform_later(conversation.id)` saat tiket di-snooze, mengeliminasi kebutuhan cron polling database tiap 5 menit.
-3. **Kepatuhan Aksesibilitas WCAG 2.1 AA:**
-   Tambahkan `role="button"`, `tabindex="0"`, dan `:aria-selected` pada `ConversationCard.vue`. Gunakan elemen pembungkus `<li>` di `MessageList.vue`.
-4. **Optimasi Tata Letak Tablet:**
-   Ubah breakpoint panel kontak di `ConversationSidebar.vue` dari `md:` (768px) menjadi `xl:` (1280px), menjadikannya *slide-over drawer* pada layar tablet agar area chat tengah tidak terhimpit.
+Rekomendasi teknis untuk refaktor dan maintainability jangka panjang:
+
+1. **Ekstraksi Composable Bersama:**
+   - Satukan logika status ketersediaan agen di `AgentStatusBadge.vue` dan `SidebarProfileMenuStatus.vue` ke dalam satu composable terpadu: `useAgentStatus.js`.
+   - Ekstrak filter percakapan di `ChatList.vue` ke `useConversationFilters.js`.
+   - Ekstrak penanganan format profil kontak ke `useContactDisplay.js`.
+2. **Modernisasi UI Komponen Modal:**
+   - Ganti seluruh sisa pemanggilan modal legacy `woot-modal` dengan komponen standar baru `Dialog` dari `components-next/dialog/Dialog.vue`.
+3. **Pemisahan File Kamus Raksasa:**
+   - Pecah berkas `inboxMgmt.json` (yang telah mencapai > 1.000 baris) menjadi modul-modul terfokus: `inboxChannels.json`, `inboxSettings.json`, dan `inboxWhatsApp.json`.
+4. **Standardisasi Helper Keyboard Shortcuts:**
+   - Satukan definisi shortcut Vim navigasi, hotkey editor, dan command palette ke dalam konfigurasi deklaratif tunggal di `shared/composables/useKeyboardShortcuts.js`.
+
+---
+
+## 6. AUDIT LINTAS-DOMAIN (CROSS-CUTTING CONCERNS)
+
+### A. Integritas Real-Time ActionCable
+- **Event Bus:** Event `conversation_resolved` tertangani dengan baik oleh `AutomationRuleListener` di backend Rails (`app/listeners/automation_rule_listener.rb:14-16`).
+- **Presence Tracking:** Pembaruan status ketersediaan agen di `AgentStatusBadge` terhubung ke getter store Vuex `getCurrentUserAvailability` yang reaktif terhadap event presence WebSocket dari `online_status_tracker.rb`.
+
+### B. Multi-Tenancy Scoping
+- Seluruh mutasi dan pembacaan percakapan pada controller, finders, dan actions terbukti mematuhi isolasi tenant `Current.account`. Tidak ditemukan pemanggilan anti-pattern `Conversation.find(...)` tanpa penyaring akun.
+
+---
+
+## 7. RENCANA AKSI REMEDIASI BERTAHAP (P0, P1, P2)
+
+Untuk menuntaskan 32 temuan Critical Reject secara terstruktur tanpa menimbulkan regresi, pekerjaan wajib dipecah menjadi 5 Pull Request (PR) terpisah:
+
+### 🔴 Tahap 1: PR #1 — Migrasi Arsitektur Vue 3 Composition API & Cleanup CSS
+- **Target Berkas:**
+  - `ContactInfo.vue`, `ContactInfoRow.vue`, `ContactForm.vue`
+  - `EmptyStateMessage.vue`, `FeaturePlaceholder.vue`
+  - `ReplyTopPanel.vue`, `ReplyBottomPanel.vue`
+  - `ContactPanel.vue`, `CustomAttributes.vue`, `ConversationWrap.vue`
+- **Tindakan:**
+  1. Hapus seluruh blok Options API dan ganti dengan `<script setup>`.
+  2. Hapus seluruh blok `<style lang="scss" scoped>`, ganti 100% dengan class Tailwind utility.
+  3. Ganti dependensi `emoji` string pada baris kontak dengan Iconify `icon`.
+
+### 🔴 Tahap 2: PR #2 — Penambahan Status Badge Percakapan & Perbaikan Aksesibilitas
+- **Target Berkas:**
+  - `ConversationCard.vue`, `ConversationListFooter.vue`
+  - `AgentStatusBadge.vue`, `Dashboard.vue`
+  - `HeaderActions.vue` (Widget)
+- **Tindakan:**
+  1. Buat komponen baru `ConversationStatusBadge.vue` dan pasang di `ConversationCard.vue` (merender status `open`, `pending`, `Done`, `snoozed`).
+  2. Tambahkan atribut ARIA lengkap dan keyboard handler pada `AgentStatusBadge.vue`.
+  3. Hapus `<Teleport to="body">` pada dialog modal `HeaderActions.vue` di widget iframe.
+  4. Sediakan navigasi load-more dan empty state pada `ConversationListFooter.vue`.
+
+### 🔴 Tahap 3: PR #3 — Standardisasi i18n & Perbaikan Kamus Bahasa
+- **Target Berkas:**
+  - `conversation.json`, `automation.json`, `chatlist.json`, `inboxMgmt.json`, `settings.json`
+  - `widget/i18n/locale/id.json`
+  - `config/locales/en.yml`
+- **Tindakan:**
+  1. Standarisasi key UI menggunakan format `MARK_AS_DONE` / `DONE` di seluruh namespace dashboard.
+  2. Terjemahkan 10 string yang tertinggal di berkas bahasa Indonesia widget.
+  3. Kembalikan pesan log/error di `en.yml` ke istilah baku sistem `resolved`.
+
+### 🔴 Tahap 4: PR #4 — Resiliensi Klien, SSR Safety & Widget Store Rollback
+- **Target Berkas:**
+  - `useChatListResize.js`
+  - `widget/store/modules/conversation/actions.js`
+  - `ChatListHeader.vue`
+- **Tindakan:**
+  1. Bungkus akses `window` pada `useChatListResize.js` di dalam lifecycle `onMounted`, tambahkan debounce, dan pasang cleanup `onUnmounted`.
+  2. Implementasikan rollback status percakapan pada catch block `resolveConversation` di store widget.
+  3. Ganti pemanggilan `getCurrentInstance().$store` dengan `useStore()`.
+
+### 🔴 Tahap 5: PR #5 — Sanitasi Berkas Publik & Penambahan Test RSpec
+- **Target Berkas:**
+  - `public/test-chat.html`
+  - `spec/models/conversation_spec.rb`
+- **Tindakan:**
+  1. Hapus token hardcoded dari `public/test-chat.html` atau pindahkan berkas ke direktori internal yang tidak disajikan publik.
+  2. Tambahkan skenario RSpec yang memverifikasi bahwa sequence PostgreSQL `display_id` berjalan mandiri antar tenant yang berbeda.
+  3. Tambahkan uji validasi penolakan nilai enum status yang invalid.
+
+---
+
+**Laporan Disusun Oleh:** Senior Tech Lead / Lead Quality Engineer (Sepuh-Programmer)  
+**Dokumen Referensi Terkait:** `CONTEXT.md`, `AGENTS.md`

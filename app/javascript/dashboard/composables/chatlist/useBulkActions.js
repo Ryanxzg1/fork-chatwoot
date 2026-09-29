@@ -56,12 +56,17 @@ export function useBulkActions() {
     return selectedConversations.value.includes(id);
   }
 
+  const resolveIds = conversationId => {
+    if (!conversationId) return selectedConversations.value;
+    return Array.isArray(conversationId) ? conversationId : [conversationId];
+  };
+
   // Same method used in context menu, conversationId being passed from there.
   async function onAssignAgent(agent, conversationId = null) {
     try {
       await store.dispatch('bulkActions/process', {
         type: 'Conversation',
-        ids: conversationId || selectedConversations.value,
+        ids: resolveIds(conversationId),
         fields: {
           assignee_id: agent.id,
         },
@@ -71,7 +76,6 @@ export function useBulkActions() {
         useAlert(
           t('CONVERSATION.CARD_CONTEXT_MENU.API.AGENT_ASSIGNMENT.SUCCESFUL', {
             agentName: agent.name,
-            conversationId,
           })
         );
       } else {
@@ -87,7 +91,7 @@ export function useBulkActions() {
     try {
       await store.dispatch('bulkActions/process', {
         type: 'Conversation',
-        ids: conversationId || selectedConversations.value,
+        ids: resolveIds(conversationId),
         labels: {
           add: newLabels,
         },
@@ -97,7 +101,6 @@ export function useBulkActions() {
         useAlert(
           t('CONVERSATION.CARD_CONTEXT_MENU.API.LABEL_ASSIGNMENT.SUCCESFUL', {
             labelName: newLabels[0],
-            conversationId,
           })
         );
       } else {
@@ -113,7 +116,7 @@ export function useBulkActions() {
     try {
       await store.dispatch('bulkActions/process', {
         type: 'Conversation',
-        ids: conversationId || selectedConversations.value,
+        ids: resolveIds(conversationId),
         labels: {
           remove: labelsToRemove,
         },
@@ -124,7 +127,6 @@ export function useBulkActions() {
         useAlert(
           t('CONVERSATION.CARD_CONTEXT_MENU.API.LABEL_REMOVAL.SUCCESFUL', {
             labelName: labelsToRemove[0],
-            conversationId,
           })
         );
       } else {
