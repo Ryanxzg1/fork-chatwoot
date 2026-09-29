@@ -83,7 +83,7 @@
       "BUTTON_TOOLTIP": "Execute",
       "PREVIEW": "Preview Macro",
       "EXECUTED_SUCCESSFULLY": "Macro executed successfully",
-      "EXECUTED_WITHOUT_RESOLVING": "Macro executed. The conversation was not resolved because required attributes are missing."
+      "EXECUTED_WITHOUT_RESOLVING": "Macro executed. The conversation was not marked as done because required attributes are missing."
     },
     "ERRORS": {
       "ATTRIBUTE_KEY_REQUIRED": "Attribute key is required",
@@ -104,7 +104,7 @@
       "SEND_EMAIL_TRANSCRIPT": "Send an Email Transcript",
       "MUTE_CONVERSATION": "Mute Conversation",
       "SNOOZE_CONVERSATION": "Snooze Conversation",
-      "RESOLVE_CONVERSATION": "Resolve Conversation",
+      "RESOLVE_CONVERSATION": "Mark Conversation as Done",
       "CHANGE_STATUS": "Change Status",
       "SEND_ATTACHMENT": "Send Attachment",
       "SEND_MESSAGE": "Send a Message",

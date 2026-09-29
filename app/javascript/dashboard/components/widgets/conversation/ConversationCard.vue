@@ -114,11 +114,12 @@ watch(
     :aria-selected="isActiveChat"
     class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 cursor-pointer conversation border-b border-n-slate-3 hover:border-n-surface-1 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 group hover:z-[1] before:content-[none] before:absolute before:-top-px before:inset-x-0 before:h-px before:bg-n-surface-1 before:pointer-events-none hover:before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-n-brand"
     :class="{
-      'active animate-card-select bg-n-background !border-n-surface-1':
+      'active animate-card-select bg-n-background !border-n-surface-1 ltr:border-l-[3px] ltr:!border-l-n-brand rtl:border-r-[3px] rtl:!border-r-n-brand':
         isActiveChat,
       'selected bg-n-slate-2 !border-n-surface-1': selected,
       'px-0': compact,
-      'px-3': !compact,
+      'px-3': !compact && !isActiveChat,
+      'ltr:pl-[9px] ltr:pr-3 rtl:pr-[9px] rtl:pl-3': !compact && isActiveChat,
     }"
     @click="$emit('click', $event)"
     @contextmenu="$emit('contextmenu', $event)"

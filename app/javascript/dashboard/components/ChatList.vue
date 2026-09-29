@@ -9,6 +9,7 @@ import {
 
 import ChatListHeader from './ChatListHeader.vue';
 import ConversationList from './ConversationList.vue';
+import ConversationListFooter from './widgets/conversation/ConversationListFooter.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import ConversationFilter from 'next/filter/ConversationFilter.vue';
 import SaveCustomView from 'next/filter/SaveCustomView.vue';
@@ -229,8 +230,16 @@ const conversationCustomAttributes = useFunctionGetter(
 const activeAssigneeTabCount = computed(() => {
   const count = assigneeTabItems.value.find(
     item => item.key === activeAssigneeTab.value
-  ).count;
-  return count;
+  )?.count;
+  return count || 0;
+});
+
+const activeStatusLabel = computed(() => {
+  if (hasAppliedFiltersOrActiveFolders.value) {
+    return activeFolderName.value || t('CHAT_LIST.TAB_HEADING');
+  }
+  const statusKey = activeStatus.value;
+  return t(`CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.${statusKey}.TEXT`);
 });
 
 const conversationListPagination = computed(() => {
@@ -379,6 +388,13 @@ const allConversationsSelected = computed(() => {
 
 const uniqueInboxes = computed(() => {
   return [...new Set(selectedInboxes.value)];
+});
+
+const footerCount = computed(() => {
+  if (hasAppliedFiltersOrActiveFolders.value) {
+    return conversationList.value?.length || 0;
+  }
+  return activeAssigneeTabCount.value;
 });
 
 // ---------------------- Methods -----------------------
@@ -612,6 +628,23 @@ function resetAndFetchData() {
   fetchConversations();
 }
 
+const isRefreshing = ref(false);
+
+async function refreshAllConversations() {
+  if (isRefreshing.value || chatListLoading.value) return;
+  isRefreshing.value = true;
+  try {
+    resetAndFetchData();
+    await Promise.allSettled([
+      store.dispatch('conversationStats/get', conversationFilters.value),
+      store.dispatch('conversationUnreadCounts/get'),
+      store.dispatch('notifications/getUnreadCount'),
+    ]);
+  } finally {
+    isRefreshing.value = false;
+  }
+}
+
 function loadMoreConversations() {
   if (hasCurrentPageEndReached.value || chatListLoading.value) {
     return;
@@ -727,7 +760,6 @@ async function assignPriority(priority, conversationId = null) {
     useAlert(
       t('CONVERSATION.PRIORITY.CHANGE_PRIORITY.SUCCESSFUL', {
         priority,
-        conversationId,
       })
     );
   });
@@ -762,7 +794,6 @@ async function onAssignTeam(team, conversationId = null) {
     useAlert(
       t('CONVERSATION.CARD_CONTEXT_MENU.API.TEAM_ASSIGNMENT.SUCCESFUL', {
         team: team.name,
-        conversationId,
       })
     );
   } catch (error) {
@@ -947,14 +978,11 @@ watch(appliedFilters, () => resetBulkActions());
       :is-on-expanded-layout="isOnExpandedLayout"
       :conversation-stats="conversationStats"
       :is-list-loading="chatListLoading && !conversationList.length"
-      :active-assignee-tab="activeAssigneeTab"
-      :assignee-tab-items="assigneeTabItems"
       @add-folders="onClickOpenAddFoldersModal"
       @delete-folders="onClickOpenDeleteFoldersModal"
       @filters-modal="onToggleAdvanceFiltersModal"
       @reset-filters="resetAndFetchData"
       @basic-filter-change="onBasicFilterChange"
-      @assignee-tab-change="updateAssigneeTab"
     />
 
     <TeleportWithDirection
@@ -1010,6 +1038,12 @@ watch(appliedFilters, () => resetBulkActions());
       :show-assignee="showAssigneeInConversationCard"
       :is-on-expanded-layout="isOnExpandedLayout"
       @load-more="loadMoreConversations"
+    />
+    <ConversationListFooter
+      :status-label="activeStatusLabel"
+      :count="footerCount"
+      :is-loading="chatListLoading || isRefreshing"
+      @refresh="refreshAllConversations"
     />
     <Dialog
       ref="deleteConversationDialogRef"

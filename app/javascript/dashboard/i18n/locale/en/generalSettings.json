@@ -45,26 +45,26 @@
         "NOTE": "This ID is required if you are building an API based integration"
       },
       "AUTO_RESOLVE": {
-        "TITLE": "Auto-resolve conversations",
-        "NOTE": "This configuration would allow you to automatically resolve the conversation after a certain period of inactivity.",
+        "TITLE": "Auto-mark conversations as done",
+        "NOTE": "This configuration would allow you to automatically mark the conversation as done after a certain period of inactivity.",
         "DURATION": {
           "LABEL": "Inactivity duration",
-          "HELP": "Time period of inactivity after which conversation is auto-resolved",
+          "HELP": "Time period of inactivity after which conversation is auto-marked as done",
           "PLACEHOLDER": "30",
-          "ERROR": "Auto resolve duration should be between 10 minutes and 999 days",
+          "ERROR": "Duration should be between 10 minutes and 999 days",
           "API": {
-            "SUCCESS": "Auto resolve settings updated successfully",
-            "ERROR": "Failed to update auto resolve settings"
+            "SUCCESS": "Auto-mark as done settings updated successfully",
+            "ERROR": "Failed to update auto-mark as done settings"
           }
         },
         "MESSAGE": {
-          "LABEL": "Custom auto-resolution message",
-          "PLACEHOLDER": "Conversation was marked resolved by system due to 15 days of inactivity",
-          "HELP": "Message sent to the customer after conversation is auto-resolved"
+          "LABEL": "Custom auto-mark as done message",
+          "PLACEHOLDER": "Conversation was marked as done by system due to 15 days of inactivity",
+          "HELP": "Message sent to the customer after conversation is auto-marked as done"
         },
         "PREFERENCES": "Preferences",
         "LABEL": {
-          "LABEL": "Add label after auto-resolution",
+          "LABEL": "Add label after auto-mark as done",
           "PLACEHOLDER": "Select a label"
         },
         "IGNORE_WAITING": {
@@ -94,7 +94,7 @@
       },
       "AUTO_RESOLVE_IGNORE_WAITING": {
         "LABEL": "Exclude unattended conversations",
-        "HELP": "When enabled, the system will skip resolving conversations that are still waiting for an agent's reply."
+        "HELP": "When enabled, the system will skip marking conversations as done that are still waiting for an agent's reply."
       },
       "AUDIO_TRANSCRIPTION": {
         "TITLE": "Transcribe Audio Messages",
@@ -105,18 +105,18 @@
         }
       },
       "AUTO_RESOLVE_DURATION": {
-        "LABEL": "Inactivity duration for resolution",
-        "HELP": "Duration after a conversation should auto resolve if there is no activity",
+        "LABEL": "Inactivity duration to mark as done",
+        "HELP": "Duration after a conversation should auto-mark as done if there is no activity",
         "PLACEHOLDER": "30",
-        "ERROR": "Auto resolve duration should be between 10 minutes and 999 days",
+        "ERROR": "Duration should be between 10 minutes and 999 days",
         "API": {
-          "SUCCESS": "Auto resolve settings updated successfully",
-          "ERROR": "Failed to update auto resolve settings"
+          "SUCCESS": "Auto-mark as done settings updated successfully",
+          "ERROR": "Failed to update auto-mark as done settings"
         },
         "UPDATE_BUTTON": "Update",
-        "MESSAGE_LABEL": "Custom resolution message",
-        "MESSAGE_PLACEHOLDER": "Conversation was marked resolved by system due to 15 days of inactivity",
-        "MESSAGE_HELP": "This message is sent to the customer when a conversation is automatically resolved by the system due to inactivity."
+        "MESSAGE_LABEL": "Custom auto-mark as done message",
+        "MESSAGE_PLACEHOLDER": "Conversation was marked as done by system due to 15 days of inactivity",
+        "MESSAGE_HELP": "This message is sent to the customer when a conversation is automatically marked as done by the system due to inactivity."
       },
       "FEATURES": {
         "INBOUND_EMAIL_ENABLED": "Conversation continuity with emails is enabled for your account.",
@@ -213,7 +213,7 @@
       "UNMUTE_CONVERSATION": "Unmute conversation",
       "REMOVE_LABEL_FROM_CONVERSATION": "Remove label from the conversation",
       "REOPEN_CONVERSATION": "Reopen conversation",
-      "RESOLVE_CONVERSATION": "Resolve conversation",
+      "RESOLVE_CONVERSATION": "Mark conversation as done",
       "SEND_TRANSCRIPT": "Send an email transcript",
       "SNOOZE_CONVERSATION": "Snooze Conversation",
       "UNTIL_NEXT_REPLY": "Until next reply",

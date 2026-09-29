@@ -31,7 +31,7 @@
         "TEXT": "Active"
       },
       "resolved": {
-        "TEXT": "Resolved"
+        "TEXT": "Done"
       },
       "snoozed": {
         "TEXT": "Snoozed"
@@ -146,6 +146,11 @@
     "SHOW_QUOTED_TEXT": "Show Quoted Text",
     "MESSAGE_READ": "Read",
     "SENDING": "Sending",
+    "FOOTER": {
+      "CHAT_COUNT": "{status} Chat : {count} Customers",
+      "REFRESH_TOOLTIP": "Refresh conversations",
+      "REFRESH_LABEL": "Refresh"
+    },
     "UNREAD_COUNT_OVERFLOW": "9+"
   }
 }

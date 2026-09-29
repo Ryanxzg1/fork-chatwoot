@@ -180,7 +180,7 @@
       "CONVERSATION_CREATED": "Conversation Created",
       "CONVERSATION_UPDATED": "Conversation Updated",
       "MESSAGE_CREATED": "Message Created",
-      "CONVERSATION_RESOLVED": "Conversation Resolved",
+      "CONVERSATION_RESOLVED": "Conversation Marked as Done",
       "CONVERSATION_OPENED": "Conversation Opened"
     },
     "ACTIONS": {
@@ -194,7 +194,7 @@
       "SEND_EMAIL_TRANSCRIPT": "Send an Email Transcript",
       "MUTE_CONVERSATION": "Mute Conversation",
       "SNOOZE_CONVERSATION": "Snooze Conversation",
-      "RESOLVE_CONVERSATION": "Resolve Conversation",
+      "RESOLVE_CONVERSATION": "Mark Conversation as Done",
       "SEND_WEBHOOK_EVENT": "Send Webhook Event",
       "SEND_ATTACHMENT": "Send Attachment",
       "SEND_MESSAGE": "Send a Message",

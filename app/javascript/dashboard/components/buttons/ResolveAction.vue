@@ -186,9 +186,10 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         v-if="isOpen"
         :label="t('CONVERSATION.HEADER.RESOLVE_ACTION')"
         size="sm"
-        color="slate"
+        color="teal"
+        icon="i-lucide-check"
         no-animation
-        class="!outline-0"
+        class="!outline-0 font-medium"
         :class="{
           'ltr:rounded-r-none rtl:rounded-l-none': showAdditionalActions,
         }"
@@ -200,8 +201,9 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         :label="t('CONVERSATION.HEADER.REOPEN_ACTION')"
         size="sm"
         color="slate"
+        icon="i-lucide-rotate-ccw"
         no-animation
-        class="!outline-0"
+        class="!outline-0 font-medium"
         :class="{
           'ltr:rounded-r-none rtl:rounded-l-none': showAdditionalActions,
         }"
@@ -212,9 +214,10 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         v-else-if="showOpenButton"
         :label="t('CONVERSATION.HEADER.OPEN_ACTION')"
         size="sm"
-        color="slate"
+        color="blue"
+        icon="i-lucide-inbox"
         no-animation
-        class="!outline-0"
+        class="!outline-0 font-medium"
         :is-loading="isLoading"
         @click="onCmdOpenConversation"
       />
@@ -226,7 +229,7 @@ useEmitter(CMD_RESOLVE_CONVERSATION, onCmdResolveConversation);
         size="sm"
         no-animation
         class="ltr:rounded-l-none rtl:rounded-r-none !outline-0"
-        color="slate"
+        :color="isOpen ? 'teal' : 'slate'"
         trailing-icon
         @click="openDropdown"
       />

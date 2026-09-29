@@ -13,6 +13,7 @@ import {
   DropdownSeparator,
   DropdownItem,
 } from 'next/dropdown-menu/base';
+import { provideDropdownTeleport } from 'next/dropdown-menu/base/provider';
 import CustomBrandPolicyWrapper from '../../components/CustomBrandPolicyWrapper.vue';
 
 defineProps({
@@ -24,6 +25,8 @@ const emit = defineEmits(['close', 'openKeyShortcutModal']);
 defineOptions({
   inheritAttrs: false,
 });
+
+provideDropdownTeleport();
 
 const { t } = useI18n();
 
@@ -160,7 +163,7 @@ const allowedMenuItems = computed(() => {
         </div>
       </button>
     </template>
-    <DropdownBody class="bottom-12 z-50 mb-2 w-80 ltr:left-0 rtl:right-0">
+    <DropdownBody class="w-80">
       <SidebarProfileMenuStatus />
       <DropdownSeparator />
       <template v-for="item in allowedMenuItems" :key="item.label">

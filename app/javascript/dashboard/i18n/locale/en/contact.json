@@ -60,7 +60,14 @@
       "CUSTOM_ATTRIBUTES": "Custom Attributes",
       "CONTACT_LABELS": "Contact Labels",
       "PREVIOUS_CONVERSATIONS": "Previous Conversations",
+      "CONTACT_DETAILS": "Contact Details",
+      "ADDITIONAL_INFO": "Additional Details",
       "NO_RECORDS_FOUND": "No attributes found"
+    },
+    "SIDEBAR_TABS": {
+      "TICKET": "Ticket",
+      "CUSTOMER": "Customer",
+      "APPS": "Apps & Media"
     }
   },
   "EDIT_CONTACT": {

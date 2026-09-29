@@ -163,10 +163,14 @@ export default {
       />
       <div
         v-if="mode === REPLY_EDITOR_MODES.NOTE"
-        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-n-amber-3 dark:bg-n-amber-3/20 text-n-amber-11 text-xs font-semibold select-none border border-n-amber-6/50"
+        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-n-amber-3 dark:bg-n-amber-3/20 text-n-amber-11 text-xs font-semibold select-none border border-n-amber-6/60 shadow-xs"
       >
-        <span class="i-ph-lock-key-fill w-3.5 h-3.5" />
+        <span class="i-ph-lock-key-fill size-3.5" />
         <span>{{ $t('CONVERSATION.REPLYBOX.PRIVATE_NOTE') }}</span>
+        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
+        <span class="opacity-75 font-normal hidden sm:inline">
+          &bull; {{ $t('CONVERSATION.REPLYBOX.PRIVATE_NOTE_WARNING') }}
+        </span>
       </div>
     </div>
     <div class="flex items-center mx-4 my-0">

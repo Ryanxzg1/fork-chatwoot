@@ -9,6 +9,7 @@ import Logo from 'next/icon/Logo.vue';
 import SidebarAccountSwitcher from 'dashboard/components-next/sidebar/SidebarAccountSwitcher.vue';
 import ComposeConversation from 'dashboard/components-next/NewConversation/ComposeConversation.vue';
 import ButtonNext from 'dashboard/components-next/button/Button.vue';
+import AgentStatusBadge from 'dashboard/components-next/sidebar/AgentStatusBadge.vue';
 
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { useAccount } from 'dashboard/composables/useAccount';
@@ -36,6 +37,7 @@ export default {
     SidebarAccountSwitcher,
     ComposeConversation,
     ButtonNext,
+    AgentStatusBadge,
   },
   setup() {
     const upgradePageRef = ref(null);
@@ -142,8 +144,9 @@ export default {
         />
       </div>
 
-      <!-- Sisi Kanan: Search bar + Compose Conversation -->
+      <!-- Sisi Kanan: Status Agen + Search bar + Compose Conversation -->
       <div class="flex items-center gap-2">
+        <AgentStatusBadge />
         <RouterLink
           :to="{ name: 'search', params: { accountId } }"
           class="flex gap-2 items-center px-2 py-1 w-44 sm:w-64 h-7 rounded-lg outline outline-1 outline-n-weak bg-n-button-color transition-all duration-100 ease-out hover:bg-n-alpha-2"

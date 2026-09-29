@@ -762,12 +762,12 @@
     "INDEX": {
       "HEADER": {
         "TITLE": "Conversation Workflows",
-        "DESCRIPTION": "Configure rules and required fields for conversation resolution."
+        "DESCRIPTION": "Configure rules and required fields for marking conversations as done."
       }
     },
     "REQUIRED_ATTRIBUTES": {
-      "TITLE": "Attributes required on resolution",
-      "DESCRIPTION": "When resolving a conversation, agents will be prompted to fill these attributes if they haven't yet.",
+      "TITLE": "Attributes required when marking as done",
+      "DESCRIPTION": "When marking a conversation as done, agents will be prompted to fill these attributes if they haven't yet.",
       "NO_ATTRIBUTES": "No attributes added yet",
       "ADD": {
         "TITLE": "Add Attributes",
@@ -778,10 +778,10 @@
         "ERROR": "Could not update required attributes, please try again"
       },
       "MODAL": {
-        "TITLE": "Resolve conversation",
-        "DESCRIPTION": "Please fill in the following custom attributes before resolving this conversation",
+        "TITLE": "Mark conversation as done",
+        "DESCRIPTION": "Please fill in the following custom attributes before marking this conversation as done",
         "ACTIONS": {
-          "RESOLVE": "Resolve conversation",
+          "RESOLVE": "Mark as done",
           "CANCEL": "Cancel"
         },
         "PLACEHOLDERS": {
@@ -799,13 +799,13 @@
       "PAYWALL": {
         "TITLE": "Upgrade to use required attributes",
         "AVAILABLE_ON": "The required conversation attributes feature is available on the Business and Enterprise plans.",
-        "UPGRADE_PROMPT": "Upgrade your plan to prompt agents to fill required attributes before conversation resolution.",
+        "UPGRADE_PROMPT": "Upgrade your plan to prompt agents to fill required attributes before marking conversations as done.",
         "UPGRADE_NOW": "Upgrade now",
         "CANCEL_ANYTIME": "You can change or cancel your plan anytime"
       },
       "ENTERPRISE_PAYWALL": {
         "AVAILABLE_ON": "The required conversation attributes feature is available on the paid plans.",
-        "UPGRADE_PROMPT": "Upgrade to a paid plan to enforce required attributes before conversation resolution.",
+        "UPGRADE_PROMPT": "Upgrade to a paid plan to enforce required attributes before marking conversations as done.",
         "ASK_ADMIN": "Please reach out to your administrator for the upgrade."
       }
     }
@@ -832,9 +832,9 @@
     "TOGGLE_MODAL": "View all shortcuts",
     "TITLE": {
       "OPEN_CONVERSATION": "Open conversation",
-      "RESOLVE_AND_NEXT": "Resolve and move to next",
+      "RESOLVE_AND_NEXT": "Mark as done and move to next",
       "NAVIGATE_DROPDOWN": "Navigate dropdown items",
-      "RESOLVE_CONVERSATION": "Resolve Conversation",
+      "RESOLVE_CONVERSATION": "Mark conversation as done",
       "GO_TO_CONVERSATION_DASHBOARD": "Go to Conversation Dashboard",
       "ADD_ATTACHMENT": "Add Attachment",
       "GO_TO_CONTACTS_DASHBOARD": "Go to Contacts Dashboard",

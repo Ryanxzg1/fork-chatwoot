@@ -1,7 +1,5 @@
 <script setup>
-import { computed, getCurrentInstance } from 'vue';
-import { useI18n } from 'vue-i18n';
-import { useRouter, useRoute } from 'vue-router';
+import { computed } from 'vue';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { formatNumber } from '@chatwoot/utils';
 import wootConstants from 'dashboard/constants/globals';
@@ -9,14 +7,6 @@ import wootConstants from 'dashboard/constants/globals';
 import ConversationBasicFilter from './widgets/conversation/ConversationBasicFilter.vue';
 import SwitchLayout from 'dashboard/routes/dashboard/conversation/search/SwitchLayout.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
-import {
-  DropdownContainer,
-  DropdownBody,
-  DropdownSection,
-  DropdownItem,
-  DropdownSeparator,
-} from 'next/dropdown-menu/base';
-import { provideDropdownTeleport } from 'dashboard/components-next/dropdown-menu/base/provider';
 
 const props = defineProps({
   pageTitle: { type: String, required: true },
@@ -26,8 +16,6 @@ const props = defineProps({
   isOnExpandedLayout: { type: Boolean, required: true },
   conversationStats: { type: Object, required: true },
   isListLoading: { type: Boolean, required: true },
-  activeAssigneeTab: { type: String, default: wootConstants.ASSIGNEE_TYPE.ALL },
-  assigneeTabItems: { type: Array, default: () => [] },
 });
 
 const emit = defineEmits([
@@ -36,35 +24,9 @@ const emit = defineEmits([
   'resetFilters',
   'basicFilterChange',
   'filtersModal',
-  'assigneeTabChange',
 ]);
 
-const { t } = useI18n();
-const router = useRouter?.();
-const route = useRoute?.();
-const vm = getCurrentInstance();
-const store = vm?.proxy?.$store;
-
-const currentAccountId = computed(() => store?.getters?.getCurrentAccountId);
-const allUnreadCount = computed(
-  () => store?.getters?.['conversationUnreadCounts/getAllUnreadCount'] || 0
-);
-const mentionsUnreadCount = computed(
-  () => store?.getters?.['conversationUnreadCounts/getMentionsUnreadCount'] || 0
-);
-const participatingUnreadCount = computed(
-  () =>
-    store?.getters?.['conversationUnreadCounts/getParticipatingUnreadCount'] ||
-    0
-);
-const unattendedUnreadCount = computed(
-  () =>
-    store?.getters?.['conversationUnreadCounts/getUnattendedUnreadCount'] || 0
-);
-
 const { uiSettings, updateUISettings } = useUISettings();
-
-provideDropdownTeleport();
 
 const onBasicFilterChange = (value, type) => {
   emit('basicFilterChange', value, type);
@@ -90,91 +52,6 @@ const isContactScoped = computed(
 const title = computed(
   () => (isContactScoped.value && props.contactFilter.name) || props.pageTitle
 );
-
-const activeAssigneeName = computed(() => {
-  const activeItem = props.assigneeTabItems?.find(
-    item => item.key === props.activeAssigneeTab
-  );
-  return activeItem?.name || t('CHAT_LIST.ASSIGNEE_TYPE_TABS.all');
-});
-
-const headerDropdownTitle = computed(() => {
-  return `${title.value}: ${activeAssigneeName.value}`;
-});
-
-const shouldShowDropdown = computed(() => {
-  return (
-    !hasAppliedFiltersOrActiveFolders.value &&
-    !isContactScoped.value &&
-    props.assigneeTabItems?.length > 0
-  );
-});
-
-const getAssigneeIcon = key => {
-  switch (key) {
-    case 'me':
-      return 'i-lucide-user';
-    case 'unassigned':
-      return 'i-lucide-user-x';
-    case 'all':
-    default:
-      return 'i-lucide-users';
-  }
-};
-
-const conversationViewItems = computed(() => [
-  {
-    key: 'all',
-    name: t('SIDEBAR.ALL_CONVERSATIONS'),
-    icon: 'i-lucide-inbox',
-    count: allUnreadCount.value,
-    routeName: 'home',
-    isActive: route?.name === 'home' || route?.name === 'inbox_conversation',
-  },
-  {
-    key: 'mentions',
-    name: t('SIDEBAR.MENTIONED_CONVERSATIONS'),
-    icon: 'i-lucide-at-sign',
-    count: mentionsUnreadCount.value,
-    routeName: 'conversation_mentions',
-    isActive:
-      route?.name === 'conversation_mentions' ||
-      route?.name === 'conversation_through_mentions',
-  },
-  {
-    key: 'participating',
-    name: t('SIDEBAR.PARTICIPATING_CONVERSATIONS'),
-    icon: 'i-lucide-user-round-check',
-    count: participatingUnreadCount.value,
-    routeName: 'conversation_participating',
-    isActive:
-      route?.name === 'conversation_participating' ||
-      route?.name === 'conversation_through_participating',
-  },
-  {
-    key: 'unattended',
-    name: t('SIDEBAR.UNATTENDED_CONVERSATIONS'),
-    icon: 'i-lucide-clock-alert',
-    count: unattendedUnreadCount.value,
-    routeName: 'conversation_unattended',
-    isActive:
-      route?.name === 'conversation_unattended' ||
-      route?.name === 'conversation_through_unattended',
-  },
-]);
-
-const onSelectAssigneeTab = key => {
-  emit('assigneeTabChange', key);
-};
-
-const onSelectView = view => {
-  if (router && currentAccountId.value) {
-    router.push({
-      name: view.routeName,
-      params: { accountId: currentAccountId.value },
-    });
-  }
-};
 
 const toggleConversationLayout = () => {
   const { LAYOUT_TYPES } = wootConstants;
@@ -211,83 +88,8 @@ const toggleConversationLayout = () => {
         ghost
         @click="emit('resetFilters')"
       />
-      <DropdownContainer v-if="shouldShowDropdown">
-        <template #trigger="{ toggle, isOpen }">
-          <button
-            type="button"
-            class="flex items-center gap-1.5 px-2 py-1 -ms-2 rounded-lg hover:bg-n-alpha-2 transition-colors cursor-pointer text-start min-w-0"
-            :class="{ 'bg-n-alpha-2': isOpen }"
-            :title="headerDropdownTitle"
-            @click="toggle"
-          >
-            <h1 class="text-base font-medium truncate text-n-slate-12">
-              {{ headerDropdownTitle }}
-            </h1>
-            <span
-              class="i-lucide-chevron-down size-4 text-n-slate-11 shrink-0 transition-transform duration-150"
-              :class="{ 'rotate-180': isOpen }"
-            />
-          </button>
-        </template>
-        <DropdownBody class="w-64 z-50">
-          <DropdownSection :title="$t('CHAT_LIST.TAB_HEADING')">
-            <DropdownItem
-              v-for="item in assigneeTabItems"
-              :key="item.key"
-              :icon="getAssigneeIcon(item.key)"
-              class="justify-between hover:bg-n-alpha-2 rounded-lg"
-              :click="() => onSelectAssigneeTab(item.key)"
-            >
-              <div class="flex items-center justify-between w-full">
-                <span
-                  class="text-sm"
-                  :class="{
-                    'font-medium text-n-brand': activeAssigneeTab === item.key,
-                  }"
-                >
-                  {{ item.name }}
-                </span>
-                <span
-                  v-if="item.count"
-                  class="inline-grid h-5 min-w-5 place-items-center rounded-full bg-n-slate-4 px-1.5 text-xxs font-medium text-n-slate-12"
-                >
-                  {{ item.count }}
-                </span>
-              </div>
-            </DropdownItem>
-          </DropdownSection>
-          <DropdownSeparator />
-          <DropdownSection :title="$t('SIDEBAR.CONVERSATIONS')">
-            <DropdownItem
-              v-for="view in conversationViewItems"
-              :key="view.key"
-              :icon="view.icon"
-              class="justify-between hover:bg-n-alpha-2 rounded-lg"
-              :click="() => onSelectView(view)"
-            >
-              <div class="flex items-center justify-between w-full">
-                <span
-                  class="text-sm"
-                  :class="{
-                    'font-medium text-n-brand': view.isActive,
-                  }"
-                >
-                  {{ view.name }}
-                </span>
-                <span
-                  v-if="view.count"
-                  class="inline-grid h-5 min-w-5 place-items-center rounded-full bg-n-slate-4 px-1.5 text-xxs font-medium text-n-slate-12"
-                >
-                  {{ view.count }}
-                </span>
-              </div>
-            </DropdownItem>
-          </DropdownSection>
-        </DropdownBody>
-      </DropdownContainer>
       <h1
-        v-else
-        class="text-base font-medium truncate text-n-slate-12"
+        class="text-base font-semibold truncate text-n-slate-12 px-0.5 tracking-tight"
         :title="title"
       >
         {{ title }}

@@ -383,7 +383,14 @@ export default {
         @click="toggleInsertArticle"
       />
     </div>
-    <div class="right-wrap">
+    <div class="right-wrap items-center gap-2">
+      <span
+        v-if="isNote"
+        class="text-xxs font-medium text-n-amber-11 hidden sm:inline-flex items-center gap-1 select-none"
+      >
+        <span class="i-ph-lock-key-fill size-3" />
+        {{ $t('CONVERSATION.REPLYBOX.PRIVATE_NOTE_WARNING') }}
+      </span>
       <NextButton
         :label="sendButtonText"
         type="submit"

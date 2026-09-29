@@ -22,8 +22,17 @@
     "VIEW_ORIGINAL": "View original",
     "VIEW_TRANSLATED": "View translated",
     "EMPTY_STATE": {
-      "CMD_BAR": "to open command menu",
-      "KEYBOARD_SHORTCUTS": "to view keyboard shortcuts"
+      "CMD_BAR": "Open command menu",
+      "KEYBOARD_SHORTCUTS": "View keyboard shortcuts",
+      "GREETING_MORNING": "Good morning, {name}! Ready to help your customers?",
+      "GREETING_AFTERNOON": "Good afternoon, {name}! Keep up the great work.",
+      "GREETING_EVENING": "Good evening, {name}! Wrapping up the day nicely.",
+      "SHORTCUTS": {
+        "TITLE": "Quick Productivity Shortcuts",
+        "NAVIGATE": "Navigate previous / next chat",
+        "RESOLVE": "Resolve current conversation",
+        "PRIVATE_NOTE": "Switch to private note"
+      }
     },
     "SEARCH": {
       "TITLE": "Search messages",
@@ -139,7 +148,7 @@
       "TRANSCRIPT_SHOW_LESS": "Show less"
     },
     "HEADER": {
-      "RESOLVE_ACTION": "Resolve",
+      "RESOLVE_ACTION": "Done",
       "REOPEN_ACTION": "Reopen",
       "OPEN_ACTION": "Open",
       "MORE_ACTIONS": "More actions",
@@ -235,7 +244,7 @@
         "SELECT_PLACEHOLDER": "None",
         "INPUT_PLACEHOLDER": "Select priority",
         "NO_RESULTS": "No results found",
-        "SUCCESSFUL": "Changed priority of conversation id {conversationId} to {priority}",
+        "SUCCESSFUL": "Priority set to {priority}",
         "FAILED": "Couldn't change priority. Please try again."
       }
     },
@@ -246,7 +255,7 @@
     },
     "CARD_CONTEXT_MENU": {
       "PENDING": "Mark as pending",
-      "RESOLVED": "Mark as resolved",
+      "RESOLVED": "Mark as done",
       "MARK_AS_UNREAD": "Mark as unread",
       "MARK_AS_READ": "Mark as read",
       "REOPEN": "Reopen conversation",
@@ -268,19 +277,19 @@
       "COPY_LINK_SUCCESS": "Conversation link copied to clipboard",
       "API": {
         "AGENT_ASSIGNMENT": {
-          "SUCCESFUL": "Conversation id {conversationId} assigned to \"{agentName}\"",
+          "SUCCESFUL": "Assigned to {agentName}",
           "FAILED": "Couldn't assign agent. Please try again."
         },
         "LABEL_ASSIGNMENT": {
-          "SUCCESFUL": "Assigned label #{labelName} to conversation id {conversationId}",
+          "SUCCESFUL": "Label #{labelName} added",
           "FAILED": "Couldn't assign label. Please try again."
         },
         "LABEL_REMOVAL": {
-          "SUCCESFUL": "Removed label #{labelName} from conversation id {conversationId}",
+          "SUCCESFUL": "Label #{labelName} removed",
           "FAILED": "Couldn't remove label. Please try again."
         },
         "TEAM_ASSIGNMENT": {
-          "SUCCESFUL": "Assigned team \"{team}\" to conversation id {conversationId}",
+          "SUCCESFUL": "Assigned to team {team}",
           "FAILED": "Couldn't assign team. Please try again."
         }
       }
@@ -302,8 +311,9 @@
     "REPLYBOX": {
       "REPLY": "Reply",
       "PRIVATE_NOTE": "Private Note",
+      "PRIVATE_NOTE_WARNING": "Only visible to agents",
       "SEND": "Send",
-      "CREATE": "Add Note",
+      "CREATE": "Add Private Note",
       "INSERT_READ_MORE": "Read more",
       "DISMISS_REPLY": "Dismiss reply",
       "REPLYING_TO": "Replying to:",

@@ -275,6 +275,10 @@ Account (Tenant Root)
 
 ### 4.3 Enum Conversation Status — State Machine
 
+> 💡 **PENTING: Konvensi Penamaan Status "Done" (UI Presentation) vs "resolved" (Backend/API Token)**:
+> - **Visual UI / Copywriting**: Status percakapan ini ditampilkan kepada pengguna/agen di seluruh antarmuka dashboard sebagai **"Done"** (bukan "Resolved"), tombol aksi utama berlabel **"Done"**, filter tab berlabel **"Done"**, pesan riwayat timeline *"Conversation was marked as done by %{user_name}"*, dan fitur terkait berlabel **"Auto-mark as done"**.
+> - **Backend, Database, dan API Contract**: Token mesin internal di database (`conversations.status`), enum Rails (`enum status: { open: 0, resolved: 1, pending: 2, snoozed: 3 }`), payload webhook (`"status": "resolved"`), filter query internal, dan endpoint API tetap menggunakan token baku **`resolved`** untuk menjaga backward compatibility penuh (*zero breaking change* terhadap webhook pihak ketiga dan integrasi eksternal).
+
 ```
 [Pesan baru masuk]
         |
@@ -283,7 +287,7 @@ Account (Tenant Root)
         +-- Tidak ada bot  --> STATUS: open   (agen dinotifikasi)
 
 pending --> open       : Bot handoff / agen membalas langsung / assign manual
-open    --> resolved   : Manual oleh agen / Automation Rule
+open    --> resolved   : Manual oleh agen / Automation Rule (UI: Mark as Done)
 resolved --> pending   : Pelanggan membalas lagi + ada bot aktif
 resolved --> open      : Pelanggan membalas lagi + tidak ada bot
 open    --> snoozed    : Ditunda sementara (dengan timestamp wake-up)
@@ -612,6 +616,7 @@ pnpm eslint:fix
 - **Strong params**: Validasi selalu di controller boundary, kembalikan `422 Unprocessable Entity` untuk input invalid.
 - **Pure OSS / No Enterprise**: Repositori ini 100% Pure MIT (folder `enterprise/` sudah dipurging habis). Semua hook metaprogramming `prepend_mod_with` telah dibongkar. Semua kode berjalan secara native di `app/`.
 - **Translations**: Hanya update `en.yml` (backend) dan `en.json` (frontend). File bahasa lain dikelola via Crowdin.
+- **Conversation Status UI**: Status percakapan `resolved` ditampilkan sebagai **"Done"** di antarmuka pengguna (UI/i18n). Dilarang merombak enum backend/database atau API token `resolved`.
 - **Commit messages**: Conventional Commits — `type(scope): subject`. Jangan menyebut nama AI di commit.
 
 ---
