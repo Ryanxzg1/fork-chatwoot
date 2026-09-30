@@ -60,20 +60,20 @@ describe('useChatListResize', () => {
     const { chatListWidth, onResizeStart, isResizing } = useChatListResize();
 
     onResizeStart({
-      clientX: 420,
+      clientX: 410,
       preventDefault: vi.fn(),
     });
     expect(isResizing.value).toBe(true);
 
     // Simulate mouse move to right (+60px)
-    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 480 }));
-    expect(chatListWidth.value).toBe(480);
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 470 }));
+    expect(chatListWidth.value).toBe(470);
 
     // Simulate mouse up
     document.dispatchEvent(new MouseEvent('mouseup'));
     expect(isResizing.value).toBe(false);
     expect(mockUpdateUISettings).toHaveBeenCalledWith({
-      conversation_list_width: 480,
+      conversation_list_width: 470,
     });
   });
 
@@ -88,11 +88,11 @@ describe('useChatListResize', () => {
 
     // In RTL, dragging mouse to the left (decreasing clientX) expands width (+50px)
     document.dispatchEvent(new MouseEvent('mousemove', { clientX: 450 }));
-    expect(chatListWidth.value).toBe(470);
+    expect(chatListWidth.value).toBe(460);
 
     document.dispatchEvent(new MouseEvent('mouseup'));
     expect(mockUpdateUISettings).toHaveBeenCalledWith({
-      conversation_list_width: 470,
+      conversation_list_width: 460,
     });
   });
 
