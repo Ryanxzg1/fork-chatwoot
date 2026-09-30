@@ -31,21 +31,9 @@ export default {
   },
   computed: {
     brandRedirectURL() {
-      try {
-        const referrerHost = this.$store.getters['appConfig/getReferrerHost'];
-        const url = new URL(this.globalConfig.widgetBrandURL);
-        if (referrerHost) {
-          url.searchParams.set('utm_source', referrerHost);
-          url.searchParams.set('utm_medium', 'widget');
-        } else {
-          url.searchParams.set('utm_medium', 'survey');
-        }
-        url.searchParams.set('utm_campaign', 'branding');
-        return url.toString();
-      } catch (e) {
-        // Suppressing the error as getter is not defined in some cases
-      }
-      return '';
+      return (
+        this.globalConfig.widgetBrandURL || 'https://quick.co.id/kontak-kami'
+      );
     },
   },
 };

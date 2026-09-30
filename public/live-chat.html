@@ -140,7 +140,7 @@
     <!-- SPINNER -->
     <div id="loaderOverlay" class="loader-overlay">
       <div class="spinner"></div>
-      <div class="loader-text">Menghubungkan ke Tim Support...</div>
+      <div class="loader-text">Menyiapkan ruang obrolan...</div>
     </div>
 
     <!-- ERROR STATE -->
@@ -214,7 +214,64 @@
         userIdentified = true;
       }
 
-      function applyWidgetStyles() {
+      function injectCustomWidgetStyles() {
+        try {
+          const doc = chatIframe.contentDocument || chatIframe.contentWindow?.document;
+          if (!doc) return;
+          let style = doc.getElementById('custom-livechat-style');
+          if (!style) {
+            style = doc.createElement('style');
+            style.id = 'custom-livechat-style';
+            (doc.head || doc.body).appendChild(style);
+          }
+          style.textContent = `
+            /* Sembunyikan tombol kembali (back button) pada header widget */
+            header button.ltr\\:-ml-3,
+            header button.rtl\\:-mr-3,
+            header button:has(svg.rtl\\:rotate-180),
+            header button:first-child:has(svg) {
+              display: none !important;
+            }
+          `;
+        } catch (err) {
+          // Silent fallback for cross-origin restrictions
+        }
+      }
+
+      function focusChatInput() {
+        try {
+          const doc = chatIframe.contentDocument || chatIframe.contentWindow?.document;
+          if (!doc) return;
+          const textarea = doc.querySelector('textarea');
+          if (textarea && doc.activeElement !== textarea) {
+            textarea.focus();
+          }
+        } catch (err) {
+          // Silent fallback
+        }
+      }
+
+      function ensureChatRoute() {
+        try {
+          if (chatIframe.contentWindow) {
+            const currentHash = chatIframe.contentWindow.location.hash;
+            if (!currentHash || currentHash === '#/' || !currentHash.includes('messages')) {
+              chatIframe.contentWindow.location.hash = '#/messages';
+            }
+          }
+        } catch (err) {
+          // Silent fallback
+        }
+      }
+
+      let isInitialized = false;
+
+      function initializeWidgetChat() {
+        if (isInitialized) return;
+        isInitialized = true;
+
+        ensureChatRoute();
+        injectCustomWidgetStyles();
         sendToWidget('config-set', {
           showUnreadMessagesDialog: false,
           hideMessageBubble: true,
@@ -225,6 +282,13 @@
         sendToWidget('toggle-open', { isOpen: true });
         sendToWidget('widget-visible');
         identifyUser();
+
+        // Biarkan Vue menyelesaikan layout & rendering obrolan di balik loader overlay
+        setTimeout(function() {
+          injectCustomWidgetStyles();
+          focusChatInput();
+          hideLoader();
+        }, 300);
       }
 
       // Dengarkan event handshake dari iframe Chatwoot
@@ -234,11 +298,7 @@
           const message = JSON.parse(e.data.replace('chatwoot-widget:', ''));
           if (message.event === 'loaded') {
             console.log('[LiveChat] Widget iframe terhubung & siap.');
-            applyWidgetStyles();
-            setTimeout(hideLoader, 200);
-          } else if (message.event === 'setUnreadMode') {
-            // Cegah dialog preview melayang
-            applyWidgetStyles();
+            initializeWidgetChat();
           }
         } catch (err) {
           console.error('[LiveChat] Gagal memproses event widget:', err);
@@ -250,20 +310,26 @@
         return;
       }
 
-      // Load Iframe Web Widget
-      const widgetUrl = `${baseUrl}/widget?website_token=${encodeURIComponent(token)}`;
+      // Load Iframe Web Widget langsung ke obrolan aktif (#/messages)
+      const widgetUrl = `${baseUrl}/widget?website_token=${encodeURIComponent(token)}#/messages`;
       chatIframe.src = widgetUrl;
 
       chatIframe.onload = function() {
-        setTimeout(hideLoader, 300);
-        // Kirim jabat tangan secara bertahap untuk memastikan state Vue terhidrasi di jaringan lambat
-        [150, 400, 800, 1500, 3000].forEach(delay => {
-          setTimeout(applyWidgetStyles, delay);
-        });
+        // Fallback jika event 'loaded' tertunda
+        setTimeout(function() {
+          if (!isInitialized) {
+            initializeWidgetChat();
+          }
+        }, 800);
       };
 
-      // Fallback loader guard maksimal
-      setTimeout(hideLoader, 4000);
+      // Fallback loader guard maksimal jika ada kendala koneksi
+      setTimeout(function() {
+        if (!isInitialized) {
+          initializeWidgetChat();
+        }
+        hideLoader();
+      }, 4500);
     })();
   </script>
 </body>
