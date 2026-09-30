@@ -41,6 +41,7 @@ defineProps({
           class="flex items-center text-xs gap-0.5 hover:text-n-brand hover:underline"
           target="_blank"
           rel="noopener noreferrer nofollow"
+          @click.stop
         >
           <span>#{{ conversationId }}</span>
         </a>

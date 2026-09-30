@@ -5,6 +5,8 @@
     "NO_ENOUGH_DATA": "We've not received enough data points to generate report, Please try again later.",
     "DOWNLOAD_CONVERSATION_REPORTS": "Download conversation reports",
     "DATA_FETCHING_FAILED": "Failed to fetch data, please try again later.",
+    "INBOX_NOT_FOUND": "The requested inbox was not found.",
+    "TEAM_NOT_FOUND": "The requested team was not found.",
     "SUMMARY_FETCHING_FAILED": "Failed to fetch summary, please try again later.",
     "METRICS": {
       "CONVERSATIONS": {
@@ -638,6 +640,11 @@
       "TEAMS": "Team"
     },
     "WITH": "with",
+    "BREACH_TYPES": {
+      "FRT": "FRT",
+      "NRT": "NRT",
+      "RESOLUTION": "Resolution"
+    },
     "METRICS": {
       "HIT_RATE": {
         "LABEL": "Hit Rate",
@@ -656,6 +663,7 @@
       "HEADER": {
         "POLICY": "Policy",
         "CONVERSATION": "Conversation",
+        "BREACH_TYPE": "Breach",
         "AGENT": "Agent"
       },
       "VIEW_DETAILS": "View Details"

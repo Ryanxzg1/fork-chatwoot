@@ -19,6 +19,7 @@ export default {
   data() {
     return {
       pageNumber: 1,
+      isDownloading: false,
       activeFilter: {
         from: 0,
         to: 0,
@@ -44,8 +45,6 @@ export default {
     this.$store.dispatch('teams/get');
     this.$store.dispatch('labels/get');
     this.$store.dispatch('sla/get');
-    this.fetchSLAMetrics();
-    this.fetchSLAReports();
   },
   methods: {
     fetchSLAReports({ pageNumber } = {}) {
@@ -65,15 +64,18 @@ export default {
       this.fetchSLAReports();
       this.fetchSLAMetrics();
     },
-    downloadReports() {
+    async downloadReports() {
       const type = 'sla';
+      this.isDownloading = true;
       try {
-        this.$store.dispatch('slaReports/download', {
+        await this.$store.dispatch('slaReports/download', {
           fileName: generateFileName({ type, to: this.activeFilter.to }),
           ...this.activeFilter,
         });
       } catch (error) {
         useAlert(this.$t('SLA_REPORTS.DOWNLOAD_FAILED'));
+      } finally {
+        this.isDownloading = false;
       }
     },
   },
@@ -86,6 +88,8 @@ export default {
       :label="$t('SLA_REPORTS.DOWNLOAD_SLA_REPORTS')"
       icon="i-ph-download-simple"
       size="sm"
+      :is-loading="isDownloading"
+      :disabled="isDownloading"
       @click="downloadReports"
     />
   </ReportHeader>

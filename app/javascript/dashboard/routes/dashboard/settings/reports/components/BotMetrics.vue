@@ -1,5 +1,8 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { useAlert } from 'dashboard/composables';
+import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 import ReportMetricCard from './ReportMetricCard.vue';
 import ReportsAPI from 'dashboard/api/reports';
 
@@ -10,25 +13,35 @@ const props = defineProps({
   },
 });
 
+const { t } = useI18n();
+const isLoading = ref(false);
 const conversationCount = ref('0');
 const messageCount = ref('0');
 const resolutionRate = ref('0');
 const handoffRate = ref('0');
 
 const formatToPercent = value => {
-  return value ? `${value}%` : '--';
+  if (value === null || value === undefined || value === '') return '--';
+  return `${value}%`;
 };
 
-const fetchMetrics = () => {
+const fetchMetrics = async () => {
   if (!props.filters.to || !props.filters.from) {
     return;
   }
-  ReportsAPI.getBotMetrics(props.filters).then(response => {
-    conversationCount.value = response.data.conversation_count.toLocaleString();
-    messageCount.value = response.data.message_count.toLocaleString();
-    resolutionRate.value = response.data.resolution_rate.toString();
-    handoffRate.value = response.data.handoff_rate.toString();
-  });
+  isLoading.value = true;
+  try {
+    const response = await ReportsAPI.getBotMetrics(props.filters);
+    conversationCount.value =
+      response.data.conversation_count?.toLocaleString() ?? '0';
+    messageCount.value = response.data.message_count?.toLocaleString() ?? '0';
+    resolutionRate.value = response.data.resolution_rate?.toString() ?? '0';
+    handoffRate.value = response.data.handoff_rate?.toString() ?? '0';
+  } catch {
+    useAlert(t('REPORT.DATA_FETCHING_FAILED'));
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 watch(() => props.filters, fetchMetrics, { deep: true });
@@ -38,8 +51,14 @@ onMounted(fetchMetrics);
 
 <template>
   <div
-    class="flex flex-wrap mx-0 shadow outline-1 outline outline-n-container rounded-xl bg-n-solid-2 px-6 py-5"
+    class="relative flex flex-wrap mx-0 shadow outline-1 outline outline-n-container rounded-xl bg-n-solid-2 px-6 py-5"
   >
+    <div
+      v-if="isLoading"
+      class="absolute inset-0 bg-n-solid-2/80 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-xl"
+    >
+      <Spinner />
+    </div>
     <ReportMetricCard
       :label="$t('BOT_REPORTS.METRIC.TOTAL_CONVERSATIONS.LABEL')"
       :info-text="$t('BOT_REPORTS.METRIC.TOTAL_CONVERSATIONS.TOOLTIP')"

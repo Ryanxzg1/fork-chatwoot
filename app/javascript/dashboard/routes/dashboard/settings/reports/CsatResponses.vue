@@ -28,6 +28,7 @@ export default {
       inbox: null,
       team: null,
       rating: null,
+      isDownloading: false,
     };
   },
   computed: {
@@ -70,15 +71,18 @@ export default {
         ...this.requestPayload,
       });
     },
-    downloadReports() {
+    async downloadReports() {
       const type = 'csat';
+      this.isDownloading = true;
       try {
-        this.$store.dispatch('csat/downloadCSATReports', {
+        await this.$store.dispatch('csat/downloadCSATReports', {
           fileName: generateFileName({ type, to: this.to }),
           ...this.requestPayload,
         });
       } catch (error) {
         useAlert(this.$t('REPORT.CSAT_REPORTS.DOWNLOAD_FAILED'));
+      } finally {
+        this.isDownloading = false;
       }
     },
     onPageNumberChange(pageIndex) {
@@ -120,6 +124,8 @@ export default {
       :label="$t('CSAT_REPORTS.DOWNLOAD')"
       icon="i-ph-download-simple"
       size="sm"
+      :is-loading="isDownloading"
+      :disabled="isDownloading"
       @click="downloadReports"
     />
   </ReportHeader>

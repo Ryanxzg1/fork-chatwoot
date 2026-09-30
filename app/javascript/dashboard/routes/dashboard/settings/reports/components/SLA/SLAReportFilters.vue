@@ -80,8 +80,19 @@ const setInitialRange = () => {
 };
 
 onMounted(() => {
+  const urlFilters = parseFilterURLParams(route.query);
+  selectedGroupByFilter.value = {
+    assigned_agent_id: urlFilters.agent_id || null,
+    inbox_id: urlFilters.inbox_id || null,
+    team_id: urlFilters.team_id || null,
+    sla_policy_id: urlFilters.sla_policy_id || null,
+    label_list: urlFilters.label || null,
+  };
+
   if (!route.query.from || !route.query.to) {
     setInitialRange();
+  } else {
+    emitChange();
   }
 });
 </script>

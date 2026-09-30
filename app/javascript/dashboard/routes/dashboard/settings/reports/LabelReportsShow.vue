@@ -22,7 +22,8 @@ onMounted(() => store.dispatch('labels/get'));
     action-key="labels/get"
     :selected-item="label"
     :download-button-label="$t('LABEL_REPORTS.DOWNLOAD_LABEL_REPORTS')"
-    :report-title="$t('LABEL_REPORTS.HEADER')"
+    :report-title="label.title || $t('LABEL_REPORTS.HEADER')"
+    :back-url="{ name: 'label_reports_index' }"
     has-back-button
   />
   <div v-else class="w-full py-20">

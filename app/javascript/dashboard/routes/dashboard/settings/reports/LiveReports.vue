@@ -9,11 +9,11 @@ import StatsLiveReportsContainer from './components/StatsLiveReportsContainer.vu
 
 <template>
   <ReportHeader :header-title="$t('OVERVIEW_REPORTS.HEADER')" />
-  <div class="flex flex-col gap-4 pb-6">
-    <StatsLiveReportsContainer />
-    <ConversationHeatmapContainer />
-    <ResolutionHeatmapContainer />
-    <AgentLiveReportContainer />
-    <TeamLiveReportContainer />
+  <div class="grid grid-cols-1 gap-4 pb-6 xl:grid-cols-2 2xl:gap-6">
+    <StatsLiveReportsContainer class="min-w-0 xl:col-span-2" />
+    <ConversationHeatmapContainer class="min-w-0 xl:col-span-2" />
+    <ResolutionHeatmapContainer class="min-w-0 xl:col-span-2" />
+    <AgentLiveReportContainer class="min-w-0" />
+    <TeamLiveReportContainer class="min-w-0" />
   </div>
 </template>

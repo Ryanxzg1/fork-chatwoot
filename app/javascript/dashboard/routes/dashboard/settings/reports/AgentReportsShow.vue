@@ -22,7 +22,8 @@ onMounted(() => store.dispatch('agents/get'));
     action-key="agents/get"
     :selected-item="agent"
     :download-button-label="$t('AGENT_REPORTS.DOWNLOAD_AGENT_REPORTS')"
-    :report-title="$t('AGENT_REPORTS.HEADER')"
+    :report-title="agent.name || $t('AGENT_REPORTS.HEADER')"
+    :back-url="{ name: 'agent_reports_index' }"
     has-back-button
   />
   <div v-else class="w-full py-20">

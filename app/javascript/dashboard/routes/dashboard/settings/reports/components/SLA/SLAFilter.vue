@@ -192,9 +192,6 @@ const initializeFromURL = () => {
 
 onMounted(() => {
   initializeFromURL();
-  if (hasActiveFilters.value) {
-    emitChange();
-  }
 });
 </script>
 

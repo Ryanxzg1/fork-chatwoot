@@ -14,13 +14,17 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  backUrl: {
+    type: [String, Object],
+    default: '',
+  },
 });
 </script>
 
 <template>
   <section class="flex flex-col gap-1 pt-6 pb-5">
     <div v-if="hasBackButton">
-      <BackButton compact />
+      <BackButton :back-url="backUrl" compact />
     </div>
     <div class="flex justify-between w-full gap-5">
       <div class="flex flex-col gap-2">

@@ -75,6 +75,11 @@ const getRatingData = rating => {
   return CSAT_RATINGS.find(r => r.value === rating) || {};
 };
 
+const formatRatingScore = rating => {
+  const ratingData = getRatingData(rating);
+  return ratingData.value ? `(${ratingData.value}/5)` : '';
+};
+
 const columnHelper = createColumnHelper();
 
 const columns = computed(() => {
@@ -182,15 +187,23 @@ const table = useVueTable({
               </td>
               <td class="py-4 px-5">
                 <div
-                  class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg"
+                  v-if="getRatingData(row.rating).value"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-n-weak/50"
                   :style="{
                     backgroundColor: `${getRatingData(row.rating).color}20`,
                   }"
                 >
+                  <span class="text-base leading-none">
+                    {{ getRatingData(row.rating).emoji }}
+                  </span>
                   <span class="text-sm font-medium text-n-slate-12 truncate">
                     {{ $t(getRatingData(row.rating).translationKey) }}
                   </span>
+                  <span class="text-xs text-n-slate-10 font-semibold">
+                    {{ formatRatingScore(row.rating) }}
+                  </span>
                 </div>
+                <span v-else class="text-n-slate-10 text-sm">--</span>
               </td>
               <td class="py-4 px-5">
                 <span

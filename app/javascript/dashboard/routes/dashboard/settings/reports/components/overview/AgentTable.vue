@@ -5,6 +5,7 @@ import {
   createColumnHelper,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
 } from '@tanstack/vue-table';
 import { useI18n } from 'vue-i18n';
 import { useUISettings } from 'dashboard/composables/useUISettings';
@@ -109,9 +110,10 @@ const table = useVueTable({
     return tableData.value;
   },
   columns,
-  enableSorting: false,
+  enableSorting: true,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
   initialState: {
     pagination: {
       pageSize: getPageSize(),
@@ -122,14 +124,6 @@ const table = useVueTable({
 
 <template>
   <div class="flex flex-col flex-1">
-    <Table :table="table" class="max-h-[calc(100vh-21.875rem)]" />
-    <Pagination
-      class="mt-2"
-      :table="table"
-      show-page-size-selector
-      :default-page-size="getPageSize()"
-      @page-size-change="handlePageSizeChange"
-    />
     <div
       v-if="isLoading"
       class="items-center flex text-base justify-center p-8"
@@ -140,8 +134,18 @@ const table = useVueTable({
       </span>
     </div>
     <EmptyState
-      v-else-if="!isLoading && !agents.length"
+      v-else-if="!agents.length"
       :title="$t('OVERVIEW_REPORTS.AGENT_CONVERSATIONS.NO_AGENTS')"
     />
+    <template v-else>
+      <Table :table="table" class="max-h-[calc(100vh-21.875rem)]" />
+      <Pagination
+        class="mt-2"
+        :table="table"
+        show-page-size-selector
+        :default-page-size="getPageSize()"
+        @page-size-change="handlePageSizeChange"
+      />
+    </template>
   </div>
 </template>

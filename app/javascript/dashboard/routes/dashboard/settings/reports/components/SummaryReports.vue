@@ -10,6 +10,7 @@ import {
   useVueTable,
   createColumnHelper,
   getCoreRowModel,
+  getSortedRowModel,
 } from '@tanstack/vue-table';
 import { computed, onMounted, ref, h } from 'vue';
 
@@ -62,14 +63,17 @@ const getMetrics = id =>
 const columnHelper = createColumnHelper();
 const { t } = useI18n();
 
-const defaulSpanRender = cellProps =>
-  h(
-    'span',
-    {
-      class: cellProps.getValue() ? '' : 'text-n-slate-12',
-    },
-    cellProps.getValue()
-  );
+const renderAvgTime = value => {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return '--';
+  return value === 0 ? '0s' : formatTime(value);
+};
+const renderCount = value =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? value.toLocaleString()
+    : '--';
+
+const renderMetricCell = formatter => cellProps =>
+  h('span', { class: 'tabular-nums' }, formatter(cellProps.getValue()));
 
 const columns = computed(() => [
   columnHelper.accessor('name', {
@@ -80,33 +84,29 @@ const columns = computed(() => [
   columnHelper.accessor('conversationsCount', {
     header: t('SUMMARY_REPORTS.CONVERSATIONS'),
     width: 200,
-    cell: defaulSpanRender,
+    cell: renderMetricCell(renderCount),
   }),
   columnHelper.accessor('avgFirstResponseTime', {
     header: t('SUMMARY_REPORTS.AVG_FIRST_RESPONSE_TIME'),
     width: 200,
-    cell: defaulSpanRender,
+    cell: renderMetricCell(renderAvgTime),
   }),
   columnHelper.accessor('avgResolutionTime', {
     header: t('SUMMARY_REPORTS.AVG_RESOLUTION_TIME'),
     width: 200,
-    cell: defaulSpanRender,
+    cell: renderMetricCell(renderAvgTime),
   }),
   columnHelper.accessor('avgReplyTime', {
     header: t('SUMMARY_REPORTS.AVG_REPLY_TIME'),
     width: 200,
-    cell: defaulSpanRender,
+    cell: renderMetricCell(renderAvgTime),
   }),
   columnHelper.accessor('resolutionsCount', {
     header: t('SUMMARY_REPORTS.RESOLUTION_COUNT'),
     width: 200,
-    cell: defaulSpanRender,
+    cell: renderMetricCell(renderCount),
   }),
 ]);
-
-const renderAvgTime = value => (value ? formatTime(value) : '--');
-
-const renderCount = value => (value ? value.toLocaleString() : '--');
 
 const tableData = computed(() =>
   rowItems.value.map(row => {
@@ -123,11 +123,11 @@ const tableData = computed(() =>
       // we fallback on title, label for instance does not have a name property
       name: row.name ?? row.title,
       type: props.type,
-      conversationsCount: renderCount(conversationsCount),
-      avgFirstResponseTime: renderAvgTime(avgFirstResponseTime),
-      avgReplyTime: renderAvgTime(avgReplyTime),
-      avgResolutionTime: renderAvgTime(avgResolutionTime),
-      resolutionsCount: renderCount(resolvedConversationsCount),
+      conversationsCount,
+      avgFirstResponseTime,
+      avgReplyTime,
+      avgResolutionTime,
+      resolutionsCount: resolvedConversationsCount,
     };
   })
 );
@@ -170,8 +170,9 @@ const table = useVueTable({
   get columns() {
     return columns.value;
   },
-  enableSorting: false,
+  enableSorting: true,
   getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
 });
 
 // downloadReports method is not used in this component

@@ -5,6 +5,7 @@ import {
   createColumnHelper,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
 } from '@tanstack/vue-table';
 import { useI18n } from 'vue-i18n';
 import { useUISettings } from 'dashboard/composables/useUISettings';
@@ -52,7 +53,7 @@ const tableData = computed(() =>
     .map(team => {
       const metric = getTeamMetrics(team.id);
       return {
-        agent: team.name,
+        team: team.name,
         open: metric.open || 0,
         unattended: metric.unattended || 0,
       };
@@ -62,7 +63,7 @@ const tableData = computed(() =>
       const openDiff = b.open - a.open;
       // If open tickets are equal, sort by name (ascending)
       if (openDiff === 0) {
-        return a.agent.localeCompare(b.agent);
+        return a.team.localeCompare(b.team);
       }
       return openDiff;
     })
@@ -81,7 +82,7 @@ const defaulSpanRender = cellProps =>
 
 const columnHelper = createColumnHelper();
 const columns = [
-  columnHelper.accessor('agent', {
+  columnHelper.accessor('team', {
     header: t('OVERVIEW_REPORTS.TEAM_CONVERSATIONS.TABLE_HEADER.TEAM'),
     cell: defaulSpanRender,
     size: 250,
@@ -103,9 +104,10 @@ const table = useVueTable({
     return tableData.value;
   },
   columns,
-  enableSorting: false,
+  enableSorting: true,
   getCoreRowModel: getCoreRowModel(),
   getPaginationRowModel: getPaginationRowModel(),
+  getSortedRowModel: getSortedRowModel(),
   initialState: {
     pagination: {
       pageSize: getPageSize(),
@@ -116,14 +118,6 @@ const table = useVueTable({
 
 <template>
   <div class="flex flex-col flex-1">
-    <Table :table="table" class="max-h-[calc(100vh-21.875rem)]" />
-    <Pagination
-      class="mt-2"
-      :table="table"
-      show-page-size-selector
-      :default-page-size="getPageSize()"
-      @page-size-change="handlePageSizeChange"
-    />
     <div
       v-if="isLoading"
       class="items-center flex text-base justify-center p-8"
@@ -134,8 +128,18 @@ const table = useVueTable({
       </span>
     </div>
     <EmptyState
-      v-else-if="!isLoading && !teams.length"
+      v-else-if="!teams.length"
       :title="$t('OVERVIEW_REPORTS.TEAM_CONVERSATIONS.NO_TEAMS')"
     />
+    <template v-else>
+      <Table :table="table" class="max-h-[calc(100vh-21.875rem)]" />
+      <Pagination
+        class="mt-2"
+        :table="table"
+        show-page-size-selector
+        :default-page-size="getPageSize()"
+        @page-size-change="handlePageSizeChange"
+      />
+    </template>
   </div>
 </template>

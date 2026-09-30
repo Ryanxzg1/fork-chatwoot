@@ -39,6 +39,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    backUrl: {
+      type: [String, Object],
+      default: '',
+    },
     selectedItem: {
       type: Object,
       default: null,
@@ -165,7 +169,11 @@ export default {
 </script>
 
 <template>
-  <ReportHeader :header-title="reportTitle" :has-back-button="hasBackButton">
+  <ReportHeader
+    :header-title="reportTitle"
+    :has-back-button="hasBackButton"
+    :back-url="backUrl"
+  >
     <V4Button
       :label="downloadButtonLabel"
       icon="i-ph-download-simple"

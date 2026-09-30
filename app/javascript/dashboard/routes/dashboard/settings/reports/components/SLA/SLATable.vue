@@ -63,8 +63,12 @@ export default {
         class="grid content-center h-12 grid-cols-12 gap-4 px-6 py-0 bg-n-slate-2 rounded-md"
       >
         <TableHeaderCell
-          :span="6"
+          :span="4"
           :label="$t('SLA_REPORTS.TABLE.HEADER.CONVERSATION')"
+        />
+        <TableHeaderCell
+          :span="2"
+          :label="$t('SLA_REPORTS.TABLE.HEADER.BREACH_TYPE')"
         />
         <TableHeaderCell
           :span="2"
@@ -74,7 +78,7 @@ export default {
           :span="2"
           :label="$t('SLA_REPORTS.TABLE.HEADER.AGENT')"
         />
-        <TableHeaderCell :span="1" label="" />
+        <TableHeaderCell :span="2" label="" />
       </div>
 
       <div v-if="isLoading" class="flex items-center justify-center h-32">

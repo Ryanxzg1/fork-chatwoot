@@ -155,6 +155,15 @@ const navigate = direction => {
 const onKeydown = event => {
   if (!props.open) return;
 
+  const target = event.target;
+  const isEditable =
+    target &&
+    (target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT' ||
+      target.isContentEditable);
+  if (isEditable) return;
+
   if (event.key === 'ArrowLeft') {
     navigate(-1);
   } else if (event.key === 'ArrowRight') {
