@@ -899,7 +899,17 @@ const selectedConversationId = ref(null);
 
 async function deleteConversation() {
   try {
-    await store.dispatch('deleteConversation', selectedConversationId.value);
+    const conversationIdToDelete = selectedConversationId.value;
+    await store.dispatch('deleteConversation', conversationIdToDelete);
+    if (
+      conversationIdToDelete &&
+      isConversationSelected(conversationIdToDelete)
+    ) {
+      const targetInboxId = getConversationById.value(
+        conversationIdToDelete
+      )?.inbox_id;
+      deSelectConversation(conversationIdToDelete, targetInboxId);
+    }
     redirectToConversationList();
     selectedConversationId.value = null;
     deleteConversationDialogRef.value.close();
@@ -951,6 +961,27 @@ watch(activeFolder, (newVal, oldVal) => {
 
 watch(chatLists, () => {
   chatsOnView.value = conversationList.value;
+});
+
+// Auto-prune bulk selection when conversations are deleted or no longer present in current list
+watch(conversationList, newConversations => {
+  if (!selectedConversations.value.length) return;
+
+  if (!newConversations.length) {
+    resetBulkActions();
+    return;
+  }
+
+  const validIds = new Set(newConversations.map(c => c.id));
+  const invalidIds = selectedConversations.value.filter(
+    id => !validIds.has(id)
+  );
+
+  if (invalidIds.length) {
+    invalidIds.forEach(id => {
+      store.dispatch('bulkActions/removeSelectedConversationIds', id);
+    });
+  }
 });
 
 // Filters can be applied from outside the list, so clear the selection here.

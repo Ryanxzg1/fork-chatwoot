@@ -814,7 +814,10 @@ describe('#deleteMessage', () => {
       });
       await actions.deleteConversation({ commit, dispatch }, 1);
       expect(commit.mock.calls).toEqual([[types.DELETE_CONVERSATION, 1]]);
-      expect(dispatch.mock.calls).toEqual([['conversationStats/get']]);
+      expect(dispatch.mock.calls).toEqual([
+        ['bulkActions/removeSelectedConversationIds', 1, { root: true }],
+        ['conversationStats/get'],
+      ]);
     });
 
     it('send no actions if API is error', async () => {

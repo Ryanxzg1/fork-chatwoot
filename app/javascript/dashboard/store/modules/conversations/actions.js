@@ -504,6 +504,9 @@ const actions = {
     try {
       await ConversationApi.delete(conversationId);
       commit(types.DELETE_CONVERSATION, conversationId);
+      dispatch('bulkActions/removeSelectedConversationIds', conversationId, {
+        root: true,
+      });
       dispatch('conversationStats/get');
     } catch (error) {
       throw new Error(error);

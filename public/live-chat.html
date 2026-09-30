@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Live Chat Support</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --slate-900: #0f172a;
+      --slate-600: #475569;
+      --slate-200: #e2e8f0;
+      --bg-slate: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #ffffff;
+      color: var(--slate-900);
+    }
+
+    .chat-wrapper {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .chat-iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      border: none;
+      display: block;
+      background: #ffffff;
+      flex: 1;
+    }
+
+    /* LOADING OVERLAY */
+    .loader-overlay {
+      position: absolute;
+      inset: 0;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      z-index: 50;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .loader-overlay.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 3px solid var(--slate-200);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loader-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slate-600);
+      letter-spacing: -0.2px;
+    }
+
+    /* ERROR CONTAINER */
+    .error-container {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: var(--bg-slate);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      z-index: 60;
+    }
+
+    .error-card {
+      max-width: 420px;
+      background: #ffffff;
+      border: 1px solid var(--slate-200);
+      border-radius: 16px;
+      padding: 32px 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+    }
+
+    .error-card h3 {
+      font-size: 18px;
+      color: #991b1b;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .error-card p {
+      font-size: 14px;
+      color: var(--slate-600);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-wrapper">
+    <!-- SPINNER -->
+    <div id="loaderOverlay" class="loader-overlay">
+      <div class="spinner"></div>
+      <div class="loader-text">Menghubungkan ke Tim Support...</div>
+    </div>
+
+    <!-- ERROR STATE -->
+    <div id="errorContainer" class="error-container">
+      <div class="error-card">
+        <h3>Token Tidak Ditemukan</h3>
+        <p>Tautan percakapan ini tidak valid atau website token belum ditentukan. Silakan hubungi admin support Anda.</p>
+      </div>
+    </div>
+
+    <!-- IFRAME CHAT -->
+    <iframe
+      id="chatIframe"
+      class="chat-iframe"
+      title="Live Chat Support"
+      allow="camera; microphone; fullscreen; clipboard-read; clipboard-write;"
+    ></iframe>
+  </div>
+
+  <script>
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const fallbackToken = 'GAuv7jxfhBhFFUwCrjendAp1';
+      const token = urlParams.get('token') || urlParams.get('website_token') || fallbackToken;
+      const identifier = urlParams.get('identifier') || urlParams.get('id');
+      const hash = urlParams.get('hash') || urlParams.get('identifier_hash');
+      const baseUrl = urlParams.get('baseUrl') || window.location.origin;
+
+      const chatIframe = document.getElementById('chatIframe');
+      const loaderOverlay = document.getElementById('loaderOverlay');
+      const errorContainer = document.getElementById('errorContainer');
+
+      let userIdentified = false;
+
+      function hideLoader() {
+        if (loaderOverlay && !loaderOverlay.classList.contains('fade-out')) {
+          loaderOverlay.classList.add('fade-out');
+        }
+      }
+
+      function showError() {
+        hideLoader();
+        if (errorContainer) errorContainer.style.display = 'flex';
+        if (chatIframe) chatIframe.style.display = 'none';
+      }
+
+      function sendToWidget(event, data = {}) {
+        if (!chatIframe || !chatIframe.contentWindow) return;
+        try {
+          const payload = `chatwoot-widget:${JSON.stringify({ event, ...data })}`;
+          chatIframe.contentWindow.postMessage(payload, '*');
+        } catch (err) {
+          console.warn('[LiveChat] Gagal mengirim pesan ke widget iframe:', err);
+        }
+      }
+
+      function identifyUser() {
+        if (!identifier || userIdentified) return;
+
+        const userPayload = {
+          identifier: identifier,
+          user: {}
+        };
+
+        if (hash) {
+          userPayload.user.identifier_hash = hash;
+        }
+
+        console.log('[LiveChat] Mengirim handshake identitas pelanggan:', identifier);
+        sendToWidget('set-user', userPayload);
+        userIdentified = true;
+      }
+
+      function applyWidgetStyles() {
+        sendToWidget('config-set', {
+          showUnreadMessagesDialog: false,
+          hideMessageBubble: true,
+          locale: 'id',
+          widgetStyle: 'standard',
+          darkMode: 'light'
+        });
+        sendToWidget('toggle-open', { isOpen: true });
+        sendToWidget('widget-visible');
+        identifyUser();
+      }
+
+      // Dengarkan event handshake dari iframe Chatwoot
+      window.addEventListener('message', function(e) {
+        if (typeof e.data !== 'string' || !e.data.startsWith('chatwoot-widget:')) return;
+        try {
+          const message = JSON.parse(e.data.replace('chatwoot-widget:', ''));
+          if (message.event === 'loaded') {
+            console.log('[LiveChat] Widget iframe terhubung & siap.');
+            applyWidgetStyles();
+            setTimeout(hideLoader, 200);
+          } else if (message.event === 'setUnreadMode') {
+            // Cegah dialog preview melayang
+            applyWidgetStyles();
+          }
+        } catch (err) {
+          console.error('[LiveChat] Gagal memproses event widget:', err);
+        }
+      });
+
+      if (!token) {
+        showError();
+        return;
+      }
+
+      // Load Iframe Web Widget
+      const widgetUrl = `${baseUrl}/widget?website_token=${encodeURIComponent(token)}`;
+      chatIframe.src = widgetUrl;
+
+      chatIframe.onload = function() {
+        setTimeout(hideLoader, 300);
+        // Kirim jabat tangan secara bertahap untuk memastikan state Vue terhidrasi di jaringan lambat
+        [150, 400, 800, 1500, 3000].forEach(delay => {
+          setTimeout(applyWidgetStyles, delay);
+        });
+      };
+
+      // Fallback loader guard maksimal
+      setTimeout(hideLoader, 4000);
+    })();
+  </script>
+</body>
+</html>

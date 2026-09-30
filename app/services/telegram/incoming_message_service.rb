@@ -51,6 +51,8 @@ class Telegram::IncomingMessageService
 
     @contact_inbox = contact_inbox
     @contact = contact_inbox.contact
+    # Backfill identifier for existing contacts created before identifier binding was introduced
+    @contact.update(identifier: telegram_identifier) if @contact.identifier.blank? && telegram_identifier.present?
   end
 
   def process_message_attachments
@@ -89,9 +91,16 @@ class Telegram::IncomingMessageService
     @conversation = ::Conversation.create!(conversation_params)
   end
 
+  def telegram_identifier
+    return if telegram_params_from_id.blank?
+
+    "tg_#{telegram_params_from_id}"
+  end
+
   def contact_attributes
     {
       name: "#{telegram_params_first_name} #{telegram_params_last_name}",
+      identifier: telegram_identifier,
       additional_attributes: additional_attributes
     }
   end
