@@ -14,6 +14,8 @@ import Instagram from './channels/Instagram.vue';
 import Tiktok from './channels/Tiktok.vue';
 import Voice from './channels/Voice.vue';
 import Shopee from './channels/Shopee.vue';
+import Tokopedia from './channels/Tokopedia.vue';
+import Lazada from './channels/Lazada.vue';
 
 const channelViewList = {
   facebook: Facebook,
@@ -30,6 +32,8 @@ const channelViewList = {
   tiktok: Tiktok,
   voice: Voice,
   shopee: Shopee,
+  tokopedia: Tokopedia,
+  lazada: Lazada,
 };
 
 export default defineComponent({

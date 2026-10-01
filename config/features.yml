@@ -287,3 +287,11 @@
   display_name: Shopee Channel
   enabled: false
   column: feature_flags_ext_1
+- name: channel_tokopedia
+  display_name: Tokopedia Channel
+  enabled: false
+  column: feature_flags_ext_1
+- name: channel_lazada
+  display_name: Lazada Channel
+  enabled: false
+  column: feature_flags_ext_1

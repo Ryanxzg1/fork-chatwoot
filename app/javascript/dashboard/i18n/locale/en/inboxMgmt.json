@@ -107,6 +107,74 @@
           "SUBTITLE": "Must match the Test Redirect URL Domain configured in your Shopee Open Platform Console."
         }
       },
+      "TOKOPEDIA": {
+        "TITLE": "Connect Tokopedia Store",
+        "DESC": "Connect your Tokopedia store to Chatwoot to receive and reply to customer chats directly from your inbox.",
+        "ERROR_TITLE": "Tokopedia Connection Error",
+        "ERROR_GENERATE_URL": "Unable to generate authorization URL from Tokopedia. Please check your credentials.",
+        "SUBMIT_BUTTON": "Next: Connect with Tokopedia",
+        "CHANNEL_NAME": {
+          "LABEL": "Channel Name",
+          "PLACEHOLDER": "e.g. Tokopedia Official Store",
+          "ERROR": "This field is required"
+        },
+        "CLIENT_ID": {
+          "LABEL": "Client ID (FS ID)",
+          "PLACEHOLDER": "Enter your Tokopedia Client ID",
+          "SUBTITLE": "Found in your Tokopedia Seller Open API console.",
+          "ERROR": "This field is required"
+        },
+        "CLIENT_SECRET": {
+          "LABEL": "Client Secret",
+          "PLACEHOLDER": "Enter your Tokopedia Client Secret",
+          "SUBTITLE": "Found in your Tokopedia Seller Open API console.",
+          "ERROR": "This field is required"
+        },
+        "ENVIRONMENT": {
+          "LABEL": "Environment",
+          "SANDBOX": "Staging (Test Environment)",
+          "PRODUCTION": "Live (Production)"
+        },
+        "REDIRECT_URL": {
+          "LABEL": "Callback Domain (HTTPS)",
+          "PLACEHOLDER": "https://your-domain.com",
+          "SUBTITLE": "Must match the redirect URI registered in your Tokopedia Open API app."
+        }
+      },
+      "LAZADA": {
+        "TITLE": "Connect Lazada Store",
+        "DESC": "Connect your Lazada store to Chatwoot to receive and reply to customer chats directly from your inbox.",
+        "ERROR_TITLE": "Lazada Connection Error",
+        "ERROR_GENERATE_URL": "Unable to generate authorization URL from Lazada. Please check your credentials.",
+        "SUBMIT_BUTTON": "Next: Connect with Lazada",
+        "CHANNEL_NAME": {
+          "LABEL": "Channel Name",
+          "PLACEHOLDER": "e.g. Lazada Official Store",
+          "ERROR": "This field is required"
+        },
+        "APP_KEY": {
+          "LABEL": "App Key",
+          "PLACEHOLDER": "Enter your Lazada App Key",
+          "SUBTITLE": "Found in your Lazada Open Platform developer console.",
+          "ERROR": "This field is required"
+        },
+        "APP_SECRET": {
+          "LABEL": "App Secret",
+          "PLACEHOLDER": "Enter your Lazada App Secret",
+          "SUBTITLE": "Found in your Lazada Open Platform developer console.",
+          "ERROR": "This field is required"
+        },
+        "ENVIRONMENT": {
+          "LABEL": "Environment",
+          "SANDBOX": "Sandbox (Test Environment)",
+          "PRODUCTION": "Live (Production)"
+        },
+        "REDIRECT_URL": {
+          "LABEL": "Callback Domain (HTTPS)",
+          "PLACEHOLDER": "https://your-domain.com",
+          "SUBTITLE": "Must match the redirect URI registered in your Lazada Open Platform app."
+        }
+      },
       "TWITTER": {
         "HELP": "To add your Twitter profile as a channel, you need to authenticate your Twitter Profile by clicking on 'Sign in with Twitter' ",
         "ERROR_MESSAGE": "There was an error connecting to Twitter, please try again",
@@ -659,6 +727,14 @@
           "SHOPEE": {
             "TITLE": "Shopee",
             "DESCRIPTION": "Connect your Shopee seller store"
+          },
+          "TOKOPEDIA": {
+            "TITLE": "Tokopedia",
+            "DESCRIPTION": "Connect your Tokopedia seller store"
+          },
+          "LAZADA": {
+            "TITLE": "Lazada",
+            "DESCRIPTION": "Connect your Lazada seller store"
           }
         },
         "SUPER_ADMIN_SETUP": {
@@ -1719,7 +1795,9 @@
       "INSTAGRAM": "Instagram",
       "TIKTOK": "TikTok",
       "VOICE": "Voice",
-      "SHOPEE": "Shopee"
+      "SHOPEE": "Shopee",
+      "TOKOPEDIA": "Tokopedia",
+      "LAZADA": "Lazada"
     }
   }
 }

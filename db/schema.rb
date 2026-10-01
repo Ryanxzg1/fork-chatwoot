@@ -642,6 +642,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_01_110000) do
     t.index ["instagram_id"], name: "index_channel_instagram_on_instagram_id", unique: true
   end
 
+  create_table "channel_lazada", force: :cascade do |t|
+    t.integer "account_id", null: false
+    t.string "seller_id", null: false
+    t.string "app_key", null: false
+    t.string "app_secret", null: false
+    t.string "access_token", null: false
+    t.datetime "expires_at", null: false
+    t.string "refresh_token", null: false
+    t.datetime "refresh_token_expires_at", null: false
+    t.string "environment", default: "sandbox", null: false
+    t.string "provider_name", default: "Lazada"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "seller_id"], name: "index_channel_lazada_on_account_id_and_seller_id", unique: true
+    t.index ["seller_id"], name: "index_channel_lazada_on_seller_id", unique: true
+  end
+
   create_table "channel_line", force: :cascade do |t|
     t.integer "account_id", null: false
     t.string "line_channel_id", null: false
@@ -699,6 +716,23 @@ ActiveRecord::Schema[7.2].define(version: 2026_10_01_110000) do
     t.datetime "updated_at", null: false
     t.string "provider_name"
     t.index ["business_id"], name: "index_channel_tiktok_on_business_id", unique: true
+  end
+
+  create_table "channel_tokopedia", force: :cascade do |t|
+    t.integer "account_id", null: false
+    t.string "shop_id", null: false
+    t.string "client_id", null: false
+    t.string "client_secret", null: false
+    t.string "access_token", null: false
+    t.datetime "expires_at", null: false
+    t.string "refresh_token", null: false
+    t.datetime "refresh_token_expires_at", null: false
+    t.string "environment", default: "sandbox", null: false
+    t.string "provider_name", default: "Tokopedia"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "shop_id"], name: "index_channel_tokopedia_on_account_id_and_shop_id", unique: true
+    t.index ["shop_id"], name: "index_channel_tokopedia_on_shop_id", unique: true
   end
 
   create_table "channel_twilio_sms", force: :cascade do |t|

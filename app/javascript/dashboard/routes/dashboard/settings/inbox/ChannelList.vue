@@ -102,6 +102,18 @@ const channelList = computed(() => {
       description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.SHOPEE.DESCRIPTION'),
       icon: 'i-lucide-shopping-bag',
     },
+    {
+      key: 'tokopedia',
+      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.TOKOPEDIA.TITLE'),
+      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.TOKOPEDIA.DESCRIPTION'),
+      icon: 'i-woot-tokopedia',
+    },
+    {
+      key: 'lazada',
+      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.LAZADA.TITLE'),
+      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.LAZADA.DESCRIPTION'),
+      icon: 'i-woot-lazada',
+    },
   ];
 
   return channels;

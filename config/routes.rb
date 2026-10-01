@@ -301,6 +301,14 @@ Rails.application.routes.draw do
             resource :authorization, only: [:create]
           end
 
+          namespace :tokopedia do
+            resource :authorization, only: [:create]
+          end
+
+          namespace :lazada do
+            resource :authorization, only: [:create]
+          end
+
           namespace :notion do
             resource :authorization, only: [:create]
           end
@@ -578,6 +586,8 @@ Rails.application.routes.draw do
   post 'webhooks/instagram', to: 'webhooks/instagram#events'
   post 'webhooks/tiktok', to: 'webhooks/tiktok#events'
   post 'webhooks/shopee', to: 'webhooks/shopee#events'
+  post 'webhooks/tokopedia', to: 'webhooks/tokopedia#events'
+  post 'webhooks/lazada', to: 'webhooks/lazada#events'
   post 'webhooks/shopify', to: 'webhooks/shopify#events'
 
   namespace :twitter do
@@ -602,6 +612,8 @@ Rails.application.routes.draw do
   get 'instagram/callback', to: 'instagram/callbacks#show'
   get 'tiktok/callback', to: 'tiktok/callbacks#show'
   get 'shopee/callback', to: 'shopee/callbacks#show'
+  get 'tokopedia/callback', to: 'tokopedia/callbacks#show'
+  get 'lazada/callback', to: 'lazada/callbacks#show'
   get 'notion/callback', to: 'notion/callbacks#show'
   # ----------------------------------------------------------------------
   # Routes for external service verifications

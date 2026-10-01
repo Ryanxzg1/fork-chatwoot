@@ -7,6 +7,10 @@ import { useBranding } from 'shared/composables/useBranding';
 
 import PageHeader from '../SettingsSubPageHeader.vue';
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 const { t } = useI18n();
 const route = useRoute();
 const { replaceInstallationName } = useBranding();

@@ -11,6 +11,8 @@ class SendReplyJob < ApplicationJob
     'Channel::Instagram' => ::Instagram::SendOnInstagramService,
     'Channel::Tiktok' => ::Tiktok::SendOnTiktokService,
     'Channel::Shopee' => ::Shopee::SendOnShopeeService,
+    'Channel::Tokopedia' => ::Tokopedia::SendOnTokopediaService,
+    'Channel::Lazada' => ::Lazada::SendOnLazadaService,
     'Channel::Email' => ::Email::SendOnEmailService,
     'Channel::WebWidget' => ::Messages::SendEmailNotificationService,
     'Channel::Api' => ::Messages::SendEmailNotificationService

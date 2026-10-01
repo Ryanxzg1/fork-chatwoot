@@ -500,5 +500,15 @@ export const icons = {
     width: 48,
     height: 48,
   },
+  tokopedia: {
+    body: `<g fill="none"><path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2"/><path fill="#fff" d="M15.5 7h-7A1.5 1.5 0 0 0 7 8.5v5.706a1.5 1.5 0 0 0 .728 1.288L12 17.7l4.272-2.206A1.5 1.5 0 0 0 17 14.206V8.5A1.5 1.5 0 0 0 15.5 7"/><path fill="currentColor" d="M12 9.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/></g>`,
+    width: 24,
+    height: 24,
+  },
+  lazada: {
+    body: `<g fill="none"><path fill="currentColor" d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2"/><path fill="#fff" d="M12 6c-1.8 0-3.3 1.2-3.8 2.8C7.3 8.3 6.5 8 5.7 8 4.2 8 3 9.2 3 10.7c0 1 .5 1.8 1.3 2.3L12 18l7.7-5c.8-.5 1.3-1.3 1.3-2.3C21 9.2 19.8 8 18.3 8c-.8 0-1.6.3-2.5.8C15.3 7.2 13.8 6 12 6"/></g>`,
+    width: 24,
+    height: 24,
+  },
   /** Ends */
 };

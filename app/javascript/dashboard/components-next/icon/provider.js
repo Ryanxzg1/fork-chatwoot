@@ -20,6 +20,8 @@ const channelTypeIconMap = {
   'Channel::Instagram': 'i-woot-instagram',
   'Channel::Tiktok': 'i-woot-tiktok',
   'Channel::Shopee': 'i-lucide-shopping-bag',
+  'Channel::Tokopedia': 'i-woot-tokopedia',
+  'Channel::Lazada': 'i-woot-lazada',
 };
 
 const providerIconMap = {
