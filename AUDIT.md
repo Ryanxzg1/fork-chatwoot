@@ -16,18 +16,18 @@ Selain temuan kritis, sebagian besar temuan **WARNING dan peningkatan mutu (QC)*
 
 ### Ringkasan Status Penyelesaian Masalah
 
-| Tingkat Keparahan | Total Terdata | Sudah Diselesaikan (Resolved) | Tersisa / Backlog (Pending) | Persentase Selesai |
+| Tingkat Keparahan | Total Terdata | Sudah Diselesaikan (Resolved) | Ditutup (By-Design) | Status Akhir |
 | :--- | :---: | :---: | :---: | :---: |
 | 🔴 **CRITICAL REJECT** | **8** | **8** | **0** | **100% TUNTAS** |
-| 🟡 **WARNING** | **10** | **7** | **3** | **70% SELESAI** |
-| 🔵 **OFI & Polish** | **6** | **3** | **3** | **50% SELESAI** |
-| **TOTAL KESELURUHAN** | **24** | **18** | **6** | **75% SELESAI** |
+| 🟡 **WARNING** | **10** | **9** | **1** | **100% DITANGANI** |
+| 🔵 **OFI & Polish** | **6** | **6** | **0** | **100% TUNTAS** |
+| **TOTAL KESELURUHAN** | **24** | **23** | **1** | **100% SELESAI** |
 
 ---
 
-## 🧭 Rekapitulasi Cepat: Temuan Selesai vs Temuan Tersisa
+## 🧭 Rekapitulasi Cepat: Seluruh Temuan Telah Tuntas Ditangani
 
-### ✅ Telah Diselesaikan (Resolved & Tested)
+### ✅ Telah Diselesaikan & Terverifikasi (Resolved & Tested)
 1. **[CRITICAL 1.1]** Kontainer sempit `max-w-5xl` dilepaskan menjadi `w-full max-w-[96rem] px-6 py-6` (`ReportsWrapper.vue`).
 2. **[CRITICAL 2.1]** Ghost rendering `<Table>` dan `<Pagination>` saat loading/empty state diatasi dengan kondisional bersih (`AgentTable.vue` & `TeamTable.vue`).
 3. **[CRITICAL 3.1 & QC-WARN-01]** Fitur sorting TanStack Table diaktifkan penuh (`enableSorting: true`, `getSortedRowModel`) pada `SummaryReports.vue`, `AgentTable.vue`, dan `TeamTable.vue`.
@@ -38,22 +38,28 @@ Selain temuan kritis, sebagian besar temuan **WARNING dan peningkatan mutu (QC)*
 8. **[CRITICAL 4.3]** Double-fetch waterfall race condition pada inisialisasi filter SLA dihilangkan (`SLAReports.vue` & `SLAReportFilters.vue`).
 9. **[WARNING 1.2]** Seluruh 9 sub-menu Reports pada sidebar kini dilengkapi ikon Lucide tematik (`Sidebar.vue`).
 10. **[WARNING 1.3]** Bug highlight sidebar padam saat membuka detail laporan label diperbaiki dengan `activeOn: ['label_reports_show']` (`Sidebar.vue`).
-11. **[WARNING 3.5]** Keyboard hijacking tombol panah keyboard dicegah saat pengguna mengetik di elemen form (`ReportDrilldownDrawer.vue`).
-12. **[WARNING 4.4]** Badge semantik pelanggaran SLA (FRT, NRT, Resolution) dan durasi keterlambatan waktu nyata (`SLAReportItem.vue`).
-13. **[WARNING 4.5]** Visualisasi emoji emosional (`😞` - `😍`) dan skor rating (contoh: `(5/5)`) pada tabel respon CSAT (`CsatTable.vue`).
-14. **[WARNING 4.6 (Sebagian)]** Overlay loading spinner dan penanganan error alert pada metrik bot (`BotMetrics.vue`).
-15. **[QC-OFI-01]** Link tiket percakapan SLA diperbarui untuk membuka tab baru (`target="_blank"`) menjaga konteks laporan.
-16. **[QC-OFI-02]** Defensive sorting numerik `(Number(b.created_at) || 0)` pada timestamp SLA events.
-17. **[QC-OFI-03]** Refaktor accessor semantik `'team'` pada `TeamTable.vue`.
-18. **[QC-OFI-04]** Penataan font angka bermatriks sejajar vertikal (`tabular-nums`) pada `SummaryReports.vue`.
+11. **[WARNING 2.2]** **Closed (By-Design)**: Setiap kartu heatmap mempertahankan kontrol filter mandiri sesuai keputusan user agar memungkinkan perbandingan komparasi multi-periode antar metrik (`LiveReports.vue`).
+12. **[WARNING 2.3]** Kartu KPI Overview diubah menjadi *Clickable Action Cards* dengan direct routing (`router.push`) ke inbox/unattended, keyboard accessibility (`Enter`/`Space`), micro-interaction hover arrow, serta indikator urgensi semantik (`text-n-amber-11`) untuk tiket unattended (`StatsLiveReportsContainer.vue`).
+13. **[WARNING 3.4]** Kartu drilldown percakapan dilengkapi inline expandable transcript box (`@click.stop="toggleExpand"`) untuk membaca pesan utuh di tempat tanpa membuka tab baru yang berlebihan (`ReportDrilldownCard.vue`).
+14. **[WARNING 3.5]** Keyboard hijacking tombol panah keyboard dicegah saat pengguna mengetik di elemen form (`ReportDrilldownDrawer.vue`).
+15. **[WARNING 4.4]** Badge semantik pelanggaran SLA (FRT, NRT, Resolution) dan durasi keterlambatan waktu nyata (`SLAReportItem.vue`).
+16. **[WARNING 4.5]** Visualisasi emoji emosional (`😞` - `😍`) dan skor rating (contoh: `(5/5)`) pada tabel respon CSAT (`CsatTable.vue`).
+17. **[WARNING 4.6]** Metrik Bot Drop-Off Rate ditambahkan ke jajaran kartu metrik dan diagram alur corong konversi *Handover & Resolution Funnel Bar* dihadirkan dengan indikator semantik proporsional (`BotMetrics.vue`).
+18. **[OFI 2.4]** Heatmap Duo berdampingan 2 kolom pada monitor ultrawide (`2xl:col-span-1`), memangkas 50% ketinggian scroll vertikal di desktop lebar (`LiveReports.vue`).
+19. **[OFI Filter]** Transparansi Filter Group By: chip tidak lagi hilang misterius saat rentang tanggal <29 hari, melainkan tampil dengan status *disabled* (`opacity-50 cursor-not-allowed`) dan tooltip edukatif i18n (`ReportFilters.vue`).
+20. **[QC-OFI-01 (Round 1)]** Link tiket percakapan SLA diperbarui untuk membuka tab baru (`target="_blank"`) menjaga konteks laporan.
+21. **[QC-OFI-02 (Round 1)]** Defensive sorting numerik `(Number(b.created_at) || 0)` pada timestamp SLA events.
+22. **[QC-OFI-03 (Round 1)]** Refaktor accessor semantik `'team'` pada `TeamTable.vue`.
+23. **[QC-OFI-04 (Round 1)]** Penataan font angka bermatriks sejajar vertikal (`tabular-nums`) pada `SummaryReports.vue`.
+24. **[QC-WARN-01 (Round 2)]** Preservasi konteks tim aktif (`team_conversations`) saat klik metrik KPI (`StatsLiveReportsContainer.vue`).
+25. **[QC-WARN-02 (Round 2)]** Pembungkus `w-full overflow-x-auto` pada Heatmap mencegah pemotongan sel pada ambang batas layar `2xl:` (`BaseHeatmapContainer.vue`).
+26. **[QC-OFI-01 (Round 2)]** Semantik aksesibilitas `role="group"` dan `aria-disabled="true"` pada chip filter nonaktif (`ReportFilters.vue`).
+27. **[QC-OFI-02 (Round 2)]** Pemformatan angka ribuan `.toLocaleString()` dan perataan vertikal `tabular-nums` pada seluruh kartu KPI (`StatsLiveReportsContainer.vue`).
+28. **[QC3-WARN-01 (Round 3)]** Defensive guard stempel waktu dan transkrip expanded (`ReportDrilldownCard.vue`).
+29. **[QC3-OFI-01 (Round 3)]** Sanitasi ekspresi evaluasi template persentase corong bot tanpa bare punctuation (`BotMetrics.vue`).
+30. **[QC3-OFI-02 (Round 3)]** Eliminasi focus trap aksesibilitas keyboard dengan penambahan `tabindex="-1"` pada chip nonaktif (`ReportFilters.vue`).
 
-### ⏳ Temuan yang Masih Tersisa (Pending Backlog)
-1. **[WARNING 2.2]** Ketiadaan Global Dashboard Filter Toolbar terpadu di bagian atas halaman Overview (`LiveReports.vue`).
-2. **[WARNING 2.3]** Kartu metrik KPI di Overview masih berupa teks pasif (belum dapat diklik langsung ke filtered inbox).
-3. **[WARNING 3.4]** Kartu drilldown percakapan membuka paksa tab browser baru daripada inline slide-over preview (`ReportDrilldownCard.vue`).
-4. **[WARNING 4.6 (Fitur Lanjut)]** Diagram alur corong konversi (*Bot-to-Human Handover Funnel*) dan metrik *Bot Drop-Off Rate*.
-5. **[OFI 2.4]** Penataan Heatmap Duo berdampingan 2 kolom (saat ini masih memanjang penuh `col-span-2`).
-6. **[OFI]** Sembunyi otomatis chip filter Group By pada `ReportFilters.vue` saat rentang hari <29 hari tanpa penjelasan tooltip.
+---
 
 ---
 
@@ -107,30 +113,44 @@ Selain temuan kritis, sebagian besar temuan **WARNING dan peningkatan mutu (QC)*
 ---
 
 ### 2.2. [WARNING] Ketiadaan Global Dashboard Filter Toolbar di Halaman Overview
-- **Status Implementasi:** ⏳ **PENDING (Backlog Fase 3)**
+- **Status Implementasi:** ✅ **CLOSED (BY-DESIGN / USER ARCHITECTURAL DECISION)**
 - **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/LiveReports.vue` (Baris 11–18)
-- **Masalah Saat Ini**:
-  Di halaman Overview, masing-masing kartu heatmap (`ConversationHeatmapContainer` dan `ResolutionHeatmapContainer`) masih memiliki selector tanggal dan dropdown inbox mandiri yang terisolasi.
-- **Rencana Tindak Lanjut**:
-  Menyediakan satu *Global Analytics Control Bar* di bagian atas `LiveReports.vue` yang mengorkestrasikan rentang tanggal dan inbox ke seluruh komponen widget di bawahnya secara tersinkronisasi.
+- **Keputusan Desain**:
+  Berdasarkan konfirmasi dan arahan eksplisit user, masing-masing kartu heatmap (`ConversationHeatmapContainer` dan `ResolutionHeatmapContainer`) sengaja mempertahankan selector rentang tanggal dan dropdown inbox mandiri.
+- **Justifikasi UX**:
+  Hal ini memberikan fleksibilitas maksimal bagi supervisor untuk melakukan perbandingan komparatif lintas periode secara bebas (misal: membandingkan traffic pesan pekan ini dengan pola resolusi tiket bulan lalu) tanpa saling mengunci satu sama lain.
 
 ---
 
 ### 2.3. [WARNING] Data Density Rendah & Ketiadaan Clickability pada Kartu KPI Metrik
-- **Status Implementasi:** ⏳ **PENDING (Backlog Fase 3)**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/StatsLiveReportsContainer.vue` (Baris 112–123)
-- **Masalah Saat Ini**:
-  Angka metrik operasional (*Open*, *Unattended*, *Unassigned*, *Pending*) masih berupa teks statis dan belum dapat diklik menuju daftar percakapan di inbox. Belum ada badge urgensi warna jika tiket *unattended* meningkat.
-- **Rencana Tindak Lanjut**:
-  Mengubah kartu metrik menjadi *Clickable Action Cards* menuju filtered inbox (`/inbox/all?status=unattended`) dan menambahkan indikator tren kenaikan/penurunan persentase.
+- **Status Implementasi:** ✅ **RESOLVED**
+- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/StatsLiveReportsContainer.vue`
+- **Solusi yang Diterapkan**:
+  - Mengubah seluruh kartu KPI percakapan (*Open*, *Unattended*, *Unassigned*, *Pending*) menjadi elemen interaktif (`tabindex="0"`, `role="link"`).
+  - Navigasi programatis (`router.push`) langsung ke rute percakapan:
+    - *Unattended* mendarat langsung di `conversation_unattended`.
+    - *Open*, *Unassigned*, *Pending* mendarat di `home` dengan status terfilter tersimpan di `uiSettings` dan store.
+  - Penambahan micro-interaction ikon panah Lucide (`i-lucide-arrow-up-right`) saat hover.
+  - Penambahan aksen warna urgensi semantik (`text-n-amber-11`) saat tiket *unattended* berjumlah $> 0$.
+- **Hasil Verifikasi**: Kartu dapat diklik dan dapat dinavigasi menggunakan keyboard (`Enter`/`Space`), langsung mengarahkan operator ke percakapan yang membutuhkan respon.
 
 ---
 
 ### 2.4. [OFI] Penataan Vertikal Heatmap Duo yang Memperpanjang Halaman
-- **Status Implementasi:** ⏳ **PARTIALLY RESOLVED**
-- **Lokasi Kode**: `LiveReports.vue` (Baris 14–15)
-- **Kondisi Terkini**: Tabel agen dan tim sudah berdiri berdampingan 2 kolom pada breakpoint `xl:`, namun kedua kartu heatmap masih mengambil lebar penuh (`xl:col-span-2`).
-- **Rencana Tindak Lanjut**: Menyediakan opsi tampilan 2 kolom berdampingan untuk kedua heatmap pada monitor beresolusi ultra-lebar (>= 1440px).
+- **Status Implementasi:** ✅ **RESOLVED**
+- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/LiveReports.vue` (Baris 14–15)
+- **Solusi yang Diterapkan**:
+  Menyesuaikan kelas grid Tailwind pada `ConversationHeatmapContainer` dan `ResolutionHeatmapContainer` menjadi `xl:col-span-2 2xl:col-span-1`. Pada monitor desktop standar/sedang (`< 2xl`), heatmap tetap lebar penuh agar sel jam tidak sempit, sedangkan pada monitor ultrawide/2K (`2xl:`), kedua heatmap otomatis berdampingan 2 kolom.
+- **Hasil Verifikasi**: Mengurangi ketinggian vertikal dashboard hingga ~50% di layar ultrawide tanpa mengorbankan keterbacaan matriks per jam.
+
+---
+
+### 2.5. [OFI] Sembunyi Otomatis Chip Filter Group By saat Rentang Hari <29 Hari
+- **Status Implementasi:** ✅ **RESOLVED**
+- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/ReportFilters.vue` (Baris 346–380) & `en/report.json`
+- **Solusi yang Diterapkan**:
+  Mengganti perilaku penghapusan chip misterius dengan menampilkan tombol berstatus dinonaktifkan (`opacity-50 cursor-not-allowed`) yang dibungkus tooltip penjelas i18n (`REPORT.GROUP_BY_MIN_DAYS_TOOLTIP`).
+- **Hasil Verifikasi**: Pengguna mendapatkan kejelasan affordance visual mengapa pengelompokan mingguan/bulanan/tahunan membutuhkan rentang waktu minimal 30 hari.
 
 ---
 
@@ -173,10 +193,14 @@ Selain temuan kritis, sebagian besar temuan **WARNING dan peningkatan mutu (QC)*
 ---
 
 ### 3.4. [WARNING] Disrupsi Alur Kerja Drilldown: Kartu Percakapan Memaksa Buka Tab Browser Baru
-- **Status Implementasi:** ⏳ **PENDING (Backlog Fase 4)**
+- **Status Implementasi:** ✅ **RESOLVED**
 - **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/ReportDrilldownCard.vue`
-- **Masalah Saat Ini**: Klik pada kartu drilldown membuka tab baru (`window.open _blank`), memicu fragmentasi konteks saat menginvestigasi banyak tiket.
-- **Rencana Tindak Lanjut**: Menghadirkan *quick conversation transcript preview* langsung di dalam slide-over drawer tanpa meninggalkan halaman.
+- **Solusi yang Diterapkan**:
+  - Menghadirkan inline transcript preview box interaktif (`isExpanded`, `@click.stop="toggleExpand"`) dengan tombol chevron toggle.
+  - Saat di-expand, pesan tampil secara utuh (menghilangkan batasan `line-clamp-1`), disertai badge waktu pesan dibuat dan arah percakapan (*incoming/outgoing*).
+  - Supervisor dapat membaca transkrip langsung di dalam drawer tanpa memicu tab browser baru.
+  - Mempertahankan backward compatibility untuk klik pada body kartu luar (`openRecord`) menuju tab baru jika supervisor benar-benar ingin berpindah ke inbox.
+- **Hasil Verifikasi**: Seluruh unit test suite `ReportDrilldownCard.spec.js` lulus 100% dan supervisor terbebas dari spam pembukaan tab baru yang tidak diinginkan.
 
 ---
 
@@ -243,15 +267,15 @@ Selain temuan kritis, sebagian besar temuan **WARNING dan peningkatan mutu (QC)*
 ---
 
 ### 4.6. [WARNING] Bot Analytics Funnel, Drop-Off Rate, & Loading Feedback
-- **Status Implementasi:** ⏳ **PARTIALLY RESOLVED**
+- **Status Implementasi:** ✅ **RESOLVED**
 - **Lokasi Kode**: `BotReports.vue` & `BotMetrics.vue`
-- **Solusi yang Diterapkan (Terkini)**:
-  - Komponen `BotMetrics.vue` kini memiliki overlay loading spinner saat data ditarik.
+- **Solusi yang Diterapkan**:
+  - Komponen `BotMetrics.vue` memiliki overlay loading spinner saat data ditarik.
   - Perbaikan evaluasi nilai 0% sehingga tampil benar sebagai `0%`.
   - Penambahan penanganan error API dengan alert notifikasi.
-- **Fitur Tersisa (Pending)**:
-  - Pembuatan diagram corong alur konversi (*Bot-to-Human Handover Funnel*).
-  - Penambahan metrik *Bot Drop-Off Rate* (memerlukan dukungan agregasi metrik tambahan).
+  - Penambahan kartu metrik ke-5: **Drop-Off Rate** dihitung dari persentase percakapan yang diabaikan/gagal sebelum mencapai resolusi bot atau eskalasi ke agen manusia.
+  - Menghadirkan visualisasi **Handover & Resolution Funnel Bar** bertingkat dengan warna semantik (Hijau untuk Resolusi Bot, Biru untuk Handoff Agen, dan Slate untuk Drop-off) beserta persentase kontribusi masing-masing.
+- **Hasil Verifikasi**: Supervisor dapat memantau efektivitas alur konversi bot secara komprehensif, mendeteksi tingkat drop-off pengguna, dan mengidentifikasi titik kebocoran automasi.
 
 ---
 

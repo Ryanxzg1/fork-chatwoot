@@ -1,15 +1,24 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { OVERVIEW_METRICS } from '../constants';
 import { useToggle } from '@vueuse/core';
 
 import MetricCard from './overview/MetricCard.vue';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useLiveRefresh } from 'dashboard/composables/useLiveRefresh';
+import { useAccount } from 'dashboard/composables/useAccount';
+import { useUISettings } from 'dashboard/composables/useUISettings';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import Icon from 'dashboard/components-next/icon/Icon.vue';
 import { useI18n } from 'vue-i18n';
 const { t } = useI18n();
+
+const route = useRoute();
+const router = useRouter();
+const { accountId } = useAccount();
+const { uiSettings, updateUISettings } = useUISettings();
 
 const uiFlags = useMapGetter('getOverviewUIFlags');
 const agentStatus = useMapGetter('agents/getAgentStatus');
@@ -36,13 +45,20 @@ const agentStatusMetrics = computed(() => {
   });
   return metric;
 });
-const conversationMetrics = computed(() => {
-  let metric = {};
-  Object.keys(accountConversationMetric.value).forEach(key => {
-    const metricName = t(`${accounti18nKey}.${OVERVIEW_METRICS[key]}`);
-    metric[metricName] = accountConversationMetric.value[key];
+
+const conversationMetricItems = computed(() => {
+  const metricData = accountConversationMetric.value || {};
+  const order = ['open', 'unattended', 'unassigned', 'pending'];
+  return order.map(key => {
+    const rawValue = metricData[key];
+    const value =
+      typeof rawValue === 'number' && Number.isFinite(rawValue) ? rawValue : 0;
+    return {
+      key,
+      name: t(`${accounti18nKey}.${OVERVIEW_METRICS[key]}`),
+      value,
+    };
   });
-  return metric;
 });
 
 const selectedTeam = ref(null);
@@ -59,6 +75,48 @@ const fetchData = () => {
     params.team_id = selectedTeam.value;
   }
   store.dispatch('fetchAccountConversationMetric', params);
+};
+
+const handleMetricClick = key => {
+  const currentAccountId = accountId.value || route.params.accountId;
+  if (!currentAccountId) return;
+
+  const currentFilters = uiSettings.value?.conversations_filter_by || {};
+  const targetRoute = selectedTeam.value
+    ? {
+        name: 'team_conversations',
+        params: { accountId: currentAccountId, teamId: selectedTeam.value },
+      }
+    : {
+        name: 'home',
+        params: { accountId: currentAccountId },
+      };
+
+  if (key === 'unattended') {
+    router.push({
+      name: 'conversation_unattended',
+      params: { accountId: currentAccountId },
+    });
+  } else if (key === 'pending') {
+    store.dispatch('setChatStatusFilter', 'pending');
+    updateUISettings({
+      conversations_filter_by: {
+        ...currentFilters,
+        status: 'pending',
+      },
+    });
+    router.push(targetRoute);
+  } else {
+    // 'open' or 'unassigned'
+    store.dispatch('setChatStatusFilter', 'open');
+    updateUISettings({
+      conversations_filter_by: {
+        ...currentFilters,
+        status: 'open',
+      },
+    });
+    router.push(targetRoute);
+  }
 };
 
 const { startRefetching } = useLiveRefresh(fetchData);
@@ -109,16 +167,38 @@ onMounted(() => {
           </div>
         </template>
         <div
-          v-for="(metric, name, index) in conversationMetrics"
-          :key="index"
-          class="flex-1 min-w-0 pb-2"
+          v-for="item in conversationMetricItems"
+          :key="item.key"
+          tabindex="0"
+          role="link"
+          class="flex-1 min-w-0 pb-2 p-2.5 rounded-lg border border-transparent hover:border-n-weak hover:bg-n-alpha-1 cursor-pointer transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-n-brand group"
+          @click="handleMetricClick(item.key)"
+          @keydown.enter="handleMetricClick(item.key)"
+          @keydown.space.prevent="handleMetricClick(item.key)"
         >
-          <h3 class="text-base text-n-slate-11">
-            {{ name }}
-          </h3>
-          <p class="text-n-slate-12 text-3xl mb-0 mt-1">
-            {{ metric }}
-          </p>
+          <div class="flex items-center justify-between gap-1">
+            <h3
+              class="text-base text-n-slate-11 group-hover:text-n-slate-12 transition-colors truncate"
+            >
+              {{ item.name }}
+            </h3>
+            <Icon
+              icon="i-lucide-arrow-up-right"
+              class="size-3.5 text-n-slate-8 opacity-0 group-hover:opacity-100 group-hover:text-n-brand shrink-0 transition-opacity"
+            />
+          </div>
+          <div class="flex items-baseline gap-2 mt-1">
+            <p
+              class="text-3xl font-semibold mb-0 transition-colors tabular-nums"
+              :class="
+                item.key === 'unattended' && item.value > 0
+                  ? 'text-n-amber-11'
+                  : 'text-n-slate-12'
+              "
+            >
+              {{ item.value.toLocaleString() }}
+            </p>
+          </div>
         </div>
       </MetricCard>
     </div>
@@ -127,13 +207,15 @@ onMounted(() => {
         <div
           v-for="(metric, name, index) in agentStatusMetrics"
           :key="index"
-          class="flex-1 min-w-0 pb-2"
+          class="flex-1 min-w-0 pb-2 p-2.5"
         >
-          <h3 class="text-base text-n-slate-11">
+          <h3 class="text-base text-n-slate-11 truncate">
             {{ name }}
           </h3>
-          <p class="text-n-slate-12 text-3xl mb-0 mt-1">
-            {{ metric }}
+          <p
+            class="text-n-slate-12 text-3xl font-semibold mb-0 mt-1 tabular-nums"
+          >
+            {{ Number.isFinite(metric) ? metric.toLocaleString() : metric }}
           </p>
         </div>
       </MetricCard>

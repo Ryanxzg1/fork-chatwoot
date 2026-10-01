@@ -11,8 +11,10 @@ import StatsLiveReportsContainer from './components/StatsLiveReportsContainer.vu
   <ReportHeader :header-title="$t('OVERVIEW_REPORTS.HEADER')" />
   <div class="grid grid-cols-1 gap-4 pb-6 xl:grid-cols-2 2xl:gap-6">
     <StatsLiveReportsContainer class="min-w-0 xl:col-span-2" />
-    <ConversationHeatmapContainer class="min-w-0 xl:col-span-2" />
-    <ResolutionHeatmapContainer class="min-w-0 xl:col-span-2" />
+    <ConversationHeatmapContainer
+      class="min-w-0 xl:col-span-2 2xl:col-span-1"
+    />
+    <ResolutionHeatmapContainer class="min-w-0 xl:col-span-2 2xl:col-span-1" />
     <AgentLiveReportContainer class="min-w-0" />
     <TeamLiveReportContainer class="min-w-0" />
   </div>

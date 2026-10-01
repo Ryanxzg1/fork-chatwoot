@@ -364,6 +364,26 @@ onMounted(() => {
       />
 
       <div
+        v-else-if="showGroupBy"
+        v-tooltip.top="$t('REPORT.GROUP_BY_MIN_DAYS_TOOLTIP')"
+        role="group"
+        aria-disabled="true"
+        tabindex="-1"
+        class="inline-flex opacity-50 cursor-not-allowed"
+      >
+        <ActiveFilterChip
+          :name="$t('REPORT.GROUP_BY_FILTER_DROPDOWN_LABEL')"
+          type="groupBy"
+          :options="[]"
+          :placeholder="$t('REPORT.GROUP_BY_FILTER_DROPDOWN_LABEL')"
+          :enable-search="false"
+          :show-clear-filter="false"
+          tabindex="-1"
+          class="pointer-events-none"
+        />
+      </div>
+
+      <div
         v-if="showBusinessHours"
         class="flex items-center flex-shrink-0 ltr:ml-auto rtl:mr-auto"
       >

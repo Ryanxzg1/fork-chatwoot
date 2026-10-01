@@ -71,6 +71,7 @@
       "PLACEHOLDER": "Select date range"
     },
     "GROUP_BY_FILTER_DROPDOWN_LABEL": "Group By",
+    "GROUP_BY_MIN_DAYS_TOOLTIP": "Select a date range of at least 30 days to group by week, month, or year",
     "DURATION_FILTER_LABEL": "Duration",
     "GROUPING_OPTIONS": {
       "DAY": "Day",
@@ -145,7 +146,9 @@
       "MESSAGE_CREATED_AT": "Message created at {time}",
       "EVENT_OCCURRED_AT": "Event occurred at {time}",
       "INCOMING_MESSAGE": "Incoming message",
-      "OUTGOING_MESSAGE": "Outgoing message"
+      "OUTGOING_MESSAGE": "Outgoing message",
+      "OPEN_CONVERSATION": "Open conversation in new tab",
+      "TOGGLE_PREVIEW": "Toggle message preview"
     },
     "PAGINATION": {
       "RESULTS": "Showing {start} to {end} of {total} results",
@@ -545,7 +548,17 @@
       "HANDOFF_RATE": {
         "LABEL": "Handoff Rate",
         "TOOLTIP": "Total number of conversations handed off to agents / Total number of conversations handled by the bot * 100"
+      },
+      "DROP_OFF_RATE": {
+        "LABEL": "Drop-Off Rate",
+        "TOOLTIP": "Percentage of conversations abandoned by users before bot resolution or agent handoff"
       }
+    },
+    "FUNNEL": {
+      "TITLE": "Handover & Resolution Funnel",
+      "BOT_RESOLVED": "Resolved by Bot",
+      "AGENT_HANDOFF": "Handed off to Agent",
+      "DROPPED_OFF": "Dropped Off"
     }
   },
   "OVERVIEW_REPORTS": {

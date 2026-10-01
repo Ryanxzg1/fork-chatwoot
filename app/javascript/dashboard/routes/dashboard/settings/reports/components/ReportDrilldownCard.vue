@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute } from 'vue-router';
 import { formatTime } from '@chatwoot/utils';
@@ -64,17 +64,32 @@ const showPreview = computed(() => {
   return isMessageRecord.value || conversation.value.last_message;
 });
 
-const messageCreatedTooltip = computed(() =>
-  t('REPORT.DRILLDOWN.MESSAGE_CREATED_AT', {
+const messageCreatedTooltip = computed(() => {
+  if (!message.value?.created_at) return '';
+
+  return t('REPORT.DRILLDOWN.MESSAGE_CREATED_AT', {
     time: formatTimestamp(message.value.created_at),
-  })
-);
+  });
+});
 
 const eventOccurredTooltip = computed(() =>
   t('REPORT.DRILLDOWN.EVENT_OCCURRED_AT', {
     time: formatTimestamp(props.record.occurred_at),
   })
 );
+
+const expandedDetailText = computed(() => {
+  if (messageCreatedTooltip.value) {
+    return messageCreatedTooltip.value;
+  }
+  if (isEventBackedConversationRecord.value && props.record.occurred_at) {
+    return eventOccurredTooltip.value;
+  }
+  if (conversation.value.created_at) {
+    return formatTimestamp(conversation.value.created_at);
+  }
+  return '';
+});
 
 const directionDetails = computed(() => {
   const direction = messageDirection.value;
@@ -187,6 +202,12 @@ const openInNewTab = url => {
 const openRecord = () => {
   openInNewTab(conversationPath.value);
 };
+
+const isExpanded = ref(false);
+const toggleExpand = event => {
+  if (event) event.stopPropagation();
+  isExpanded.value = !isExpanded.value;
+};
 </script>
 
 <template>
@@ -258,12 +279,46 @@ const openRecord = () => {
       </div>
     </div>
 
-    <p
+    <div
       v-if="showPreview"
-      class="mt-2 line-clamp-1 text-sm leading-5 text-n-slate-12"
+      class="mt-2 group/preview rounded-md border p-2 transition-colors"
+      :class="
+        isExpanded
+          ? 'border-n-weak bg-n-solid-3'
+          : 'border-transparent bg-n-alpha-1 hover:border-n-weak/60'
+      "
+      @click.stop="toggleExpand"
     >
-      {{ getPlainText(previewText || '') }}
-    </p>
+      <div class="flex items-start justify-between gap-2">
+        <p
+          class="text-sm leading-5 text-n-slate-12 mb-0"
+          :class="{ 'line-clamp-1': !isExpanded }"
+        >
+          {{ getPlainText(previewText || '') }}
+        </p>
+        <button
+          type="button"
+          class="shrink-0 p-0.5 rounded text-n-slate-9 hover:text-n-slate-12 hover:bg-n-alpha-2 transition-colors cursor-pointer"
+          :title="$t('REPORT.DRILLDOWN.TOGGLE_PREVIEW')"
+          :aria-label="$t('REPORT.DRILLDOWN.TOGGLE_PREVIEW')"
+          @click.stop="toggleExpand"
+        >
+          <Icon
+            :icon="isExpanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+            class="size-3.5"
+          />
+        </button>
+      </div>
+      <div
+        v-if="isExpanded && (expandedDetailText || directionDetails)"
+        class="mt-2 pt-2 border-t border-n-weak/50 flex items-center justify-between text-xs text-n-slate-10"
+      >
+        <span v-if="expandedDetailText">{{ expandedDetailText }}</span>
+        <span v-if="directionDetails" class="capitalize">
+          {{ directionDetails.tooltip }}
+        </span>
+      </div>
+    </div>
 
     <div class="mt-2 grid grid-cols-3 gap-2">
       <component
