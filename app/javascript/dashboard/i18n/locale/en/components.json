@@ -51,7 +51,10 @@
     "PLACEHOLDER": "Enter duration"
   },
   "CHANNEL_SELECTOR": {
-    "COMING_SOON": "Coming Soon!"
+    "COMING_SOON": "Coming Soon!",
+    "REQUIRES_SETUP": "Requires Setup",
+    "SUPER_ADMIN_REQUIRED": "Super Admin Setup",
+    "CLICK_TO_CONFIGURE": "Click to view setup instructions"
   },
   "SLASH_COMMANDS": {
     "HEADING_1": "Heading 1",

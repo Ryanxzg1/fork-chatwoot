@@ -660,6 +660,53 @@
             "TITLE": "Shopee",
             "DESCRIPTION": "Connect your Shopee seller store"
           }
+        },
+        "SUPER_ADMIN_SETUP": {
+          "BADGE": "Requires Setup",
+          "STATUS_TITLE": "Super Admin Configuration Required",
+          "DIALOG_TITLE": "Configure {channel} in Super Admin",
+          "DIALOG_SUBTITLE": "This channel requires integration credentials or feature flags configured by a Super Administrator.",
+          "OPEN_SUPER_ADMIN": "Open Super Admin Settings",
+          "OPEN_ACCOUNT_FEATURES": "Open Account Features",
+          "CLOSE": "Close",
+          "STEPS_TITLE": "Configuration Instructions:",
+          "PRO_TIP": "Super Administrators can click the button below to jump straight to the configuration page in a new tab.",
+          "FACEBOOK": {
+            "SHORT_NOTICE": "Requires FB_APP_ID in Super Admin Settings",
+            "STEP_1": "Log in to the Super Admin portal.",
+            "STEP_2": "Navigate to Settings > Installation Configs.",
+            "STEP_3": "Configure FB_APP_ID, FB_APP_SECRET, and FB_VERIFY_TOKEN."
+          },
+          "INSTAGRAM": {
+            "SHORT_NOTICE": "Requires INSTAGRAM_APP_ID in Super Admin Settings",
+            "STEP_1": "Log in to the Super Admin portal.",
+            "STEP_2": "Navigate to Settings > Installation Configs.",
+            "STEP_3": "Configure INSTAGRAM_APP_ID, INSTAGRAM_APP_SECRET, and IG_VERIFY_TOKEN."
+          },
+          "TIKTOK": {
+            "SHORT_NOTICE": "Requires TIKTOK_APP_ID in Super Admin Settings",
+            "STEP_1": "Log in to the Super Admin portal.",
+            "STEP_2": "Navigate to Settings > Installation Configs.",
+            "STEP_3": "Configure TIKTOK_APP_ID and TIKTOK_APP_SECRET."
+          },
+          "VOICE": {
+            "SHORT_NOTICE": "Requires channel_voice feature enabled in Super Admin",
+            "STEP_1": "Log in to the Super Admin portal.",
+            "STEP_2": "Navigate to Accounts and select this account.",
+            "STEP_3": "Under Features, enable the 'channel_voice' feature flag."
+          },
+          "WHATSAPP_CALL": {
+            "SHORT_NOTICE": "Requires channel_voice feature enabled in Super Admin",
+            "STEP_1": "Log in to the Super Admin portal.",
+            "STEP_2": "Navigate to Accounts and select this account.",
+            "STEP_3": "Under Features, enable the 'channel_voice' feature flag."
+          },
+          "FEATURE_DISABLED": {
+            "SHORT_NOTICE": "Feature disabled for this account in Super Admin",
+            "STEP_1": "Log in to the Super Admin portal.",
+            "STEP_2": "Navigate to Accounts and select this account.",
+            "STEP_3": "Enable the corresponding channel feature in the Account Features section."
+          }
         }
       },
       "AGENTS": {

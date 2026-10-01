@@ -16,10 +16,6 @@ const globalConfig = useMapGetter('globalConfig/get');
 
 const enabledFeatures = computed(() => currentAccount.value?.features || {});
 
-const hasTiktokConfigured = computed(() => {
-  return window.chatwootConfig?.tiktokAppId;
-});
-
 const channelList = computed(() => {
   const { apiChannelName } = globalConfig.value;
   const channels = [
@@ -77,10 +73,7 @@ const channelList = computed(() => {
       description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.INSTAGRAM.DESCRIPTION'),
       icon: 'i-woot-instagram',
     },
-  ];
-
-  if (hasTiktokConfigured.value) {
-    channels.push({
+    {
       key: 'tiktok',
       title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.TIKTOK.TITLE'),
       description:
@@ -90,29 +83,26 @@ const channelList = computed(() => {
           ? t('INBOX_MGMT.ADD.AUTH.CHANNEL.TIKTOK.ACCESS_REQUEST_DESCRIPTION')
           : t('INBOX_MGMT.ADD.AUTH.CHANNEL.TIKTOK.DESCRIPTION'),
       icon: 'i-woot-tiktok',
-    });
-  }
-
-  channels.push({
-    key: 'voice',
-    title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.VOICE.TITLE'),
-    description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.VOICE.DESCRIPTION'),
-    icon: 'i-woot-voice',
-  });
-
-  channels.push({
-    key: 'whatsapp_call',
-    title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_CALL.TITLE'),
-    description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_CALL.DESCRIPTION'),
-    icon: 'i-woot-whatsapp',
-  });
-
-  channels.push({
-    key: 'shopee',
-    title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.SHOPEE.TITLE'),
-    description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.SHOPEE.DESCRIPTION'),
-    icon: 'i-lucide-shopping-bag',
-  });
+    },
+    {
+      key: 'voice',
+      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.VOICE.TITLE'),
+      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.VOICE.DESCRIPTION'),
+      icon: 'i-woot-voice',
+    },
+    {
+      key: 'whatsapp_call',
+      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_CALL.TITLE'),
+      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.WHATSAPP_CALL.DESCRIPTION'),
+      icon: 'i-woot-whatsapp',
+    },
+    {
+      key: 'shopee',
+      title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.SHOPEE.TITLE'),
+      description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.SHOPEE.DESCRIPTION'),
+      icon: 'i-lucide-shopping-bag',
+    },
+  ];
 
   return channels;
 });

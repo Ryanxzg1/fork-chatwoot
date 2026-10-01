@@ -1,5 +1,10 @@
 # CONTEXT.md — Chatwoot Codebase Intelligence
 
+> **Status audit:** Maintained architecture context
+> **Last audited:** 2026-10-01
+> **Primary sources:** Source code, repository manifests, `AGENTS.md`, and committed runtime configuration.
+> **Scope:** Deployment secrets and external infrastructure settings may differ from this repository.
+>
 > **Tujuan File Ini:**
 > Dokumen ini adalah *Single Source of Truth* bagi AI (maupun developer baru) sebelum menganalisis,
 > memodifikasi, atau menambahkan kode pada repositori Chatwoot. Baca seluruh dokumen ini terlebih
@@ -48,11 +53,13 @@ dalam satu antarmuka terpadu.
 
 ### Mode Deployment & Lisensi
 
-- **100% Pure MIT (Community Edition)**: Seluruh codebase di repositori ini berada di bawah
-  lisensi **MIT Expat**. Direktori komersial `enterprise/` telah sepenuhnya dipurging/dihapus,
-  menjadikan codebase ini bersih, bebas lisensi ganda, dan siap untuk di-deploy di infrastruktur
-  GitLab/server internal perusahaan.
-- **No Enterprise Hooks**: Pola injeksi `prepend_mod_with` dan initializer terkait telah dihapus sepenuhnya dari codebase. Model dan controller berjalan secara native Rails tanpa lapisan metaprogramming tambahan.
+- **Community Edition / MIT**: Repository ini menggunakan lisensi MIT. Runtime enterprise
+  overlay dan pola injeksi `prepend_mod_with`/`include_mod_with` telah dihapus dari jalur
+  aplikasi utama.
+- **Enterprise residuals**: Direktori runtime `enterprise/` dan `spec/enterprise/` tidak
+  digunakan sebagai struktur utama, tetapi beberapa file residual masih memiliki nama atau
+  namespace enterprise, seperti stub billing dan spec audit. Verifikasi path aktual sebelum
+  mengedit; residual tersebut bukan enterprise runtime architecture.
 
 ### Proses Startup
 
@@ -119,9 +126,10 @@ chatwoot/
 └── CONTEXT.md                  # File ini — Peta arsitektur dan aturan kerja AI
 ```
 
-> **Catatan Lisensi — 100% Pure MIT:**
-> Folder komersial non-MIT (`enterprise/` dan `spec/enterprise/`) telah dipurging secara menyeluruh.
-> Seluruh kode pada repositori ini bebas digunakan, dimodifikasi, dan didistribusikan di bawah lisensi MIT.
+> **Catatan lisensi dan residual enterprise:**
+> Kode aplikasi utama menggunakan lisensi MIT dan tidak memakai enterprise overlay runtime.
+> Path residual seperti `app/javascript/dashboard/api/enterprise/` dan
+> `spec/models/enterprise/` masih dapat ditemukan; perlakukan keduanya sesuai isi aktualnya.
 
 ---
 
@@ -175,15 +183,22 @@ Isolasi multi-tenant diimplementasikan secara mandiri dengan 4 mekanisme:
 |---|---|---|
 | **Thread Context** | `Current.account`, `Current.user` (thread_mattr_accessor) | `lib/current.rb` |
 | **Controller Guard** | `ensure_current_account` — validasi keanggotaan user di akun sebelum request diproses | `app/controllers/concerns/ensure_current_account_helper.rb` |
-| **Explicit Query Scoping** | Semua query selalu dimulai dari `Current.account.conversations.find(...)` — tidak ada hidden `default_scope` | Semua controllers & finders |
+| **Explicit Query Scoping** | Pada API/controller boundary, query resource tenant dimulai dari `Current.account` atau scope ekuivalen; tidak ada hidden `default_scope` | Controllers & finders |
 | **PostgreSQL Sequence per Tenant** | Saat akun dibuat, trigger PostgreSQL membuat sequence `conv_dpid_seq_<account_id>`. `display_id` percakapan diambil dari sequence akun tersebut | `app/models/account.rb`, `app/models/conversation.rb` |
 
-### 3.3 Status Arsitektur: 100% Pure OSS (Hard Fork Standalone)
+> **Scoping boundary:** Importer, cleanup, migration, maintenance job, dan system-level
+> background job dapat memakai global lookup apabila ownership dan sumber identifier telah
+> dijamin oleh caller. Jangan menyalin global lookup ke request/API boundary tanpa authorization.
 
-Repositori ini telah sepenuhnya didecoupling dari arsitektur komersial upstream:
-- Direktori komersial `enterprise/` dan `spec/enterprise/` telah dipurging.
-- Initializer metaprogramming `01_inject_enterprise_edition_module.rb` dan pemanggilan `prepend_mod_with` / `include_mod_with` di 93 berkas domain telah dibersihkan secara tuntas.
-- Kode berjalan 100% murni di atas implementasi Rails OSS native (`app/`) dengan boot time lebih efisien dan stack trace yang bersih.
+### 3.3 Status Arsitektur: Community Edition tanpa Enterprise Overlay Runtime
+
+Repositori ini tidak memuat enterprise overlay sebagai jalur runtime utama:
+- Direktori runtime `enterprise/` dan `spec/enterprise/` tidak menjadi struktur aplikasi aktif.
+- Initializer metaprogramming enterprise dan pemanggilan `prepend_mod_with`/`include_mod_with`
+  tidak digunakan pada domain runtime yang diaudit.
+- Residual bernama enterprise masih dapat ada sebagai stub compatibility atau spec yang
+  dilewati ketika module enterprise tidak tersedia. Selalu verifikasi path dan isi aktualnya.
+- Kode aplikasi utama berjalan di atas implementasi Rails OSS native (`app/`).fisien dan stack trace yang bersih.
 
 ### 3.4 Sidekiq Queue Priority (16 Queues)
 
@@ -229,7 +244,8 @@ Account (Tenant Root)
 │       ├── Channel::Line            # LINE Messaging
 │       ├── Channel::Tiktok          # TikTok DM
 │       ├── Channel::Sms             # Generic SMS HTTP Gateway
-│       └── Channel::TwitterProfile  # Twitter DM
+│       ├── Channel::TwitterProfile  # Twitter DM
+└── Channel::Shopee          # Shopee messages
 ├── has_many :contacts               # Entitas pelanggan
 │   └── has_many :contact_inboxes    # Binding kontak ke inbox + source_id
 │       └── has_many :conversations  # Thread percakapan
@@ -238,6 +254,9 @@ Account (Tenant Root)
 └── has_many :teams
     └── has_many :team_members (join: User)
 ```
+
+> Daftar channel ini mencerminkan channel yang terdeteksi saat audit dan dapat berkembang.
+> Periksa `app/models/channel/` serta webhook/service terkait sebelum menambahkan channel baru.
 
 ### 4.2 Model Kritis & Atribut Penting
 
@@ -339,8 +358,14 @@ Rails.configuration.dispatcher.dispatch(event_name, timestamp, data)
         ├── HookListener             --> Slack sync, Linear issue, LeadSquared
         ├── CsatSurveyListener       --> Trigger survei kepuasan paska resolve
         ├── ReportingEventListener   --> Metrik analytics (FRT, Resolution Time)
+        ├── CampaignListener         --> Campaign-related event handling
+        ├── InstallationWebhookListener --> Installation-level webhooks
+        ├── ParticipationListener    --> Conversation participation updates
         └── Conversations::UnreadCounts::Listener --> Badge unread per agen
 ```
+
+> Diagram ini merangkum listener utama. Sumber daftar listener yang authoritative adalah
+> `app/dispatchers/sync_dispatcher.rb` dan `app/dispatchers/async_dispatcher.rb`.
 
 **Konvensi nama method listener:** Nama event dengan notasi titik dikonversi ke underscore.
 Contoh: event `'message.created'` → memanggil method `message_created(event)` pada listener.
@@ -394,7 +419,7 @@ Build pipeline:
 
 ```
 app/javascript/dashboard/
-├── store/index.js              # Vuex 4 root store (40+ modul fungsional — STORE UTAMA)
+├── store/index.js              # Vuex 4 root store (banyak modul fungsional — STORE UTAMA)
 │   ├── modules/conversations/  # Koleksi percakapan & pesan
 │   ├── modules/inboxes.js
 │   ├── modules/contacts/
@@ -479,8 +504,8 @@ app/javascript/dashboard/
      (WhatsApp, Widget, Telegram, Email, Twilio, dll.)
         ↓
 [2] Webhook / API Controller menerima request
-     - Verifikasi signature (HMAC untuk WhatsApp / JWE token untuk Widget)
-     - Balas HTTP 200 OK segera ke provider (agar tidak timeout)
+     - Verifikasi autentikasi/signature sesuai provider atau adapter
+     - Kembalikan respons webhook sesuai kontrak provider sebelum/enqueued processing
         ↓
 [3] Ingress Job (Sidekiq queue: :default)
      Contoh: Webhooks::WhatsappEventsJob.perform_later(params)
@@ -531,8 +556,8 @@ app/javascript/dashboard/
           Channel::Telegram  → Telegram::SendOnTelegramService
           Channel::WebWidget → Messages::SendEmailNotificationService
         ↓
-[6] Provider eksternal mengembalikan external_message_id
-     → message.update!(source_id: external_id)
+[6] Adapter/provider mengembalikan atau memproses identifier eksternal
+     → Simpan identifier tersebut sesuai kontrak adapter/channel
         ↓
 [7] Delivery Receipt (DLR) — Asinkron dari Provider
      → Webhook status diterima (delivered / read)
@@ -592,6 +617,15 @@ bundle exec rspec spec/path/to/file_spec.rb:LINE_NUMBER  # Test spesifik per bar
 pnpm test
 pnpm test:watch
 
+# Test Playwright E2E (package terpisah)
+cd tests/playwright
+pnpm install
+npx playwright install
+cp .env.example .env
+pnpm run playwright:run
+pnpm run lint
+cd ../..
+
 # Lint Ruby
 bundle exec rubocop -a
 
@@ -603,6 +637,8 @@ pnpm eslint:fix
 ### 8.2 Aturan Kritis Testing
 
 - **Jangan tulis spec kecuali diminta eksplisit oleh user.**
+- `pnpm test` dari root menjalankan Vitest. Playwright memiliki package dan lockfile
+  terpisah di `tests/playwright/`; instalasi root tidak memasang dependency E2E.
 - Gunakan `let` dan setup per-example — hindari custom helper method kecuali menghilangkan kompleksitas signifikan.
 - Untuk testing variabel environment, gunakan `with_modified_env` (bukan stub `ENV` langsung).
 - Ketika membandingkan class error yang di-raise, gunakan `error.class.name` (string), bukan `error.class` (constant reference).
@@ -614,7 +650,9 @@ pnpm eslint:fix
 - **Styling**: Tailwind utility class only. Dilarang: custom CSS, scoped CSS, inline styles.
 - **String di template**: Gunakan i18n key — dilarang bare string literal.
 - **Strong params**: Validasi selalu di controller boundary, kembalikan `422 Unprocessable Entity` untuk input invalid.
-- **Pure OSS / No Enterprise**: Repositori ini 100% Pure MIT (folder `enterprise/` sudah dipurging habis). Semua hook metaprogramming `prepend_mod_with` telah dibongkar. Semua kode berjalan secara native di `app/`.
+- **Community Edition / No Enterprise Overlay Runtime**: Jalur aplikasi utama tidak memakai
+  enterprise overlay atau hook metaprogramming enterprise. Residual file bernama enterprise
+  tetap mungkin ada dan harus diverifikasi sebelum disimpulkan tidak tersedia.
 - **Translations**: Hanya update `en.yml` (backend) dan `en.json` (frontend). File bahasa lain dikelola via Crowdin.
 - **Conversation Status UI**: Status percakapan `resolved` ditampilkan sebagai **"Done"** di antarmuka pengguna (UI/i18n). Dilarang merombak enum backend/database atau API token `resolved`.
 - **Commit messages**: Conventional Commits — `type(scope): subject`. Jangan menyebut nama AI di commit.
@@ -622,6 +660,10 @@ pnpm eslint:fix
 ---
 
 ## 9. AI Working Rules
+
+Bagian ini adalah heuristik investigasi, bukan pengganti authorization boundary atau aturan
+runtime. Fakta implementasi berada pada source code; kebijakan engineering diringkas dari
+`AGENTS.md`.
 
 Bagian ini berisi instruksi eksplisit bagi AI yang menggunakan file ini sebagai konteks.
 
@@ -655,8 +697,11 @@ Gunakan titik masuk berikut saat menginvestigasi domain tertentu:
 - **Status percakapan saat ini**: Perilaku berbeda antara `pending`, `open`, `resolved`.
 - **Keberadaan bot aktif**: `conversation.inbox.active_bot?` — menentukan status percakapan saat re-open.
 - **Queue Sidekiq job baru**: Sesuaikan dengan prioritas yang sudah ada di `config/sidekiq.yml`.
-- **Scope query tenant**: Semua query **wajib** dimulai dari `Current.account` atau scope yang setara.
-- **Pure MIT Environment**: Direktori `enterprise/` sudah tidak ada. Jangan berasumsi ada file overlay enterprise yang perlu disinkronkan.
+- **Scope query tenant**: Pada API/controller boundary, mulai dari `Current.account` atau
+  scope ekuivalen. Importer, cleanup, migration, maintenance, dan system-level job dapat
+  memakai global lookup jika ownership dijamin oleh caller.
+- **Enterprise overlay runtime**: Jalur aplikasi utama tidak memakai enterprise overlay; path
+  residual bernama enterprise masih dapat ada dan harus diverifikasi sebelum diedit.
 
 ### 9.4 Anti-Pattern yang Harus Dihindari
 
@@ -667,7 +712,9 @@ Gunakan titik masuk berikut saat menginvestigasi domain tertentu:
 - ❌ Menambahkan spec tanpa diminta eksplisit user.
 - ❌ Menulis logika Business di controller — delegasikan ke Builder atau Service.
 - ❌ Mengasumsikan channel menggunakan STI — channel adalah polymorphic association.
-- ❌ Melakukan direct query tanpa scope akun: `Conversation.find(id)` → **SALAH**.
-  Gunakan: `Current.account.conversations.find(id)` → **BENAR**.
-- ❌ Mencoba membuat atau mencari file di folder `enterprise/` (direktori komersial sudah sepenuhnya dipurging).
-- ❌ Mengharapkan atau membuat file di `app/serializers/` untuk response JSON API — selalu gunakan template Jbuilder di `app/views/api/v1/`.
+- ❌ Melakukan global lookup pada request/API boundary tanpa authorization:
+  `Conversation.find(id)` dari input tenant → **BERISIKO**.
+  Gunakan `Current.account.conversations.find(id)` atau scope tenant ekuivalen.
+- ❌ Menganggap semua path bernama `enterprise/` tidak ada; verifikasi path aktual terlebih dahulu.
+- ❌ Menambah serializer baru untuk API JSON v1 tanpa memeriksa pola endpoint terkait.
+  Default-nya ikuti template Jbuilder yang sudah digunakan di `app/views/api/v1/`.
