@@ -58,6 +58,10 @@ const isActive = computed(() => {
     return props.enabledFeatures.channel_voice;
   }
 
+  if (key === 'shopee') {
+    return props.enabledFeatures.channel_shopee;
+  }
+
   return [
     'website',
     'twilio',

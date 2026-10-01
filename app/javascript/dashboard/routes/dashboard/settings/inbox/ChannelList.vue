@@ -107,6 +107,13 @@ const channelList = computed(() => {
     icon: 'i-woot-whatsapp',
   });
 
+  channels.push({
+    key: 'shopee',
+    title: t('INBOX_MGMT.ADD.AUTH.CHANNEL.SHOPEE.TITLE'),
+    description: t('INBOX_MGMT.ADD.AUTH.CHANNEL.SHOPEE.DESCRIPTION'),
+    icon: 'i-lucide-shopping-bag',
+  });
+
   return channels;
 });
 
