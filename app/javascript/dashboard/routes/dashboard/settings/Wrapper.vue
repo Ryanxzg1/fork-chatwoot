@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import SettingsHeader from './SettingsHeader.vue';
+import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
+
 const props = defineProps({
   headerTitle: { type: String, default: '' },
   icon: { type: String, default: '' },
@@ -32,10 +34,21 @@ const showSettingsHeader = computed(
       v-slot="{ Component }"
       class="px-4 flex-1 min-h-0 overflow-y-auto"
     >
-      <component :is="Component" v-if="!keepAlive" :key="$route.fullPath" />
-      <keep-alive v-else>
-        <component :is="Component" :key="$route.fullPath" />
-      </keep-alive>
+      <Suspense>
+        <template #default>
+          <component :is="Component" v-if="!keepAlive" :key="$route.fullPath" />
+          <keep-alive v-else>
+            <component :is="Component" :key="$route.fullPath" />
+          </keep-alive>
+        </template>
+        <template #fallback>
+          <div
+            class="flex items-center justify-center w-full h-full min-h-[300px]"
+          >
+            <Spinner :size="32" class="text-n-brand" />
+          </div>
+        </template>
+      </Suspense>
     </router-view>
   </div>
 </template>

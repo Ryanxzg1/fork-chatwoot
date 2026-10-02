@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 
 defineProps({
   keepAlive: {
@@ -24,10 +25,21 @@ const routeKey = computed(() =>
   >
     <div class="flex items-start w-full max-w-5xl mx-auto">
       <router-view v-slot="{ Component }">
-        <keep-alive v-if="keepAlive">
-          <component :is="Component" :key="routeKey" />
-        </keep-alive>
-        <component :is="Component" v-else :key="routeKey" />
+        <Suspense>
+          <template #default>
+            <keep-alive v-if="keepAlive">
+              <component :is="Component" :key="routeKey" />
+            </keep-alive>
+            <component :is="Component" v-else :key="routeKey" />
+          </template>
+          <template #fallback>
+            <div
+              class="flex items-center justify-center w-full h-full min-h-[300px]"
+            >
+              <Spinner :size="32" class="text-n-brand" />
+            </div>
+          </template>
+        </Suspense>
       </router-view>
     </div>
   </div>

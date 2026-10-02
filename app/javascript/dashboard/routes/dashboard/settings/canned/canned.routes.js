@@ -5,7 +5,8 @@ import {
   CONVERSATION_PERMISSIONS,
 } from 'dashboard/constants/permissions.js';
 import SettingsWrapper from '../SettingsWrapper.vue';
-import CannedHome from './Index.vue';
+
+const CannedHome = () => import('./Index.vue');
 
 export default {
   routes: [

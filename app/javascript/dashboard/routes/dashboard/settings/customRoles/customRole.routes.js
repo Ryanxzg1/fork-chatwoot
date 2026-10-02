@@ -3,7 +3,8 @@ import { INSTALLATION_TYPES } from 'dashboard/constants/installationTypes';
 import { frontendURL } from 'dashboard/helper/URLHelper';
 
 import SettingsWrapper from '../SettingsWrapper.vue';
-import CustomRolesHome from './Index.vue';
+
+const CustomRolesHome = () => import('./Index.vue');
 
 export default {
   routes: [

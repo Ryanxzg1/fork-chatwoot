@@ -1,12 +1,15 @@
 import { frontendURL } from 'dashboard/helper/URLHelper.js';
-
-import CampaignsPageRouteView from './pages/CampaignsPageRouteView.vue';
-import LiveChatCampaignsPage from './pages/LiveChatCampaignsPage.vue';
-import SMSCampaignsPage from './pages/SMSCampaignsPage.vue';
-import WhatsAppCampaignsPage from './pages/WhatsAppCampaignsPage.vue';
-import WhatsAppCampaignFormPage from './pages/WhatsAppCampaignFormPage.vue';
-import WhatsAppCampaignAnalyticsPage from './pages/WhatsAppCampaignAnalyticsPage.vue';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+
+const CampaignsPageRouteView = () =>
+  import('./pages/CampaignsPageRouteView.vue');
+const LiveChatCampaignsPage = () => import('./pages/LiveChatCampaignsPage.vue');
+const SMSCampaignsPage = () => import('./pages/SMSCampaignsPage.vue');
+const WhatsAppCampaignsPage = () => import('./pages/WhatsAppCampaignsPage.vue');
+const WhatsAppCampaignFormPage = () =>
+  import('./pages/WhatsAppCampaignFormPage.vue');
+const WhatsAppCampaignAnalyticsPage = () =>
+  import('./pages/WhatsAppCampaignAnalyticsPage.vue');
 
 const meta = {
   featureFlag: FEATURE_FLAGS.CAMPAIGNS,

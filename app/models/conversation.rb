@@ -36,6 +36,7 @@
 #
 #  conv_acid_inbid_stat_asgnid_idx                            (account_id,inbox_id,status,assignee_id)
 #  index_conversations_on_account_id                          (account_id)
+#  index_conversations_on_account_id_and_created_at           (account_id,created_at)
 #  index_conversations_on_account_id_and_display_id           (account_id,display_id) UNIQUE
 #  index_conversations_on_account_id_status_created_at        (account_id,status,created_at)
 #  index_conversations_on_account_id_status_last_activity_at  (account_id,status,last_activity_at DESC)
@@ -213,9 +214,7 @@ class Conversation < ApplicationRecord
   # every message in this conversation (agent_last_seen_at is at or after the
   # last activity). Falls back to a cheap COUNT(*) instead of loading 10 rows.
   def unread_incoming_messages_count
-    if agent_last_seen_at.present? && last_activity_at.present? && agent_last_seen_at >= last_activity_at
-      return 0
-    end
+    return 0 if agent_last_seen_at.present? && last_activity_at.present? && agent_last_seen_at >= last_activity_at
 
     unread_messages.where(account_id: account_id).incoming.count
   end
@@ -447,4 +446,3 @@ class Conversation < ApplicationRecord
     "NEW.display_id := nextval('conv_dpid_seq_' || NEW.account_id);"
   end
 end
-

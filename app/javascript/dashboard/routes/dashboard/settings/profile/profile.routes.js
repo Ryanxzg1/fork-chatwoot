@@ -2,8 +2,9 @@ import { frontendURL } from '../../../../helper/URLHelper';
 import { parseBoolean } from '@chatwoot/utils';
 
 import SettingsWrapper from '../SettingsWrapper.vue';
-import Index from './Index.vue';
-import MfaSettings from './MfaSettings.vue';
+
+const Index = () => import('./Index.vue');
+const MfaSettings = () => import('./MfaSettings.vue');
 
 export default {
   routes: [
