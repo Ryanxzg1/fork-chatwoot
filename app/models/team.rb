@@ -57,11 +57,11 @@ class Team < ApplicationRecord
   end
 
   def messages
-    account.messages.where(conversation_id: conversations.pluck(:id))
+    account.messages.where(conversation_id: conversations.select(:id))
   end
 
   def reporting_events
-    account.reporting_events.where(conversation_id: conversations.pluck(:id))
+    account.reporting_events.where(conversation_id: conversations.select(:id))
   end
 
   def push_event_data
@@ -85,4 +85,3 @@ class Team < ApplicationRecord
     invalidator.users_visibility_changed!(user_ids: @filtered_unread_count_member_ids)
   end
 end
-

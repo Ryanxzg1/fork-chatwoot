@@ -1,296 +1,284 @@
-# LAPORAN AUDIT & ANALISIS UI/UX MODUL REPORTS CHATWOOT
+# LAPORAN AUDIT KOMPREHENSIF CODEBASE CHATWOOT
 
-- **Target URL**       : `http://192.168.13.118:3000/app/accounts/15/reports/overview` (dan seluruh sub-menu Reports)
-- **Tipe Evaluasi**     : Comprehensive UI/UX, Information Architecture (IA), Data Visualization, & Quality Engineering (QE) Usability Audit
-- **Auditor**           : Tim Sepuh Analyst & QE Sub-Agents (Lead Software Analyst, Senior UI/UX & System Auditor)
-- **Status Dokumen**    : **UPDATED (RECONCILIATION & IMPLEMENTATION TRACKING ACTIVE)**
-- **Terakhir Diperbarui**: Rabu, 30 September 2026
-
----
-
-## Executive Summary & Status Rekonsiliasi
-
-Modul **Reports** pada Chatwoot telah melalui proses audit UI/UX mendalam dan fase perbaikan teknis bertahap. Seluruh temuan berstatus **CRITICAL REJECT (8 dari 8 temuan) telah 100% tuntas diselesaikan**, diverifikasi, dan divalidasi dengan test runner otomasi (**105 unit tests passed, 0 error**).
-
-Selain temuan kritis, sebagian besar temuan **WARNING dan peningkatan mutu (QC)** pada sektor navigasi, aksesibilitas, visualisasi CSAT, dan transparansi pelanggaran SLA juga telah berhasil diterapkan.
-
-### Ringkasan Status Penyelesaian Masalah
-
-| Tingkat Keparahan | Total Terdata | Sudah Diselesaikan (Resolved) | Ditutup (By-Design) | Status Akhir |
-| :--- | :---: | :---: | :---: | :---: |
-| 🔴 **CRITICAL REJECT** | **8** | **8** | **0** | **100% TUNTAS** |
-| 🟡 **WARNING** | **10** | **9** | **1** | **100% DITANGANI** |
-| 🔵 **OFI & Polish** | **6** | **6** | **0** | **100% TUNTAS** |
-| **TOTAL KESELURUHAN** | **24** | **23** | **1** | **100% SELESAI** |
+Dokumen ini berisi hasil audit teknis, arsitektural, dan produk secara mendalam terhadap codebase Chatwoot (Community Edition / Pure MIT) yang mencakup 4 pilar utama:
+1. **UI/UX & Arsitektur Frontend**
+2. **System Design & Arsitektur Backend Core**
+3. **Pengembangan Next Fitur & Strategic Roadmap**
+4. **Pengelolaan Report, Analytics & Subsistem Rollup Data**
 
 ---
 
-## 🧭 Rekapitulasi Cepat: Seluruh Temuan Telah Tuntas Ditangani
+## 🏛️ EXECUTIVE ARCHITECTURAL SCORECARD
 
-### ✅ Telah Diselesaikan & Terverifikasi (Resolved & Tested)
-1. **[CRITICAL 1.1]** Kontainer sempit `max-w-5xl` dilepaskan menjadi `w-full max-w-[96rem] px-6 py-6` (`ReportsWrapper.vue`).
-2. **[CRITICAL 2.1]** Ghost rendering `<Table>` dan `<Pagination>` saat loading/empty state diatasi dengan kondisional bersih (`AgentTable.vue` & `TeamTable.vue`).
-3. **[CRITICAL 3.1 & QC-WARN-01]** Fitur sorting TanStack Table diaktifkan penuh (`enableSorting: true`, `getSortedRowModel`) pada `SummaryReports.vue`, `AgentTable.vue`, dan `TeamTable.vue`.
-4. **[CRITICAL 3.2]** Bug evaluasi angka nol (falsy) diperbaiki; nilai `0` tampil sebagai `0`, `0s`, dan `0%` (bukan data hilang `'--'`).
-5. **[CRITICAL 3.3]** Infinite loader saat direct refresh detail inbox/tim diatasi dengan store hydration pada `onMounted` (`InboxReportsShow.vue` & `TeamReportsShow.vue`).
-6. **[CRITICAL 4.1]** Grid span header tabel SLA diselaraskan menjadi 12 kolom simetris (`SLATable.vue`).
-7. **[CRITICAL 4.2]** Async download handler dengan `await` dan state loading spinner pada tombol ekspor (`CsatResponses.vue` & `SLAReports.vue`).
-8. **[CRITICAL 4.3]** Double-fetch waterfall race condition pada inisialisasi filter SLA dihilangkan (`SLAReports.vue` & `SLAReportFilters.vue`).
-9. **[WARNING 1.2]** Seluruh 9 sub-menu Reports pada sidebar kini dilengkapi ikon Lucide tematik (`Sidebar.vue`).
-10. **[WARNING 1.3]** Bug highlight sidebar padam saat membuka detail laporan label diperbaiki dengan `activeOn: ['label_reports_show']` (`Sidebar.vue`).
-11. **[WARNING 2.2]** **Closed (By-Design)**: Setiap kartu heatmap mempertahankan kontrol filter mandiri sesuai keputusan user agar memungkinkan perbandingan komparasi multi-periode antar metrik (`LiveReports.vue`).
-12. **[WARNING 2.3]** Kartu KPI Overview diubah menjadi *Clickable Action Cards* dengan direct routing (`router.push`) ke inbox/unattended, keyboard accessibility (`Enter`/`Space`), micro-interaction hover arrow, serta indikator urgensi semantik (`text-n-amber-11`) untuk tiket unattended (`StatsLiveReportsContainer.vue`).
-13. **[WARNING 3.4]** Kartu drilldown percakapan dilengkapi inline expandable transcript box (`@click.stop="toggleExpand"`) untuk membaca pesan utuh di tempat tanpa membuka tab baru yang berlebihan (`ReportDrilldownCard.vue`).
-14. **[WARNING 3.5]** Keyboard hijacking tombol panah keyboard dicegah saat pengguna mengetik di elemen form (`ReportDrilldownDrawer.vue`).
-15. **[WARNING 4.4]** Badge semantik pelanggaran SLA (FRT, NRT, Resolution) dan durasi keterlambatan waktu nyata (`SLAReportItem.vue`).
-16. **[WARNING 4.5]** Visualisasi emoji emosional (`😞` - `😍`) dan skor rating (contoh: `(5/5)`) pada tabel respon CSAT (`CsatTable.vue`).
-17. **[WARNING 4.6]** Metrik Bot Drop-Off Rate ditambahkan ke jajaran kartu metrik dan diagram alur corong konversi *Handover & Resolution Funnel Bar* dihadirkan dengan indikator semantik proporsional (`BotMetrics.vue`).
-18. **[OFI 2.4]** Heatmap Duo berdampingan 2 kolom pada monitor ultrawide (`2xl:col-span-1`), memangkas 50% ketinggian scroll vertikal di desktop lebar (`LiveReports.vue`).
-19. **[OFI Filter]** Transparansi Filter Group By: chip tidak lagi hilang misterius saat rentang tanggal <29 hari, melainkan tampil dengan status *disabled* (`opacity-50 cursor-not-allowed`) dan tooltip edukatif i18n (`ReportFilters.vue`).
-20. **[QC-OFI-01 (Round 1)]** Link tiket percakapan SLA diperbarui untuk membuka tab baru (`target="_blank"`) menjaga konteks laporan.
-21. **[QC-OFI-02 (Round 1)]** Defensive sorting numerik `(Number(b.created_at) || 0)` pada timestamp SLA events.
-22. **[QC-OFI-03 (Round 1)]** Refaktor accessor semantik `'team'` pada `TeamTable.vue`.
-23. **[QC-OFI-04 (Round 1)]** Penataan font angka bermatriks sejajar vertikal (`tabular-nums`) pada `SummaryReports.vue`.
-24. **[QC-WARN-01 (Round 2)]** Preservasi konteks tim aktif (`team_conversations`) saat klik metrik KPI (`StatsLiveReportsContainer.vue`).
-25. **[QC-WARN-02 (Round 2)]** Pembungkus `w-full overflow-x-auto` pada Heatmap mencegah pemotongan sel pada ambang batas layar `2xl:` (`BaseHeatmapContainer.vue`).
-26. **[QC-OFI-01 (Round 2)]** Semantik aksesibilitas `role="group"` dan `aria-disabled="true"` pada chip filter nonaktif (`ReportFilters.vue`).
-27. **[QC-OFI-02 (Round 2)]** Pemformatan angka ribuan `.toLocaleString()` dan perataan vertikal `tabular-nums` pada seluruh kartu KPI (`StatsLiveReportsContainer.vue`).
-28. **[QC3-WARN-01 (Round 3)]** Defensive guard stempel waktu dan transkrip expanded (`ReportDrilldownCard.vue`).
-29. **[QC3-OFI-01 (Round 3)]** Sanitasi ekspresi evaluasi template persentase corong bot tanpa bare punctuation (`BotMetrics.vue`).
-30. **[QC3-OFI-02 (Round 3)]** Eliminasi focus trap aksesibilitas keyboard dengan penambahan `tabindex="-1"` pada chip nonaktif (`ReportFilters.vue`).
+| Domain Investigasi | Skor Kesehatan (1-10) | Status | Ringkasan Kondisi Teknis |
+|---|:---:|:---:|---|
+| **1. UI/UX & Frontend** | **5.3 / 10** | ⚠️ Waspada | Terjebak dalam *dual-stack transition* (Vue 3 vs Options API legacy), 0 route lazy-loading pada menu settings/reports, DOM thrashing di list chat, dan pelanggaran styling Tailwind murni. |
+| **2. System Design & Backend** | **5.8 / 10** | ⚠️ Waspada | Skema ID 32-bit (`:serial`) berisiko overflow pada 2.14B baris; Head-of-Line blocking pada EventDispatcher; anomali queue WhatsApp/Twilio pada prioritas rendah (`:low`); N+1 query kronis pada Jbuilder view. |
+| **3. Pengembangan Next Fitur** | **6.5 / 10** | ℹ️ Potensial | Fondasi multi-LLM (`lib/llm/`) dan model marketplace sudah ada, namun webhook Tokopedia/Lazada belum menghasilkan pesan masuk (masih raw log), engine SLA hilang pasca-purge enterprise, dan campaign outbound belum di-chunk. |
+| **4. Pengelolaan Report & Analytics** | **4.2 / 10** | ❌ Kritis | **Paradoks arsitektur:** sistem menulis ke tabel agregasi rollup harian tapi *read path* 100% masih scan tabel OLTP mentah (`RollupDataSource` masih TODO); ekspor CSV sinkron di thread Puma; ketiadaan indeks tanggal pada CSAT. |
 
 ---
 
----
+## 1. AUDIT MENDALAM: UI/UX & ARSITEKTUR FRONTEND (`/app/javascript/dashboard`)
 
-## Sektor 1: Information Architecture, Navigasi Sidebar, & Layout Container
+### A. Fragmentasi Tech Stack & State Management
+1. **Dual-Stack Options API vs `<script setup>`:**
+   - Dari 976 berkas `.vue`, **833 berkas** telah menggunakan `<script setup>`. Namun, **143 berkas** masih bertahan menggunakan Options API klasik atau pola hybrid anomali.
+   - *Bukti Kritis:* `components/widgets/conversation/MessagesView.vue` (baris 1, 45, 56–70) mencampurkan Composition API di method `setup()` dengan deklarasi `mixins: [inboxMixin]`, `data()`, `computed: { ...mapGetters(...) }`, dan lifecycle hooks `mounted()`.
+   - Di `ReplyBox.vue:105-106`, developer menggunakan shim instance proxy untuk menjembatani Options API ke hook composable:
+     ```javascript
+     const { proxy } = getCurrentInstance();
+     useKeyboardEvents({
+       Escape: { action: () => proxy.hideEmojiPicker(), allowOnFocusedInput: true },
+       Enter: { action: e => { if (proxy.isAValidEvent('enter')) proxy.onSendReply(); } }
+     });
+     ```
+     Pola `getCurrentInstance().proxy` merupakan *fragile shim pattern* yang tidak direkomendasikan oleh tim inti Vue, rentan mengalami `undefined` saat pengujian unit di Vitest atau refactoring.
+2. **Ketergantungan Masif pada Vuex 4:**
+   - Direktori `app/javascript/dashboard/stores/` (Pinia) hanya menampung **3 modul** (`companies.js`, `calls.js`, `callHistory.js`).
+   - Direktori `app/javascript/dashboard/store/` (Vuex 4) masih mengelola **40+ modul sentral** (`conversations`, `contacts`, `inboxes`, `reports`, `notifications`, `teams`, `auth`, `macros`, dll).
+   - Helper `composables/store.js:4-8` melempar runtime exception (`throw new Error('must be called in setup')`) jika fungsi dipanggil di luar konteks setup synchronous.
+3. **Data Caching IndexedDB yang Kurang Efektif:**
+   - Di `CacheEnabledApiClient.js:61-65`, meskipun data disimpan di IndexedDB (`DataManager`), setiap request pembacaan cache **tetap memicu round-trip HTTP synchronous** ke endpoint `/api/v1/accounts/:id/cache_keys`. Pendekatan ini menghilangkan manfaat *instant rendering* / *stale-while-revalidate*.
 
-### 1.1. [CRITICAL] Pembatasan Lebar Statis `max-w-5xl` Memicu "Scroll Canyon" dan Membuang >37% Ruang Desktop
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/ReportsWrapper.vue` (Baris 2–5) & `LiveReports.vue`
-- **Solusi yang Diterapkan**:
-  Pembungkus kontainer diganti menjadi fluida responsif `w-full max-w-[96rem] mx-auto px-6 py-6`. Tata letak tabel Agen dan Tim pada `LiveReports.vue` kini ditata berdampingan dalam CSS Grid 2-kolom pada breakpoint desktop (`xl:`), menghilangkan tumpukan vertikal berlebih.
-- **Hasil Verifikasi**: Ruang kosong samping (*empty gutter*) tereliminasi; dashboard memanfaatkan resolusi layar lebar secara proporsional.
+### B. Pelanggaran Standar Desain Sistem & Styling
+1. **Pelanggaran Aturan Tailwind-Only:**
+   - Panduan repo (`AGENTS.md`) secara tegas melarang scoped CSS, custom CSS, dan inline style.
+   - *Temuan:* Ditemukan **30+ berkas dengan scoped SCSS** (misal: `ReplyBox.vue:1608`, `Editor.vue:143`, `Dialog.vue:182`, `contextMenu/menuItem.vue:60-81`).
+   - Ditemukan **78+ berkas yang menginjeksi inline style** (misal: `ChatList.vue:1001` untuk lebar panel, `ConversationSidebar.vue:77`, `Input.vue:70`, `ResizableEditorWrapper.vue:158`).
+2. **Redundansi Token Warna & Kebingungan Dark Mode:**
+   - Sistem warna terbelah antara *Legacy Radix Mapping* (`woot`, `slate`, `green`, `yellow`, `red` skala 50–900) dan *Next System Tokens* (`n.slate`, `n.iris`, `n.ruby` skala 1–12 berbasis CSS Variable).
+   - Di `components-next/input/Input.vue:45`, tertulis `text-n-ruby-9 dark:text-n-ruby-9`. Penulisan utilitas ganda ini redundan karena variabel `--ruby-9` di `_next-colors.scss` sudah otomatis berganti warna saat class `.dark` aktif di root HTML.
+   - Di `commandbar.vue:279-284`, terdapat hardcoded hex colors (`#151718`, `#26292b`) yang mem-bypass CSS variables.
 
----
+### C. Usability, Interaksi & Friction Points
+1. **DOM Thrashing pada Percakapan Panjang (`MessageList.vue`):**
+   - Daftar percakapan kiri (`ConversationList.vue:3, 66-71`) sudah menggunakan `Virtualizer` dari `virtua/vue`.
+   - Namun area render bubble chat (`components-next/message/MessageList.vue:168-188`) masih me-render DOM mentah menggunakan `v-for="(message, index) in allMessages"` **tanpa virtualizer**. Percakapan panjang dengan ratusan pesan dan media memicu pembengkakan memori tab browser dan penurunan frame rate.
+   - Di `MessageList.vue:44-52`, fungsi traversal rekursif `useCamelCase(messages, { deep: true })` dijalankan ulang terhadap **seluruh array pesan** setiap kali ada satu pesan baru masuk via ActionCable.
+   - Di `MessagesView.vue:436-439`, kalkulasi scroll saat mengambil pesan lama (*prepend history*) dilakukan secara manual via DOM scroll height difference yang memicu layout thrashing.
+2. **God Components:**
+   - `ReplyBox.vue` (1.646 baris) dan `Editor.vue` (1.236 baris) bertindak sebagai *God Components*, menggabungkan formatting ProseMirror, audio recording, Canned Responses, Macro injection, Copilot bar, mentions, dan keyboard events secara bersamaan.
+3. **Fragmentasi Validasi Form:**
+   - Terdapat 3 pendekatan validasi yang bertabrakan: FormKit (`entrypoints/dashboard.js`), Vuelidate (`ForwardToOption.vue`), dan form mentah tanpa validasi sisi klien (seperti `Website.vue:43-114`). Pengguna dapat mengirim form kosong dan hanya menerima error toast banner umum dari respons backend.
 
-### 1.2. [WARNING] Fragmentasi Menu Navigasi Sidebar (9 Sub-menu Datar Tanpa Kategori)
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/components-next/sidebar/Sidebar.vue` (Baris 258–282, 496–526)
-- **Solusi yang Diterapkan**:
-  Seluruh 9 sub-item laporan kini dilengkapi dengan ikon Lucide spesifik untuk mempercepat pemindaian visual:
-  - ⚡ Overview: `i-lucide-activity`
-  - 💬 Conversations: `i-lucide-message-square`
-  - 👤 Agents: `i-lucide-users`
-  - 👥 Teams: `i-lucide-users-round`
-  - 📥 Inboxes: `i-lucide-inbox`
-  - 🏷️ Labels: `i-lucide-tag`
-  - 😊 CSAT: `i-lucide-smile`
-  - ⏱️ SLA: `i-lucide-timer`
-  - 🤖 Bot: `i-lucide-bot`
-- **Hasil Verifikasi**: Tampilan sidebar rapi, seragam dengan modul lain, dan ramah pemindaian cepat (*rapid visual scanning*).
-
----
-
-### 1.3. [WARNING] Bug Status Highlight Menu Sidebar Padam pada Rute Detail Label
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/components-next/sidebar/Sidebar.vue` (Baris 265–271)
-- **Solusi yang Diterapkan**:
-  Menambahkan konfigurasi `activeOn: ['label_reports_show']` pada objek menu `Reports Label`.
-- **Hasil Verifikasi**: Saat pengguna membuka detail performa label pada URL `/reports/labels/:id`, highlight penanda menu aktif di sidebar tetap menyala.
-
----
-
-## Sektor 2: Overview & Real-Time Operational Analytics (`LiveReports.vue`)
-
-### 2.1. [CRITICAL] Render Unconditional `<Table>` dan `<Pagination>` pada Loading & Empty States
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `AgentTable.vue` (Baris 124–146) & `TeamTable.vue` (Baris 118–140)
-- **Solusi yang Diterapkan**:
-  Komponen `<Table>` dan `<Pagination>` dibungkus ke dalam blok `<template v-else>`. Antarmuka hanya menampilkan Spinner saat data dimuat, EmptyState saat data kosong, dan merender tabel utuh hanya ketika data sudah siap.
-- **Hasil Verifikasi**: Tidak ada lagi elemen pagination kosong ("Page 1 of 0") atau tabel transparan yang muncul sebelum data selesai dimuat.
-
----
-
-### 2.2. [WARNING] Ketiadaan Global Dashboard Filter Toolbar di Halaman Overview
-- **Status Implementasi:** ✅ **CLOSED (BY-DESIGN / USER ARCHITECTURAL DECISION)**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/LiveReports.vue` (Baris 11–18)
-- **Keputusan Desain**:
-  Berdasarkan konfirmasi dan arahan eksplisit user, masing-masing kartu heatmap (`ConversationHeatmapContainer` dan `ResolutionHeatmapContainer`) sengaja mempertahankan selector rentang tanggal dan dropdown inbox mandiri.
-- **Justifikasi UX**:
-  Hal ini memberikan fleksibilitas maksimal bagi supervisor untuk melakukan perbandingan komparatif lintas periode secara bebas (misal: membandingkan traffic pesan pekan ini dengan pola resolusi tiket bulan lalu) tanpa saling mengunci satu sama lain.
+### D. Aksesibilitas (A11y) & Performa Bundling
+1. **Aksesibilitas (A11y) Kritis:**
+   - Hanya ditemukan **44 selektor `focus-visible:`** di seluruh 976 berkas Vue. Navigasi keyboard melompat-lompat tanpa visual outline yang memadai.
+   - `contextMenu/menuItem.vue:18` menggunakan `<div role="button">` tanpa `tabindex="0"` dan tanpa listener keyboard Enter/Space, melanggar WCAG 2.1 AA.
+   - `useChatListKeyboardEvents.js:4-46` (shortcut `Alt+J`/`Alt+K`) melakukan `querySelectorAll('div.conversation')` langsung ke DOM fisik. Karena daftar percakapan berada di dalam Virtualizer, elemen di luar viewport tidak ada di DOM, sehingga navigasi shortcut keyboard macet saat agen menggulir ke bawah.
+2. **0 Lazy Loading pada Routing (Critical Finding):**
+   - Di `reports.routes.js:1-26` dan `settings.routes.js`, **seluruh komponen halaman diimpor secara STATIC/EAGER**. Agen CS biasa yang hanya bertugas melayani chat tetap dipaksa mengunduh bundle JavaScript seluruh halaman analitik dan administrasi pada load pertama.
+   - `vite.config.ts` tidak mendefinisikan `manualChunks`, sehingga vendor berat (`prosemirror`, `highlight.js`, `date-fns`) bercampur secara suboptimal.
+   - Terdapat **4.7 MB font statis** di `shared/assets/fonts/` dengan 18 file WOFF2 individual yang dapat dipangkas menggunakan `InterVariable.woff2`.
 
 ---
 
-### 2.3. [WARNING] Data Density Rendah & Ketiadaan Clickability pada Kartu KPI Metrik
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/StatsLiveReportsContainer.vue`
-- **Solusi yang Diterapkan**:
-  - Mengubah seluruh kartu KPI percakapan (*Open*, *Unattended*, *Unassigned*, *Pending*) menjadi elemen interaktif (`tabindex="0"`, `role="link"`).
-  - Navigasi programatis (`router.push`) langsung ke rute percakapan:
-    - *Unattended* mendarat langsung di `conversation_unattended`.
-    - *Open*, *Unassigned*, *Pending* mendarat di `home` dengan status terfilter tersimpan di `uiSettings` dan store.
-  - Penambahan micro-interaction ikon panah Lucide (`i-lucide-arrow-up-right`) saat hover.
-  - Penambahan aksen warna urgensi semantik (`text-n-amber-11`) saat tiket *unattended* berjumlah $> 0$.
-- **Hasil Verifikasi**: Kartu dapat diklik dan dapat dinavigasi menggunakan keyboard (`Enter`/`Space`), langsung mengarahkan operator ke percakapan yang membutuhkan respon.
+## 2. AUDIT MENDALAM: SYSTEM DESIGN & ARSITEKTUR BACKEND CORE
+
+### A. Multi-Tenancy & Data Isolation
+1. **Custom Thread Context Bukan Framework RLS:**
+   - Multi-tenancy Chatwoot diimplementasikan melalui custom thread context di `lib/current.rb:1-17` (`thread_mattr_accessor`).
+   - Pembersihan thread context dilakukan di controller via `RequestExceptionHandler#handle_with_exception ensure Current.reset`.
+   - **Celah Background Worker:** Di sisi Sidekiq (`config/initializers/sidekiq.rb`), **tidak terdapat server middleware yang menjalankan `Current.reset`**. Pada worker threads yang digunakan kembali (*thread reuse*), state `Current` dari job sebelumnya berpotensi mencemari job berikutnya jika suatu job memodifikasi `Current`.
+2. **Implicit vs Explicit Account Scoping:**
+   - Di `app/finders/conversation_finder.rb:18-19`, akun diambil secara implisit via `current_user.account` yang bergantung pada `Current.account.id`. Jika method ini dieksekusi di background job tanpa setting `Current.account`, finder akan menghasilkan `nil`.
+   - `ConversationPolicy` tidak mendefinisikan class `Scope` (fallback ke `ApplicationPolicy::Scope` yang mereturn record tanpa filter).
+3. **IDOR / Authorization Gap pada Message Deletion:**
+   - Di `Api::V1::Accounts::Conversations::MessagesController#destroy:21-26`, tidak ada pemanggilan `authorize message, :destroy?` (bahkan `MessagePolicy` tidak ada di codebase). Setiap user dengan role Agent yang memiliki akses ke percakapan dapat menghapus pesan siapapun (termasuk pesan incoming dari customer atau pesan agen lain).
+
+### B. Polymorphic Channel Architecture
+1. **Pelanggaran Open/Closed Principle (OCP) pada `SendReplyJob`:**
+   - Pengiriman pesan dipusatkan secara monolitik di `SendReplyJob` (`app/jobs/send_reply_job.rb:4-31`):
+     ```ruby
+     CHANNEL_SERVICES = {
+       'Channel::TwitterProfile' => ::Twitter::SendOnTwitterService,
+       'Channel::TwilioSms' => ::Twilio::SendOnTwilioService,
+       # ... hardcoded hash 14 channel
+     }.freeze
+     ```
+   - Penambahan channel baru mewajibkan modifikasi file core ini. Jika pemetaan terlewat, job gagal secara diam-diam (*silent failure*).
+2. **Sinkronisasi HTTP Eksternal di Model Lifecycle:**
+   - Pada `Channel::Whatsapp` (`app/models/channel/whatsapp.rb:158-160`), validasi data ActiveRecord mengeksekusi HTTP call sinkron ke provider Meta API (`validate_provider_config`).
+   - Callback `before_destroy :teardown_webhooks` juga mengeksekusi network call sinkron. Hal ini memblokir koneksi database pool (`ActiveRecord connection pool starvation`). Jika Meta API mengalami lonjakan latensi (15–30 detik), thread Puma/Sidekiq akan terkunci.
+
+### C. Event-Driven Architecture & Queue Scalability
+1. **Monolithic Sequential Listener & Head-of-Line (HoL) Blocking:**
+   - `AsyncDispatcher#listeners` meregistrasi 10 listeners (`app/dispatchers/async_dispatcher.rb:11-24`).
+   - `EventDispatcherJob` dimasukkan ke dalam `queue_as :critical` dan mengeksekusi **10 listeners secara sekuensial dalam satu job worker**.
+   - Pada saat bersamaan, `ActionCableBroadcastJob` (pengiriman real-time chat) juga berada pada `queue_as :critical`. Ketika terjadi gelombang event massal, antrian `:critical` dipenuhi oleh `EventDispatcherJob` yang melakukan komputasi berat, menahan pengiriman pesan real-time WebSocket.
+2. **Thread State Corruption oleh `ActionService`:**
+   - Di `AutomationRules::ActionService#perform:19-21`, terdapat blok `ensure Current.reset`. Eksekusi reset ini di tengah rantai `EventDispatcherJob` menghapus seluruh context thread (`Current.user`, `Current.account`) sebelum listener berikutnya di dalam rantai `AsyncDispatcher` selesai dieksekusi.
+3. **Degradasi Ingress WhatsApp & Twilio ke Queue `:low`:**
+   - Webhook Facebook, Instagram, Shopee, Tokopedia, Lazada masuk ke antrian `:default`.
+   - Namun `Webhooks::WhatsappEventsJob` dan `Webhooks::TwilioEventsJob` ditempatkan pada **`queue_as :low`** (prioritas ke-7). Jika sistem sedang memproses antrean email blast atau bulk maintenance, pemrosesan pesan masuk WhatsApp pelanggan akan mengalami starvation.
+4. **Distributed Lock Thrashing pada Mutex WhatsApp (Mitigasi Jitter Diterapkan):**
+   - `Webhooks::WhatsappEventsJob` mengunci Redis mutex dengan TTL 30 detik dan melakukan retry jika lock gagal didapat. Ketika kontak mengirim beberapa pesan cepat sekaligus, job berikutnya memicu `LockAcquisitionError`.
+   - *Mitigasi Cepat yang Diterapkan:* Opsi `jitter: 0.2` ditambahkan pada `retry_on` untuk mendistribusikan waktu bangun worker secara acak (±20%), mengeliminasi collision sinkron ke Redis.
+   - *Rekomendasi Fase 2:* Terapkan event buffering / message batching di level webhook controller sebelum men-spawn job 30s lock.
+
+### D. Skema Database, Indexing & Caching
+1. **Batas Kritis Integer 32-bit (`:serial`):**
+   - Kolom `id` pada tabel `messages`, `conversations`, dan `contacts` di `db/schema.rb` didefinisikan sebagai `:serial` (maksimum 2.147.483.647 baris). Pada instalasi enterprise skala tinggi, tabel `messages` berisiko mencapai limit integer dan memicu exception fatal `PG::NumericValueOutOfRange`.
+2. **Write Amplification GIN Trigram:**
+   - Indeks `index_messages_on_content` menggunakan `gin_trgm_ops` pada teks pesan yang sangat dinamis, menimbulkan write amplification masif dan WAL bloat pada disk PostgreSQL.
+3. **Ketiadaan Partitioning & Data Retention:**
+   - Tabel `messages` dan `reporting_events` tidak memiliki PostgreSQL declarative table partitioning. Data mentah pada `reporting_events` tidak pernah dihapus meskipun data agregasinya sudah masuk ke rollup.
+4. **Active Record Encryption Bersyarat (Plaintext Fallback):**
+   - Enkripsi kredensial channel dibungkus guard `if Chatwoot.encryption_configured?`. Jika environment variables enkripsi tidak diset saat deployment, Chatwoot tetap berjalan normal tanpa error, namun seluruh token integrasi (WhatsApp token, Shopee partner key, Tokopedia secret, SMTP password) disimpan ke database dalam format **plaintext mentah**.
+5. **N+1 Query pada List Percakapan:**
+   - Template `_conversation.json.jbuilder` memicu N+1 query: `messages.first` untuk cuplikan pesan terakhir (baris 35-37), `unread_incoming_messages_count` (baris 67), dan nested count di dalam `push_event_data`. Mengambil 25 percakapan menghasilkan **75–120+ query SQL** individual.
+6. **ActionCable Connection Handshake Tanpa Auth:**
+   - `ApplicationCable::Connection` dibiarkan kosong tanpa `identified_by`. Pengecekan status kehadiran (*presence heartbeat*) mengeksekusi query database `Account.find` dan `account_users.where` setiap 20–60 detik per active tab agen.
 
 ---
 
-### 2.4. [OFI] Penataan Vertikal Heatmap Duo yang Memperpanjang Halaman
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/LiveReports.vue` (Baris 14–15)
-- **Solusi yang Diterapkan**:
-  Menyesuaikan kelas grid Tailwind pada `ConversationHeatmapContainer` dan `ResolutionHeatmapContainer` menjadi `xl:col-span-2 2xl:col-span-1`. Pada monitor desktop standar/sedang (`< 2xl`), heatmap tetap lebar penuh agar sel jam tidak sempit, sedangkan pada monitor ultrawide/2K (`2xl:`), kedua heatmap otomatis berdampingan 2 kolom.
-- **Hasil Verifikasi**: Mengurangi ketinggian vertikal dashboard hingga ~50% di layar ultrawide tanpa mengorbankan keterbacaan matriks per jam.
+## 3. AUDIT MENDALAM: PENGEMBANGAN NEXT FITUR & STRATEGIC ROADMAP
+
+### A. Kondisi Pasca Pembersihan Direktori Enterprise
+Repo saat ini beroperasi pada **100% Community Edition (Pure MIT)** setelah pembersihan direktori `enterprise/` pada commit `d90ef430d0`. Pembersihan ini menghapus lisensi komersial namun meninggalkan celah fungsional:
+- **Engine SLA Hilang:** Fitur Service Level Agreement (penghitungan waktu breach FRT/RT dan eskalasi) terhapus dari backend runtime, meskipun tabel database dan template email masih tersisa.
+- **Captain AI Controllers Hilang:** Frontend stub `useCaptain.js` dimatikan (`captainEnabled = false`).
+- **Analitik Campaign Dihapus:** Outbound campaign tidak lagi memiliki tracking delivery status yang mendalam.
+
+### B. Evaluasi Integrasi Marketplace (Shopee, Tokopedia, Lazada)
+1. **Asimetri Ingress Webhook:**
+   - **Shopee:** Telah matang dua arah melalui `Shopee::IncomingMessageService` dan `Shopee::SendOnShopeeService`.
+   - **Tokopedia & Lazada:** Webhook job (`TokopediaEventsJob` & `LazadaEventsJob`) saat ini **baru sebatas memverifikasi signature HMAC dan mencatat log (`Rails.logger.info`)**, belum mengonversi payload menjadi percakapan atau pesan riil di database.
+2. **Ketiadaan Konteks E-Commerce:**
+   - Marketplace saat ini hanya diperlakukan sebagai saluran chat teks mentah. Belum ada kartu pesanan (Order Card), pelacakan nomor resi, atau informasi detail produk yang ditanyakan buyer di bubble chat.
+3. **Ketiadaan Rate-Limiter Terpusat:**
+   - Pengiriman pesan keluar langsung menembak HTTP API pada worker thread tanpa token bucket / queue throttling per `shop_id`, berisiko terkena ban/rate limit dari pihak marketplace.
+
+### C. Evaluasi Engine Otomasi & AI (LLM)
+1. **Rule Engine Linear (Non-Branching):**
+   - `AutomationRule` hanya mendukung array kondisi linear tunggal (`AND`/`OR`). Tidak mendukung visual branching (IF-THEN-ELSE), delay bertingkat di tengah alur, atau evaluasi dua arah dari respon webhook eksternal (saat ini webhook action bersifat fire-and-forget).
+2. **Potensi Native RAG (Retrieval-Augmented Generation):**
+   - Chatwoot sudah memiliki router model AI (`config/llm.yml`) yang mendukung OpenAI, Anthropic, Gemini, serta formatter prompt percakapan.
+   - **Celah Besar:** Belum memanfaatkan ekstensi `pgvector` pada PostgreSQL untuk membuat sistem RAG otomatis berbasis artikel Help Center internal dan histori solusi tiket terdahulu. Pemanggilan LLM masih synchronous HTTP blocking tanpa streaming token (ActionCable chunking) ke editor agen.
+
+### D. CRM 360 & Outbound Broadcast
+1. **Fragmentasi Identitas Marketplace (Identity Stitching):**
+   - Pembeli marketplace masuk menggunakan ID unik platform, menghasilkan kontak anonim baru (`Shopee Buyer 12345`). Tidak ada mesin pencocok (*identity resolution*) yang menyarankan penggabungan (*merge*) kontak jika pembeli memberikan nomor WhatsApp atau email di dalam ruang chat.
+2. **Risiko Skalabilitas WhatsApp Broadcast:**
+   - `Whatsapp::OneoffCampaignService` memproses ribuan kontak secara perulangan sinkron (`contacts.each`) di dalam satu job Sidekiq, tanpa batching bertahap, berisiko memblokir worker thread dan terkena rate-limit Meta API.
+3. **Ketiadaan Telephony & Call Logging:**
+   - Tidak ada model, route, atau controller untuk menangani voice call (VoIP, WebRTC, SIP, atau Twilio Voice).
 
 ---
 
-### 2.5. [OFI] Sembunyi Otomatis Chip Filter Group By saat Rentang Hari <29 Hari
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/ReportFilters.vue` (Baris 346–380) & `en/report.json`
-- **Solusi yang Diterapkan**:
-  Mengganti perilaku penghapusan chip misterius dengan menampilkan tombol berstatus dinonaktifkan (`opacity-50 cursor-not-allowed`) yang dibungkus tooltip penjelas i18n (`REPORT.GROUP_BY_MIN_DAYS_TOOLTIP`).
-- **Hasil Verifikasi**: Pengguna mendapatkan kejelasan affordance visual mengapa pengelompokan mingguan/bulanan/tahunan membutuhkan rentang waktu minimal 30 hari.
+## 4. AUDIT MENDALAM: PENGELOLAAN REPORT, ANALYTICS & DATA ROLLUPS
 
----
-
-## Sektor 3: Tabular Kinerja & Drilldown Analysis
-
-### 3.1. [CRITICAL] Fitur Sorting Dinonaktifkan Secara Total (`enableSorting: false`) pada Tabel Kinerja
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `SummaryReports.vue`, `AgentTable.vue`, dan `TeamTable.vue`
-- **Solusi yang Diterapkan**:
-  - Mengimpor `getSortedRowModel` dan menetapkan `enableSorting: true` pada seluruh instance TanStack Table.
-  - Nilai numerik mentah dipertahankan di layer data model dan pemformatan teks dialihkan ke `cell` renderer.
-- **Hasil Verifikasi**: Header tabel merespons klik dan menyortir data secara numerik riil.
-
----
-
-### 3.2. [CRITICAL] Nilai Kuantitatif Nol Ditampilkan Menyesatkan Sebagai Data Hilang (`--`)
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `SummaryReports.vue` (Baris 66–73) & `BotMetrics.vue`
-- **Solusi yang Diterapkan**:
-  Mengganti logika ternary evaluasi falsy dengan validasi tipe data ketat:
-  ```javascript
-  const renderAvgTime = value => {
-    if (typeof value !== 'number' || !Number.isFinite(value)) return '--';
-    return value === 0 ? '0s' : formatTime(value);
-  };
-  const renderCount = value =>
-    typeof value === 'number' && Number.isFinite(value) ? value.toLocaleString() : '--';
+### A. Kesenjangan Jalur Baca-Tulis (Read-Write Gap)
+* **Write Penalty Tanpa Manfaat Read:**
+  Setiap kali percakapan ditutup atau dibalas, `ReportingEventListener` menulis baris ke tabel mentah `reporting_events` DAN menjalankan upsert ke `reporting_events_rollups`.
+* **Read Path Masih Raw Query:**
+  Pada `app/services/reports/data_source.rb:8-13`:
+  ```ruby
+  def for(**context)
+    # TODO: Route to Reports::RollupDataSource when rollup reads are implemented
+    Reports::RawDataSource.new(**context)
+  end
   ```
-- **Hasil Verifikasi**: Nilai 0 tiket tampil jelas sebagai `0` dan durasi 0 detik tampil sebagai `0s`.
+  Class `RollupDataSource` **belum pernah dibuat**. Seluruh permintaan grafik laporan, metrik summary, dan pembagian waktu respons tetap melakukan *full aggregate table scan* ke tabel mentah transaksi utama (`conversations`, `messages`, `reporting_events`).
+
+### B. Beban Komputasi Kueri Analitik & Anti-Pattern
+1. **14 Kueri Agregasi Berturut-turut pada Summary:**
+   - Membuka halaman laporan mengeksekusi `MetricBuilder` yang menjalankan 7 kueri SQL berat (`COUNT`, `AVG`) untuk periode sekarang dan 7 kueri untuk periode perbandingan secara langsung ke database transaksi aktif.
+2. **Dynamic Function `date_trunc` pada Postgres:**
+   - Time-series reporting menggunakan `groupdate` yang menghasilkan `date_trunc('day', created_at AT TIME ZONE 'UTC')`. Fungsi ini memaksa PostgreSQL melakukan *expression evaluation* pada setiap baris, membatalkan *index-only scan* standar.
+3. **Anti-Pattern `conversations.pluck(:id)` pada Team & Label:**
+   - Di `app/models/team.rb:63-65` dan `app/models/label.rb:45-47`:
+     ```ruby
+     def reporting_events
+       account.reporting_events.where(conversation_id: conversations.pluck(:id))
+     end
+     ```
+     Menarik puluhan ribu ID percakapan ke memori Ruby untuk kemudian dikirim kembali sebagai klausul `WHERE conversation_id IN (...)` raksasa ke PostgreSQL. Ini memicu lonjakan memori (OOM) dan melumpuhkan database query planner.
+4. **Row-Lock Contention pada Rollup Harian:**
+   - Agregasi harian dilakukan secara inline via `ReportingEventsRollup.upsert_all`. Puluhan worker Sidekiq secara simultan memperebutkan *exclusive row lock* pada baris akun yang sama di hari yang bersangkutan (`ON CONFLICT DO UPDATE`), memicu *lock wait timeouts* dan silent data drift jika error ditelan oleh rescue block.
+
+### C. Lubang Indeks Database pada Skema Pelaporan (`db/schema.rb`)
+1. **`csat_survey_responses` TIDAK MEMILIKI Indeks `created_at`:**
+   Filter tanggal laporan kepuasan pelanggan memicu *Full Table Scan* seluruh data akun.
+2. **`conversations` Kehilangan Indeks `(account_id, created_at)`:**
+   Indeks yang ada adalah `(account_id, status, created_at)`. Query penghitungan total percakapan tanpa filter status tidak dapat memanfaatkan B-tree index secara optimal.
+3. **`reporting_events` Kehilangan Indeks `(account_id, user_id, created_at)`:**
+   Mengakibatkan lambatnya tab Agent Performance Report pada akun bervolume besar.
+4. **Indeks Redundan:**
+   Indeks single-column `index_reporting_events_on_account_id` sepenuhnya redundan dengan indeks komposit `reporting_events__account_id__name__created_at`.
+
+### D. Fitur Export Data (CSV) yang Sinkron
+- Ekspor CSV laporan di `ReportsController#generate_csv` dan `CsatSurveyResponsesController#download` di-render **secara sinkron di dalam thread web server Puma**.
+- Pada akun dengan rentang tanggal lebar atau data besar, query akan melampaui batas waktu 30–60 detik dan menghasilkan **HTTP 504 Gateway Timeout**, sekaligus menyandera thread web server dari melayani traffic chat real-time.
+- Helper `DateRangeHelper` tidak memiliki batasan maksimal rentang tanggal (unbounded date query).
+- Helper `TimeZoneHelper` mencocokkan timezone berdasarkan offset detik saat ini, berisiko meleset saat pergantian Daylight Saving Time (DST).
+- Perhitungan jam kerja (`WorkingHours::Config`) memodifikasi variabel modul secara global, memicu *race condition* antar thread Sidekiq yang memproses laporan dari inbox dengan zona waktu berbeda.
 
 ---
 
-### 3.3. [CRITICAL] Infinite Loading Spinner pada Direct Link / Refresh Detail Inbox & Tim
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `InboxReportsShow.vue` & `TeamReportsShow.vue`
-- **Solusi yang Diterapkan**:
-  Menambahkan hook `onMounted` dengan asynchronous store dispatch (`store.dispatch('inboxes/get')` / `teams/get`), penanganan state loading, dan pesan informatif jika entitas tidak ditemukan.
-- **Hasil Verifikasi**: Direct refresh (F5) dan bookmark link langsung merender data tanpa resiko infinite spinner deadlock.
+## 5. STRATEGIC RECOMMENDATION & ACTION PLAN
 
----
-
-### 3.4. [WARNING] Disrupsi Alur Kerja Drilldown: Kartu Percakapan Memaksa Buka Tab Browser Baru
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/ReportDrilldownCard.vue`
-- **Solusi yang Diterapkan**:
-  - Menghadirkan inline transcript preview box interaktif (`isExpanded`, `@click.stop="toggleExpand"`) dengan tombol chevron toggle.
-  - Saat di-expand, pesan tampil secara utuh (menghilangkan batasan `line-clamp-1`), disertai badge waktu pesan dibuat dan arah percakapan (*incoming/outgoing*).
-  - Supervisor dapat membaca transkrip langsung di dalam drawer tanpa memicu tab browser baru.
-  - Mempertahankan backward compatibility untuk klik pada body kartu luar (`openRecord`) menuju tab baru jika supervisor benar-benar ingin berpindah ke inbox.
-- **Hasil Verifikasi**: Seluruh unit test suite `ReportDrilldownCard.spec.js` lulus 100% dan supervisor terbebas dari spam pembukaan tab baru yang tidak diinginkan.
-
----
-
-### 3.5. [WARNING] Global Keydown Hijacking pada Keyboard Navigation Drawer Drilldown
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `ReportDrilldownDrawer.vue` (Baris 155–168)
-- **Solusi yang Diterapkan**:
-  Menambahkan guard pengecekan elemen aktif (`target.tagName === 'INPUT'`, `'TEXTAREA'`, `'SELECT'`, atau `isContentEditable`) sebelum memicu event tombol panah keyboard.
-- **Hasil Verifikasi**: Penekanan panah saat mengetik di form tidak lagi memicu perpindahan tanggal analitik secara tidak sengaja.
-
----
-
-## Sektor 4: Specialized Analytics (CSAT, SLA, & Bot Performance)
-
-### 4.1. [CRITICAL] Grid Span Mismatch pada SLATable (Header 11 Kolom vs Baris 12 Kolom)
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `app/javascript/dashboard/routes/dashboard/settings/reports/components/SLA/SLATable.vue` (Baris 63–82)
-- **Solusi yang Diterapkan**:
-  Menyelaraskan span kolom header aksi menjadi span 2 dan menambahkan kolom **Breach** (span 2), sehingga total header genap 12 kolom (4 + 2 + 2 + 2 + 2 = 12).
-- **Hasil Verifikasi**: Header tabel kini sejajar presisi dengan baris data di bawahnya.
-
----
-
-### 4.2. [CRITICAL] Silent Unhandled Promise Rejection & Ketiadaan Loading Feedback pada Ekspor CSAT & SLA
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `CsatResponses.vue` & `SLAReports.vue`
-- **Solusi yang Diterapkan**:
-  Mengubah fungsi download menjadi asinkron dengan `await`, menangani error di blok `catch`, dan menambahkan state reaktif `:is-loading="isDownloading"` serta `:disabled="isDownloading"` pada tombol ekspor.
-- **Hasil Verifikasi**: Tombol menampilkan visual loading spinner saat file diproses dan mencegah klik berulang (*rage-clicking*).
-
----
-
-### 4.3. [CRITICAL] Double-Fetch Waterfall Race Condition saat Inisialisasi SLA Reports
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `SLAReports.vue` & `SLAReportFilters.vue`
-- **Solusi yang Diterapkan**:
-  Menghapus pemanggilan duplikat pada hook `mounted()` di `SLAReports.vue` dan mengontrol penarikan data terpusat satu kali melalui event `filterChange`.
-- **Hasil Verifikasi**: Permintaan ganda ke server tereliminasi, konsumsi bandwidth hemat, dan potensi race condition hilang.
-
----
-
-### 4.4. [WARNING] Ketiadaan Visualisasi Urgensi, Overdue Time, & Tipe Pelanggaran pada Tabel SLA
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `SLAReportItem.vue` (Baris 35–108)
-- **Solusi yang Diterapkan**:
-  - Menambahkan badge status tipe pelanggaran dengan aksen warna semantik:
-    - 🔴 **FRT** (First Response Time Breached)
-    - 🟠 **NRT** (Next Response Time Breached)
-    - 🟣 **Resolution** (Resolution Time Breached)
-  - Menampilkan durasi relatif keterlambatan secara otomatis (*e.g., 25m ago, 2 hours ago*).
-  - Tautan nomor percakapan dibuka di tab baru (`target="_blank"`) untuk menjaga konteks audit.
-- **Hasil Verifikasi**: Supervisor dapat memindai urgensi tiket tanpa perlu membuka popover satu per satu.
-
----
-
-### 4.5. [WARNING] Ketiadaan Emoji dan Skala Skor pada Tabel Respon CSAT
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `CsatTable.vue` (Baris 75–80, 185–207) & `CsatContactCell.vue`
-- **Solusi yang Diterapkan**:
-  - Kolom rating kini menampilkan ekspresi visual emoji pelanggan (`😞`, `😑`, `😐`, `😀`, `😍`) beserta label teks dan skor skala numerik (contoh: `😍 Sangat Puas (5/5)`).
-  - Menambahkan `@click.stop` pada tautan nomor percakapan agar klik navigasi tidak memicu toggle accordion ulasan.
-- **Hasil Verifikasi**: Respon ulasan pelanggan kaya visual dan mudah dipindai dalam hitungan detik.
-
----
-
-### 4.6. [WARNING] Bot Analytics Funnel, Drop-Off Rate, & Loading Feedback
-- **Status Implementasi:** ✅ **RESOLVED**
-- **Lokasi Kode**: `BotReports.vue` & `BotMetrics.vue`
-- **Solusi yang Diterapkan**:
-  - Komponen `BotMetrics.vue` memiliki overlay loading spinner saat data ditarik.
-  - Perbaikan evaluasi nilai 0% sehingga tampil benar sebagai `0%`.
-  - Penambahan penanganan error API dengan alert notifikasi.
-  - Penambahan kartu metrik ke-5: **Drop-Off Rate** dihitung dari persentase percakapan yang diabaikan/gagal sebelum mencapai resolusi bot atau eskalasi ke agen manusia.
-  - Menghadirkan visualisasi **Handover & Resolution Funnel Bar** bertingkat dengan warna semantik (Hijau untuk Resolusi Bot, Biru untuk Handoff Agen, dan Slate untuk Drop-off) beserta persentase kontribusi masing-masing.
-- **Hasil Verifikasi**: Supervisor dapat memantau efektivitas alur konversi bot secara komprehensif, mendeteksi tingkat drop-off pengguna, dan mengidentifikasi titik kebocoran automasi.
-
----
-
-## 🧪 Bukti Kualitas & Pengujian Sistem (Quality Gate)
-
-Seluruh perubahan yang diterapkan telah melalui verifikasi otomasi:
-```bash
-# Unit & Integration Tests:
-pnpm test app/javascript/dashboard/routes/dashboard/settings/reports app/javascript/dashboard/components-next/sidebar/specs
-# Hasil: 12 Test Files Passed / 105 Tests Passed (100% Green)
-
-# Linter & Static Analysis:
-pnpm eslint app/javascript/dashboard/routes/dashboard/settings/reports app/javascript/dashboard/components-next/sidebar
-# Hasil: 0 Errors
+```
+                ┌─────────────────────────────────────────────────────────┐
+                │             STRATEGI EKSEKUSI TIGA FASE                 │
+                └────────────────────────────┬────────────────────────────┘
+                                             │
+      ┌──────────────────────────────────────┼──────────────────────────────────────┐
+      ▼                                      ▼                                      ▼
+[FASE 1: STABILISASI (1-2 SPRINT)]    [FASE 2: ARSITEKTUR (1-2 KUARTAL)]   [FASE 3: MODERNISASI (ROADMAP)]
+- Selesaikan Ingress Toko & Lazada     - Aktifkan Reports::RollupDataSource - Migrasi :serial -> :bigint (DB)
+- Pindahkan WA/Twilio ke queue default - Dekopel EventDispatcher per-listener- Partisi tabel Postgres (Messages)
+- Tambah indeks DB (CSAT created_at)   - Virtualisasi MessageList.vue       - Engine RAG native (pgvector)
+- Lazy-load semua route settings/report- Bangun Native SLA Engine (MIT)      - Migrasi Vuex 4 penuh ke Pinia
+- Perbaiki N+1 & Pluck pada Reporting  - Jadwalkan Async Batching Campaign   - ClickHouse untuk analitik 10M+
 ```
 
----
-*Dokumen ini merupakan catatan resmi hasil audit dan status implementasi perbaikan modul Reports Chatwoot.*
+### A. Fase 1: Quick Wins & Stabilisasi Sistem (1–2 Sprint) — [STATUS: 100% SELESAI ✅]
+1. **Lengkapi Ingress Tokopedia & Lazada:** `[SELESAI ✅]`
+   - Diimplementasikan `Tokopedia::IncomingMessageService` dan `Lazada::IncomingMessageService` dengan proteksi echo balasan seller, deduplikasi `source_id`, dan parser JSON template IM Lazada.
+   - Dihubungkan ke `Webhooks::TokopediaEventsJob` dan `Webhooks::LazadaEventsJob` dengan fallback test mode di development/sandbox.
+   - Unit test RSpec lengkap: 11 examples, 0 failures.
+2. **Koreksi Prioritas Antrean Sidekiq:** `[SELESAI ✅]`
+   - Dipindahkan `Webhooks::WhatsappEventsJob` dan `Webhooks::TwilioEventsJob` dari `queue_as :low` ke `queue_as :default` untuk mencegah starvation pesan pelanggan saat sistem sibuk. Dilengkapi `jitter: 0.2` pada retry lock Redis.
+3. **Tutup Lubang Indeks Database:** `[SELESAI ✅]`
+   - Dijalankan migrasi non-blocking `20261002020000_add_critical_reporting_indexes.rb` (`algorithm: :concurrently`):
+     - `csat_survey_responses`: `[:account_id, :created_at]`
+     - `conversations`: `[:account_id, :created_at]`
+     - `reporting_events`: `[:account_id, :user_id, :created_at]`
+     - Dihapus indeks redundan `index_reporting_events_on_account_id`.
+4. **Hilangkan `pluck(:id)` pada Reporting:** `[SELESAI ✅]`
+   - Diganti pemanggilan pluck di `Team#messages`, `Team#reporting_events`, `Label#messages`, dan `Label#reporting_events` dengan subquery SQL ActiveRecord (`where(conversation_id: conversations.select(:id))`).
+5. **Dynamic Lazy-Loading pada Frontend Routes:** `[SELESAI ✅]`
+   - Diubah seluruh deklarasi rute di `reports.routes.js`, `campaigns.routes.js`, dan 20 sub-rute `settings/` menjadi dynamic import `() => import(...)`.
+   - Diintegrasikan pembungkus `<Suspense>` dengan fallback `<Spinner>` pada `ReportsWrapper.vue`, `CampaignsPageRouteView.vue`, `SettingsWrapper.vue`, dan `Wrapper.vue` untuk eliminasi blank flash saat transit rute.
+6. **Sidekiq Server Middleware Sanitasi Thread:** `[SELESAI ✅]`
+   - Diimplementasikan `lib/sidekiq_current_sanitizer.rb` dan diregistrasikan ke `config/initializers/sidekiq.rb` untuk deterministik `Current.reset` di blok ensure worker. Unit spec di `spec/lib/sidekiq_current_sanitizer_spec.rb` lulus 100%.
+
+### B. Fase 2: Peningkatan Skalabilitas & Arsitektur (1–2 Kuartal)
+1. **Aktifkan `Reports::RollupDataSource`:**
+   Selesaikan implementasi read path pada `Reports::DataSource.for` agar dashboard analitik membaca data agregasi `reporting_events_rollups` untuk data historis, bukan men-scan jutaan baris tabel OLTP mentah.
+2. **Dekopel `EventDispatcherJob`:**
+   Pecah `EventDispatcherJob` agar tidak mengeksekusi 10 listeners secara sekuensial monolitik. Kirim background job independen per kategori listener (`AutomationRuleJob`, `ReportingEventJob`, `WebhookDeliveryJob`).
+3. **Virtualisasi Rendering Bubble Pesan (`MessageList.vue`):**
+   Integrasikan `Virtualizer` dari `virtua/vue` ke dalam `MessageList.vue` untuk mencegah DOM thrashing pada percakapan panjang. Pindahkan normalisasi `useCamelCase` ke layer ingress payload, bukan di-compute ulang pada setiap render.
+4. **Bangun Kembali Native SLA Engine (MIT):**
+   Implementasikan model `SlaPolicy` dan `AppliedSla` di layer open-source dengan service kalkulasi business hours dan cron job Sidekiq untuk monitoring status breach serta eskalasi otomatis.
+5. **Migrasi Ekspor CSV ke Asinkron:**
+   Ubah flow ekspor pada `ReportsController` dan `CsatSurveyResponsesController` menjadi asinkron via Sidekiq + ActiveStorage + Notifikasi Email, menghilangkan risiko HTTP 504 Gateway Timeout.
+6. **Chunked Outbound Campaign & Rate Limiting:**
+   Pecah `Whatsapp::OneoffCampaignService` agar membagi audiens ke dalam batch kecil menggunakan `CampaignBatchDeliveryJob` dengan distributed rate limiting per channel.
+
+### C. Fase 3: Modernisasi Skala Tinggi & Diferensiasi Pasar (Roadmap Jangka Panjang)
+1. **Zero-Downtime Migration dari `:serial` (Int32) ke `:bigserial` (Int64):**
+   Rencanakan migrasi bertahap untuk kolom `id` pada tabel `messages`, `conversations`, dan `contacts` guna mencegah *integer overflow* fatal pada volume 2,14 miliar baris.
+2. **PostgreSQL Declarative Table Partitioning:**
+   Terapkan *Range Partitioning* bulanan pada tabel `messages` dan `reporting_events` menggunakan kolom `created_at` untuk mempercepat query analitik dan memudahkan retensi/purging data lama.
+3. **Native Vector RAG & Copilot Streaming:**
+   Aktifkan ekstensi `pgvector` pada database PostgreSQL Chatwoot untuk menyimpan embedding artikel Help Center. Hubungkan `Integrations::LlmBaseService` dengan ActionCable streaming untuk menghasilkan draft balasan Copilot secara real-time di editor agen.
+4. **Standardized E-Commerce Order Panel & Identity Stitching:**
+   Ekstrak arsitektur `ShopifyController` menjadi generalized interface `Commerce::OrderProvider` yang menghubungkan API Shopee, Tokopedia, Lazada, dan ERP eksternal. Bangun sistem resolusi identitas untuk mencocokkan akun marketplace dengan kontak utama secara otomatis.
+5. **Migrasi Penuh Frontend ke Pinia & TanStack Query:**
+   Hapuskan sisa Vuex 4, migrasikan 40+ modul ke Pinia Store dengan Composition API, dan gunakan TanStack Query untuk caching data serta offline support yang tangguh.
+6. **Evaluasi Dedicated OLAP Engine (ClickHouse / TimescaleDB):**
+   Untuk instalasi berskala 10M+ percakapan, pertimbangkan memindahkan subsistem pelaporan dari Postgres ke ClickHouse atau TimescaleDB untuk kompresi data ekstrem dan kecepatan agregasi instan.

@@ -1,9 +1,9 @@
 class Webhooks::WhatsappEventsJob < MutexApplicationJob
-  queue_as :low
+  queue_as :default
   # Retry budget (19 × 2s = 38s) must exceed the 30s lock TTL set in `perform`, otherwise
   # a webhook that arrives just after the lock is acquired can exhaust retries before the
-  # holder finishes and silently drop its message.
-  retry_on LockAcquisitionError, wait: 2.seconds, attempts: 20
+  # holder finishes and silently drop its message. Jitter prevents thundering-herd collisions.
+  retry_on LockAcquisitionError, wait: 2.seconds, attempts: 20, jitter: 0.2
 
   def perform(params = {})
     channel = find_channel_from_whatsapp_business_payload(params)
@@ -181,4 +181,3 @@ class Webhooks::WhatsappEventsJob < MutexApplicationJob
     ).perform
   end
 end
-

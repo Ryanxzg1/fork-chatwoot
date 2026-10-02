@@ -39,11 +39,11 @@ class Label < ApplicationRecord
   end
 
   def messages
-    account.messages.where(conversation_id: conversations.pluck(:id))
+    account.messages.where(conversation_id: conversations.select(:id))
   end
 
   def reporting_events
-    account.reporting_events.where(conversation_id: conversations.pluck(:id))
+    account.reporting_events.where(conversation_id: conversations.select(:id))
   end
 
   private
